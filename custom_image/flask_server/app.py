@@ -8,9 +8,9 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'sckey'  # Needed for session management and flash messages
-app.config['UPLOAD_FOLDER_ADMIN'] = '/opt/airflow/storage/admin'  # 업로드 파일을 저장할 서버 내 경로
-app.config['UPLOAD_FOLDER_RA'] = '/opt/airflow/storage/RA'  # 업로드 파일을 저장할 서버 내 경로
-app.config['UPLOAD_FOLDER_TMP'] = '/opt/airflow/storage/tmp'  # 업로드 파일을 저장할 서버 내 경로
+app.config['UPLOAD_FOLDER_ADMIN'] = os.getenv('UPLOAD_FOLDER_ADMIN')  # 업로드 파일을 저장할 서버 내 경로
+app.config['UPLOAD_FOLDER_RA'] = os.getenv('UPLOAD_FOLDER_RA')  # 업로드 파일을 저장할 서버 내 경로
+app.config['UPLOAD_FOLDER_TMP'] = os.getenv('UPLOAD_FOLDER_TMP')  # 업로드 파일을 저장할 서버 내 경로
 # app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 최대 파일 크기 제한(예: 16MB)
 
 
