@@ -4,3 +4,4 @@ test.ipynb
 .DS_Store
 .idea/
 files/
+.env
