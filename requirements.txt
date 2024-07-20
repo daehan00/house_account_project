@@ -1,0 +1,13 @@
+pandas
+openpyxl
+xlwings
+flask
+pendulum
+python-dotenv
+flask-sqlalchemy
+flask-migrate
+flask-script
+psycopg2-binary
+flask-swagger
+flasgger
+requests

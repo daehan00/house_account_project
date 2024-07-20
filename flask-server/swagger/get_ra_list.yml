@@ -1,0 +1,13 @@
+tags:
+  - RA List
+summary: Get all RA entries
+description: Retrieves a list of RA entries.
+produces:
+  - application/json
+responses:
+  200:
+    description: A list of RA entries
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/RAData'

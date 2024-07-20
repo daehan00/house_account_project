@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RAs</title>
+    <script src="{{ url_for('static', filename='js/functions.js') }}"></script>
+    <script>
+        window.onload = function() {
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                alert("{{ message }}");
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+        }
+    </script>
+</head>
+<body>
+    <h1>Accounting System RA User</h1>
+    <ul>
+        <li><input type="button" value="영수증 제출" onclick="location.href='/post_reciept'"></li>
+        <li>
+            <h3>영수증 제출 내역 확인(본인)</h3>
+            <table></table>
+        </li>
+        <li><h3>파일 제출</h3>
+            <form action="/upload/ra" method="post" enctype="multipart/form-data">
+                <label for="file">Upload File:</label>
+                <input type="file" id="file" name="file" required>
+                <br><br>
+                <input type="submit" value="Upload">
+            </form>
+        </li>
+
+    </ul>
+</body>
+</html>

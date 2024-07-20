@@ -1,0 +1,20 @@
+get:
+tags:
+  - RA List
+summary: "Get specific RA information"
+description: "Retrieves information of a specific RA identified by user_id."
+parameters:
+  - name: "user_id"
+    in: "path"
+    required: true
+    description: "Unique identifier of the RA"
+    type: "integer"
+produces:
+  - "application/json"
+responses:
+  200:
+    description: "Successful retrieval of RA information"
+    schema:
+      $ref: '#/definitions/RAData'
+  404:
+    description: "RA not found"

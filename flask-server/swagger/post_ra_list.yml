@@ -1,0 +1,42 @@
+tags:
+  - RA List
+summary: Create a new RA entry
+description: Adds a new entry to the RA list.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    description: RA data to create
+    required: true
+    schema:
+      $ref: '#/definitions/RAData'
+responses:
+  201:
+    description: New RA registered
+    schema:
+      $ref: '#/definitions/RAData'
+  400:
+    description: Bad request, data validation error or missing fields
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Missing required fields
+        message:
+          type: string
+          example: Required fields are user_id, user_name, user_num, email_address, year, semester, house_name
+  500:
+    description: Internal server error
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Unexpected error
+        message:
+          type: string
+          example: Details of the server error
