@@ -1,0 +1,15 @@
+tags:
+  - RA List
+summary: Delete a specific RA entry
+description: Deletes an RA entry by user ID.
+parameters:
+  - name: user_id
+    in: path
+    required: true
+    type: integer
+    description: The user ID of the RA entry to delete.
+responses:
+  204:
+    description: RA entry deleted
+  404:
+    description: RA not found

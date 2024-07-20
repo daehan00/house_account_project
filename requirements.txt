@@ -1,0 +1,5 @@
+pendulum
+flask
+pgadmin4
+postgresqlite
+psycopg2-binary

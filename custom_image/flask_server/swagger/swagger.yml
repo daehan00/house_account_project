@@ -1,0 +1,47 @@
+swagger: '2.0'
+info:
+  title: Accounting System API
+  description: API for Accounting System
+  version: "1.0.0"
+schemes:
+  - http
+basePath: /api
+definitions:
+  RAData:
+    type: object
+    required:
+      - user_id
+      - user_name
+      - user_num
+      - email_address
+      - year
+      - semester
+      - house_name
+    properties:
+      user_id:
+        type: integer
+        description: The unique identifier for the RA.
+      user_name:
+        type: string
+        description: The name of the RA.
+      user_num:
+        type: string
+        description: The contact number of the RA.
+      division_num:
+        type: integer
+        description: The division number of the RA, if applicable.
+      email_address:
+        type: string
+        description: The email address of the RA.
+      year:
+        type: integer
+        description: The academic year of the RA.
+      semester:
+        type: boolean
+        description: True if the semester is spring, false if fall.
+      house_name:
+        type: string
+        description: The name of the house or dormitory.
+      authority:
+        type: boolean
+        description: True if Head RA or Accounting RA

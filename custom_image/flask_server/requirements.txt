@@ -1,0 +1,8 @@
+Flask
+flasgger
+pytz
+python-dotenv
+flask-sqlalchemy
+psycopg2-binary
+flask-swagger
+pandas

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin</title>
+    <script src="{{ url_for('static', filename='js/functions.js') }}"></script>
+    <script>
+        window.onload = function() {
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                alert("{{ message }}");
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+        }
+    </script>
+</head>
+<body>
+    <h1>Accounting System Admin</h1>
+    <p><form action="/upload/admin" method="post" enctype="multipart/form-data">
+        <label for="file">Upload File:</label>
+        <input type="file" id="file" name="file" required>
+        <br><br>
+        <input type="submit" value="Upload">
+    </form></p>
+    <input type="button" value="Logout" onclick="logoutUser()">
+</body>
+</html>

@@ -1,0 +1,27 @@
+tags:
+  - RA List
+summary: Update a specific RA entry
+description: Updates an existing RA entry.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - name: user_id
+    in: path
+    required: true
+    type: integer
+    description: The user ID of the RA entry to update.
+  - in: body
+    name: body
+    description: RA data to update
+    required: true
+    schema:
+      $ref: '#/definitions/RAData'
+responses:
+  200:
+    description: RA entry updated
+    schema:
+      $ref: '#/definitions/RAData'
+  404:
+    description: RA not found

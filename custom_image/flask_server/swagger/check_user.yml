@@ -1,0 +1,29 @@
+tags:
+  - User
+summary: Check if user exists
+description: Returns user existence status by user_id
+parameters:
+  - name: user_id
+    in: path
+    required: true
+    type: integer
+    description: The user ID to check for existence
+responses:
+  200:
+    description: User exists
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+        exists:
+          type: boolean
+  404:
+    description: User does not exist
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+        exists:
+          type: boolean

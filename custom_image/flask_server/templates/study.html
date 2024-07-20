@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Project</title>
+    <script src="{{ url_for('static', filename='js/functions.js') }}"></script>
+    <style>
+        note {
+            font-weight: bold;
+        }
+        .js {
+            text-decoration-line: underline;
+        }
+        #house {
+            color: green;
+        }
+    </style>
+    <script>
+        function nightDayShift(button) {
+            // Define your nightDayShift function here if needed.
+        }
+    </script>
+</head>
+<body>
+    <input type="button" value="night" onclick="nightDayShift(this)">
+    <br>
+    <h1 style="color:black;background-color:salmon">Project</h1>
+    <p>
+    <h3>Study</h3>
+        <ol>
+            <li><a href="https://opentutorials.org/course/3084" target="_blank" title="생활코딩 강좌 링크">HTML</a><br>
+            웹페이지 생성의 기초 언어. 웹의 본질적인 부분이다.
+            </li>
+            <li><a href="https://opentutorials.org/course/3085/18868" target="_blank" title="생활코딩 강좌 링크">JavaScript</a><br>
+            사용자와 상호작용하는 웹페이지를 만드는 과정이다.
+            </li>
+            <li><a href="https://opentutorials.org/course/4904" target="_blank" title="생활코딩 강좌 링크">Flask</a></li>
+            <li><a href="https://airflow.apache.org/docs/apache-airflow/stable/index.html" target="_blank" title="Airflow Documentation">airflow</a></li>
+            <li>postgreSQL</li>
+        </ol>
+    </p>
+    <p>
+        <h3>For</h3>
+        <ul>
+            <li>RM</li>
+            <li><input type="button" value="선임/회계 RA" onclick="verifyPassword(goToAdmin)"></li>
+            <li><input type="button" value="일반 RA" onclick="location.href='/post_reciept'"></li>
+        </ul>
+        위 사용자들이 회계 처리에 있어서 시간 소요와 불편함을 덜고, RC교육 자체에 더욱 관심을 가질 수 있도록 하기 위함이다.<br>
+        특히, 회계RA와 선임RA의 <note class="js">불필요한 업무 소요의 감축</note> 주요 목표이다.<br>
+        모든 하우스에서 사용할 수 있는 <note class="js">범용 시스템 구축</note>을 목표로 한다.
+    </p>
+    <p>
+        <h3>Description</h3>
+        hello world<br>
+        I am DH KIM, and I'm gonna make <note id="house">AVISON HOUSE Accounting System.</note><br>
+        let's do it!<br>
+    </p>
+    <input type="checkbox">데이터 입력 : <input type="text" onchange="alert('changed')">
+    <input type="button" value="누르세요" onclick="alert('알림')"><br>
+    <input type="number" onchange="alert('입력 완료')">
+    <p>
+        <h3>RAs</h3>
+        <ul>
+        <script>
+            var ras = {
+                '선임':'조현아',
+                '부선임':'박지영',
+                '회계':'김대한',
+                '디자인':'김효정'
+            };
+            for (var key in ras) {
+                document.write('<li>' + key + ' RA: ' + ras[key] + '</li>');
+            }
+        </script>
+        </ul>
+    </p>
+    <input type="button" value="night" onclick="nightDayShift(this)">
+</body>
+</html>
