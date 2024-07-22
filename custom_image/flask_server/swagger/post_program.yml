@@ -1,0 +1,12 @@
+tags:
+  - Program List
+summary: "Create a new program entry"
+description: "Creates a new entry in the program list table with details provided in the request body. Required fields include program_id, program_name, house_name, year, semester, and year_semester_house. The register_check field is optional."
+parameters:
+  - in: body
+    name: program
+    schema:
+      $ref: '#/definitions/ProgramData'
+responses:
+  201:
+    description: A new program was created

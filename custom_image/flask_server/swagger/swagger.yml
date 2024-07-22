@@ -37,11 +37,40 @@ definitions:
         type: integer
         description: The academic year of the RA.
       semester:
-        type: boolean
-        description: True if the semester is spring, false if fall.
+        type: integer
+        description: 1 if the semester is spring, 2 if fall.
       house_name:
         type: string
         description: The name of the house or dormitory.
       authority:
         type: boolean
         description: True if Head RA or Accounting RA
+  ProgramData:
+    type: object
+    required:
+      - program_id
+      - program_name
+      - house_name
+      - year
+      - semester
+      - year_semester_house
+    properties:
+      program_id:
+        type: string
+        description: year-semester-housecode-serialnumber
+      program_name:
+        type: string
+        description: Program name
+      house_name:
+        type: string
+        description: house code in english
+      year:
+        type: integer
+      semester:
+        type: integer
+      register_check:
+        type: boolean
+        description: if the program registered at first
+      year_semester_house:
+        type: string
+        description: 색인을 위한 코드.

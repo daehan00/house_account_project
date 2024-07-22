@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from datetime import datetime
 from pytz import timezone
-from utils import template, upload_file, register_ra_list
+from utils import template, upload_file, register_ra_list, register_program_list
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -11,6 +11,7 @@ app.secret_key = 'sckey'  # Needed for session management and flash messages
 app.config['UPLOAD_FOLDER_ADMIN'] = os.getenv('UPLOAD_FOLDER_ADMIN')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_RA'] = os.getenv('UPLOAD_FOLDER_RA')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_TMP'] = os.getenv('UPLOAD_FOLDER_TMP')  # 업로드 파일을 저장할 서버 내 경로
+app.config['UPLOAD_FOLDER_MANAGER'] = os.getenv('UPLOAD_FOLDER_MANAGER')
 # app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 최대 파일 크기 제한(예: 16MB)
 
 
@@ -68,6 +69,11 @@ def handle_register_ra_list():
     set_data = request.form.to_dict()
     set_data['authority'] = False
     return register_ra_list(set_data, app.config["UPLOAD_FOLDER_TMP"], url_for("manager"))
+
+@app.route('/register_program', methods=['GET', 'POST'])
+def handle_register_program():
+    set_data = request.form.to_dict()
+    return register_program_list(set_data, app.config["UPLOAD_FOLDER_TMP"], url_for("manager"))
 
 @app.route('/manager/process_accounting', methods=['POST'])
 def process_accounting():

@@ -1,0 +1,13 @@
+tags:
+  - Program List
+summary: "Delete programs by year, semester, and house"
+description: "Deletes all program entries that match the specified year_semester_house key. This key is a composite of the year, semester, and house name, identifying groups of programs scheduled together."
+parameters:
+  - in: query
+    name: year_semester_house
+    type: string
+    required: true
+    description: The composite key to identify the records to delete
+responses:
+  200:
+    description: Programs deleted successfully

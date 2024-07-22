@@ -11,8 +11,9 @@
         <li>
             <h3>초기 설정</h3>
             <ol>
-                <li>RA명단 등록</li>
-                <li>프로그램 명단 등록</li>
+                <li>RA명단 등록<input type="button" value="등록" onclick="showRAListForm()">
+</li>
+                <li>프로그램 명단 등록<input type="button" value="등록" onclick="loadProgramRegistrationForm()"></li>
             </ol>
             <p>
                 <form action="/upload/manager" method="post" enctype="multipart/form-data">

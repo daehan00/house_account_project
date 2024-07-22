@@ -2,3 +2,4 @@
 .idea/
 logs/
 custom_image/flask_server/__pycache__/
+test.ipynb

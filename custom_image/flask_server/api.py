@@ -107,5 +107,51 @@ def get_ra(user_id):
     ra = RAList.query.get_or_404(user_id)
     return jsonify(ra.to_dict()), 200
 
+class Program(db.Model):
+    program_id = db.Column(db.Text, primary_key=True)
+    program_name = db.Column(db.Text, nullable=False)
+    house_name = db.Column(db.Text, nullable=False)
+    year = db.Column(db.Integer, nullable=False)
+    semester = db.Column(db.Integer, nullable=False)
+    register_check = db.Column(db.Boolean)
+    year_semester_house = db.Column(db.Text, nullable=False)
+
+    def to_dict(self):
+        return {
+            "program_id": self.program_id,
+            "program_name": self.program_name,
+            "house_name": self.house_name,
+            "year": self.year,
+            "semester": self.semester,
+            "register_check": self.register_check,
+            "year_semester_house": self.year_semester_house
+        }
+
+@app.route('/api/program', methods=['POST'])
+@swag_from('swagger/post_program.yml', methods=['POST'])
+def create_program():
+    data = request.get_json()
+    new_program = Program(
+        program_id=data['program_id'],
+        program_name=data['program_name'],
+        house_name=data['house_name'],
+        year=data['year'],
+        semester=data['semester'],
+        register_check=data.get('register_check', True),
+        year_semester_house=data['year_semester_house']
+    )
+    db.session.add(new_program)
+    db.session.commit()
+    return jsonify(new_program.to_dict()), 201
+
+@app.route('/api/program', methods=['DELETE'])
+@swag_from('swagger/delete_program.yml', methods=['DELETE'])
+def delete_program():
+    year_semester_house = request.args.get('year_semester_house')
+    Program.query.filter_by(year_semester_house=year_semester_house).delete()
+    db.session.commit()
+    return jsonify({"message": "Programs deleted"}), 200
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)

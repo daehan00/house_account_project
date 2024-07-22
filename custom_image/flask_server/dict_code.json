@@ -1,0 +1,126 @@
+{
+  "house_names": [
+    {
+      "kor_name": "에비슨",
+      "en_name": "AVISON"
+    },
+    {
+      "kor_name": "한결",
+      "en_name": "EVERGREEN"
+    },
+    {
+      "kor_name": "이원철",
+      "en_name": "WONCHUL"
+    },
+    {
+      "kor_name": "언더우드",
+      "en_name": "UNDERWOOD"
+    },
+    {
+      "kor_name": "윤동주",
+      "en_name": "YUN DONG-JOO"
+    },
+    {
+      "kor_name": "무악",
+      "en_name": "MUAK"
+    },
+    {
+      "kor_name": "치원",
+      "en_name": "CHI WON"
+    },
+    {
+      "kor_name": "백양",
+      "en_name": "BAEK YANG"
+    },
+    {
+      "kor_name": "청송",
+      "en_name": "CHEONGSONG"
+    },
+    {
+      "kor_name": "용재",
+      "en_name": "YONGJAE"
+    },
+    {
+      "kor_name": "알렌",
+      "en_name": "ALLEN"
+    },
+    {
+      "kor_name": "아펜젤러",
+      "en_name": "APPENZELLER"
+    }
+  ],
+  "category_expenses": [
+    {
+      "kor_name": "운영비",
+      "en_name": "Operational Expenses",
+      "description": {
+        "en": "Includes costs for operational supplies, equipment rental, and venue rental. Non-consumable items only.",
+        "kor": "비품 대여 및 장소 대관 등 운영에 필요한 비용을 포함합니다. 소모품 제외."
+      }
+    },
+    {
+      "kor_name": "RA회의비",
+      "en_name": "RA Meeting Expenses",
+      "description": {
+        "en": "Budget for regular operational meetings, adjusted by the number of RC students.",
+        "kor": "RC 학생 수에 따라 조정되는 정례 운영 회의의 예산입니다."
+      }
+    },
+    {
+      "kor_name": "기념품비",
+      "en_name": "Gifts Expense",
+      "description": {
+        "en": "Costs for purchasing five or more identical items, with a requirement to maintain a gift log.",
+        "kor": "5개 이상의 동일한 품목을 구매하는 비용으로, 기념품 지급대장 유지가 요구됩니다."
+      }
+    },
+    {
+      "kor_name": "상품비",
+      "en_name": "Merchandise Expense",
+      "description": {
+        "en": "Costs for purchasing up to four items, each under a specific price limit.",
+        "kor": "각각 특정 가격 이하의 4개 이하 상품 구입 비용입니다."
+      }
+    },
+    {
+      "kor_name": "소모품비",
+      "en_name": "Supplies Expense",
+      "description": {
+        "en": "Costs for consumable materials needed for program operations.",
+        "kor": "프로그램 운영에 필요한 소모성 재료 비용입니다."
+      }
+    },
+    {
+      "kor_name": "인건비",
+      "en_name": "Labor Costs",
+      "description": {
+        "en": "Payments for services provided by professors and experts, based on a 2-hour session.",
+        "kor": "2시간 기준 교수 및 전문가 서비스 제공에 대한 지급 비용입니다."
+      }
+    },
+    {
+      "kor_name": "식비/간식비",
+      "en_name": "Meals and Refreshments Expense",
+      "description": {
+        "en": "Costs for meals, snacks, and beverages.",
+        "kor": "식사, 간식 및 음료 구입 비용입니다."
+      }
+    },
+    {
+      "kor_name": "인쇄비",
+      "en_name": "Printing Costs",
+      "description": {
+        "en": "Expenses for printing materials like books, posters, photo printing, and binding.",
+        "kor": "도서, 포스터, 사진 인화 및 제본 등 인쇄물 제작 비용입니다."
+      }
+    },
+    {
+      "kor_name": "예비비",
+      "en_name": "Contingency Funds",
+      "description": {
+        "en": "Funds used for unforeseen expenses or events, such as RC Olympic event prizes.",
+        "kor": "RC 올림픽 경기 상금 등 예상치 못한 비용이나 행사에 사용되는 기금입니다."
+      }
+    }
+  ]
+}

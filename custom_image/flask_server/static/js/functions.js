@@ -115,3 +115,108 @@ function submitAccountingForm() {
     })
     .catch(error => console.error('Error:', error));
 }
+
+function showRAListForm() {
+    var formOverlay = document.createElement('div');
+    formOverlay.id = 'formOverlay';
+    formOverlay.style.position = 'fixed';
+    formOverlay.style.left = '0';
+    formOverlay.style.top = '0';
+    formOverlay.style.width = '100%';
+    formOverlay.style.height = '100%';
+    formOverlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    formOverlay.style.display = 'flex';
+    formOverlay.style.justifyContent = 'center';
+    formOverlay.style.alignItems = 'center';
+    formOverlay.style.zIndex = '1000';
+
+    fetch('/opt/airflow/custom_image/flask_server/dict_code.json')  // Update the path to where your JSON file is located
+        .then(response => response.json())
+        .then(data => {
+            var houseOptions = data.house_names.map(house => `<option value="${house.en_name}">${house.kor_name}</option>`).join('');
+
+            var formContent = `
+                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.5);">
+                    <h2>RA List Registration</h2>
+                    <form action="/register_ra_list" method="post">
+                        <label for="semester">Semester:</label>
+                        <select id="semester" name="semester" required>
+                            <option value=1>Spring</option>
+                            <option value=2>Fall</option>
+                        </select><br><br>
+                        <label for="year">Year:</label>
+                        <input type="number" id="year" name="year" min="2000" max="2099" step="1" value="${new Date().getFullYear()}" required><br><br>
+                        <label for="house_name">House Name:</label>
+                        <select id="house_name" name="house_name" required>
+                            ${houseOptions}
+                        </select><br><br>
+                        <input type="submit" value="Submit">
+                        <button type="button" onclick="closeForm()">Cancel</button>
+                    </form>
+                </div>
+            `;
+            formOverlay.innerHTML = formContent;
+            document.body.appendChild(formOverlay);
+        })
+        .catch(error => {
+            console.error('Error fetching house names:', error);
+        });
+
+    window.closeForm = function() {
+        document.body.removeChild(formOverlay);
+    };
+}
+
+function loadProgramRegistrationForm() {
+    var formOverlay = document.createElement('div');
+    formOverlay.id = 'formOverlay';
+    formOverlay.style.position = 'fixed';
+    formOverlay.style.left = '0';
+    formOverlay.style.top = '0';
+    formOverlay.style.width = '100%';
+    formOverlay.style.height = '100%';
+    formOverlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    formOverlay.style.display = 'flex';
+    formOverlay.style.justifyContent = 'center';
+    formOverlay.style.alignItems = 'center';
+    formOverlay.style.zIndex = '1000';
+
+    fetch('/opt/airflow/custom_image/flask_server/dict_code.json\'')  // Ensure this path is correct
+        .then(response => response.json())
+        .then(data => {
+            var houseOptions = data.house_names.map(house => `<option value="${house.en_name}">${house.kor_name}</option>`).join('');
+
+            var formContent = `
+                <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.5);">
+                    <h2>Program Registration</h2>
+                    <form action="/register_program" method="post">
+                        <label for="house_code">House:</label>
+                        <select id="house_code" name="house_code" required>
+                            ${houseOptions}
+                        </select><br><br>
+                        <label for="year">Year:</label>
+                        <input type="number" id="year" name="year" min="2000" max="2099" step="1" value="${new Date().getFullYear()}" required><br><br>
+                        <label for="semester">Semester:</label>
+                        <select id="semester" name="semester" required>
+                            <option value=1>Spring</option>
+                            <option value=2>Fall</option>
+                        </select><br><br>
+                        <input type="submit" value="Submit">
+                        <button type="button" onclick="closeForm()">Cancel</button>
+                    </form>
+                </div>
+            `;
+
+            formOverlay.innerHTML = formContent;
+            document.body.appendChild(formOverlay);
+        })
+        .catch(error => {
+            console.error('Failed to load house names:', error);
+            formOverlay.innerHTML = '<p>Error loading form!</p>';
+            document.body.appendChild(formOverlay);
+        });
+
+    window.closeForm = function() {
+        document.body.removeChild(formOverlay);
+    };
+}
