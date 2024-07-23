@@ -21,7 +21,7 @@ def template(title, contents):
 
 def load_dict_code():
     try:
-        with open('/opt/airflow/custom_image/flask_server/dict_code.json', 'r', encoding='utf-8') as file:
+        with open('/app/static/data/dict_code.json', 'r', encoding='utf-8') as file:
             data = json.load(file)
             return data
     except FileNotFoundError:

@@ -39,7 +39,7 @@ def init(postgres_conn_id, **kwargs):
                 division_num INTEGER,
                 email_address TEXT NOT NULL,
                 year INTEGER NOT NULL,
-                semester BOOLEAN NOT NULL,
+                semester integer NOT NULL,
                 house_name TEXT NOT NULL,
                 authority BOOLEAN DEFAULT false
             );"""
@@ -71,7 +71,7 @@ def init(postgres_conn_id, **kwargs):
     # 데이터 삽입
     try:
         cur.execute(create_program_list_table)
-        # cur.execute(create_ra_list_table)
+        cur.execute(create_ra_list_table)
         # cur.execute(create_category_list_table)
 
 

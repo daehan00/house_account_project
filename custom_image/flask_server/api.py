@@ -15,6 +15,7 @@ database = os.getenv("DATABASE_NAME")
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{username}:{password}@{host}/{database}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")  # CSRF 보호를 위한 비밀 키
 
 db = SQLAlchemy(app)
 swagger = Swagger(app, template_file='swagger/swagger.yml')
@@ -154,4 +155,4 @@ def delete_program():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)

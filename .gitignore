@@ -1,5 +1,6 @@
 .env
 .idea/
 logs/
-custom_image/flask_server/__pycache__/
 test.ipynb
+dags/__pycache__/
+custom_image/flask_server/__pycache__/

@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <title>Manager Page</title>
     <script src="{{ url_for('static', filename='js/functions.js') }}"></script>
+    <script>
+        window.onload = function() {
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                alert("{{ message }}");
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+        }
+    </script>
 </head>
 <body>
   <h1>Manager Page</h1>
@@ -11,9 +22,8 @@
         <li>
             <h3>초기 설정</h3>
             <ol>
-                <li>RA명단 등록<input type="button" value="등록" onclick="showRAListForm()">
-</li>
-                <li>프로그램 명단 등록<input type="button" value="등록" onclick="loadProgramRegistrationForm()"></li>
+                <li>RA명단 등록<input type="button" value="등록" onclick="showForm('RA List Registration');"></li>
+                <li>프로그램 명단 등록<input type="button" value="등록" onclick="showForm('Program Registration');"></li>
             </ol>
             <p>
                 <form action="/upload/manager" method="post" enctype="multipart/form-data">

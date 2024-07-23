@@ -5,4 +5,7 @@ python-dotenv
 flask-sqlalchemy
 psycopg2-binary
 flask-swagger
+Flask-WTF
 pandas
+requests
+openpyxl

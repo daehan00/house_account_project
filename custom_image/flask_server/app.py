@@ -7,13 +7,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'sckey'  # Needed for session management and flash messages
+secret_key = os.getenv("SECRET_KEY")
+app.secret_key = secret_key  # Needed for session management and flash messages
 app.config['UPLOAD_FOLDER_ADMIN'] = os.getenv('UPLOAD_FOLDER_ADMIN')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_RA'] = os.getenv('UPLOAD_FOLDER_RA')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_TMP'] = os.getenv('UPLOAD_FOLDER_TMP')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_MANAGER'] = os.getenv('UPLOAD_FOLDER_MANAGER')
 # app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 최대 파일 크기 제한(예: 16MB)
-
 
 @app.route("/", methods=["GET"])
 def home():
@@ -95,6 +95,7 @@ def handle_upload_ra():
 
     return upload_file(app.config["UPLOAD_FOLDER_RA"], url_for("ra"))
 
+
 @app.route("/post_reciept", methods=['GET', 'POST'])
 def post_reciept():
     if request.method == 'GET':
@@ -121,8 +122,9 @@ def post_reciept():
             form('text', '업체 선정 사유', 'placeholder', 'ex) 최저가 업체'),
             form('checkbox', 'isp 여부', 'placeholder', '')
         ]
-        contents = '''<main>영수증 입력 양식</main>
+        contents = f'''<main>영수증 입력 양식</main>
                         <form action="/post_reciept" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <table>
                                 <thead>
                                     <tr>
