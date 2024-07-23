@@ -1,11 +1,12 @@
 import time
-
 from flask import flash, redirect, request, session, url_for
 import os
 import requests
 import json
 import pandas as pd
 import re
+from dotenv import load_dotenv
+load_dotenv()
 
 def template(title, contents):
     return f'''<!doctype html>
@@ -23,7 +24,7 @@ def template(title, contents):
 
 def load_dict_code():
     try:
-        with open('/app/static/data/dict_code.json', 'r', encoding='utf-8') as file:
+        with open(os.getenv("JSON_PATH"), 'r', encoding='utf-8') as file:
             data = json.load(file)
             return data
     except FileNotFoundError:
@@ -42,16 +43,18 @@ def get_program_list(url, year_semester_house):
     }
 
     response = requests.get(url, headers=headers, params=params)
+    program_list = []
+
     if response.status_code == 200:
         data = response.json()
-        program_list = []
         for program in data:
             options = {"program_id":program['program_id'],
                        "program_name":program['program_name']}
             program_list.append(options)
         return program_list  # 반환 값은 JSON 데이터
     else:
-        return f"Error: {response.status_code}, {response.text}"
+        print(f"Error: {response.status_code}, {response.text}")
+        return program_list
 
 def get_house_code(house_name):
     # Open the JSON file and load data
@@ -78,6 +81,18 @@ def get_house_name(house_code):
     # Handle the case where the house name is not found
     print(f"Error: '{house_code}' not found in the list.")
     return None
+
+def get_category_expenses():
+    data = load_dict_code()
+    category = data['category_expenses']
+    new_category = [
+        {
+            'program_id': value['kor_name'],
+            'program_name': value['kor_name']
+        }
+        for value in category if 'kor_name' in value
+    ]
+    return new_category
 
 # 허용되는 파일 확장자 목록
 ALLOWED_EXTENSIONS = {'pdf', 'hwp', 'xlsx', 'xls'}
@@ -244,3 +259,69 @@ def register_program_list(set_data, data_dir, redirect_url):
 
     flash(f"작업 완료. 총 {len(success_list)}건 성공, {len(failure_list)}건 실패.")
     return redirect(redirect_url)
+
+def form(format, name, attribute, content, options=None):
+    if format == 'select':
+        return {'입력창': format, '항목명': name, 'options': options}
+    else:
+        return {'입력창': format, '항목명': name, 'attribute': attribute, 'content': content}
+
+def form_post_reciept(today, year_semester_house):
+    category_expenses = get_category_expenses()
+    url_program = os.getenv('URL_PROGRAM')
+    try:
+        program_list = get_program_list(url_program, year_semester_house)
+    except Exception as e:
+        flash(e)
+        return redirect("/ra")
+
+    form_list = [
+        form('text', '사용자명', 'placeholder', '홍길동'),
+        form('checkbox', '주말, 법정 공휴일 및 심야 사용 여부', '', ''),
+        form('select', '계정항목', 'placeholder', '', options=category_expenses),
+        form('select', '프로그램명', 'placeholder', '', options=program_list),
+        form('text', '구매 핵심 사유', 'placeholder', '운영물품 구매'),
+        form('text', '핵심 품목 및 수량', 'placeholder', '콜라 등 5종'),
+        form('text', '구매 내역(종류와 단가)', 'placeholder', ''),
+        form('number', '인원', 'min', '1'),
+        form('datetime-local', '결제일시', 'value', today),
+        form('number', '결제초', 'max', '99'),
+        form('number', '금액', 'placeholder', '숫자만'),
+        form('text', '가맹점명', 'placeholder', '영수증에 나온 그대로'),
+        form('checkbox', '기념품지급대장 작성여부', 'placeholder', ''),
+        form('checkbox', '분반 프로그램 여부', 'placeholder', ''),
+        form('number', '분반', 'max', '12'),
+        form('text', '업체 선정 사유', 'placeholder', 'ex) 최저가 업체'),
+        form('checkbox', 'isp 사용여부', 'placeholder', '')
+    ]
+    contents = '''<main>영수증 입력 양식</main>
+                            <form action="/ra/post_reciept" method="POST">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                          <th scope="col">항목명</th>
+                                          <th scope="col">입력</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>'''
+    for data in form_list:
+        if data['입력창'] == 'select':
+            option_html = ''.join(
+                [f'<option value="{opt["program_id"]}">{opt["program_name"]}</option>' for opt in data['options']])
+            contents += f'''<tr>
+                                                <th scope="row">{data['항목명']}</th>
+                                                <td><select name="{data['항목명']}">{option_html}</select></td>
+                                            </tr>'''
+        else:
+            contents = contents + f'''<tr>
+                                            <th scope="row">{data['항목명']}</th>
+                                            <td><input type="{data['입력창']}" name="{data['항목명']}" {data['attribute']}="{data['content']}"></td>
+                                        </tr>'''
+
+    contents = contents + '''</tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th scope="row" colspan="2"><input type="submit" value="제출"></th>
+                                        </tr>
+                                    </tfoot></table></form>'''
+    return template('영수증 입력', contents)

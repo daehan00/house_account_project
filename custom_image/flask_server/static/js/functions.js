@@ -74,44 +74,37 @@ function logoutUser() {
 
 // functions.js
 function showAccountingPopup() {
-    fetchCSRFToken().then(csrfToken => {
-        if (!csrfToken) {
-            console.error('CSRF token is missing.');
-            return;
-        }
-        // 팝업에 표시할 폼 생성
-        const formHtml = `
-            <form id="accountingForm" style="padding: 20px; background: white; border-radius: 5px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
-                <input type="hidden" name="csrf_token" value="${csrfToken}">
-                <label for="month">Month:</label>
-                <select id="month" name="month">
-                    <option value="1">January</option>
-                    <option value="2">February</option>
-                    <option value="3">March</option>
-                    <option value="4">April</option>
-                    <option value="5">May</option>
-                    <option value="6">June</option>
-                    <option value="7">July</option>
-                    <option value="8">August</option>
-                    <option value="9">September</option>
-                    <option value="10">October</option>
-                    <option value="11">November</option>
-                    <option value="12">December</option>
-                </select>
-                <label for="session">Session:</label>
-                <select id="session" name="session">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                </select>
-                <button type="button" onclick="submitAccountingForm()">Submit</button>
-                <button type="button" onclick="closePopup()">Close</button>
-            </form>
-            <div id="overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
-        `;
+    // 팝업에 표시할 폼 생성
+    const formHtml = `
+        <form id="accountingForm" style="padding: 20px; background: white; border-radius: 5px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+            <label for="month">월:</label>
+            <select id="month" name="month">
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+            <label for="session">회차:</label>
+            <select id="session" name="session">
+                <option value="1">1</option>
+                <option value="2">2</option>
+            </select>
+            <button type="button" onclick="submitAccountingForm()">Submit</button>
+            <button type="button" onclick="closePopup()">Close</button>
+        </form>
+        <div id="overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
+    `;
 
-        // 팝업 폼을 문서에 추가
-        document.body.insertAdjacentHTML('beforeend', formHtml);
-    });
+    // 팝업 폼을 문서에 추가
+    document.body.insertAdjacentHTML('beforeend', formHtml);
 }
 
 function closePopup() {

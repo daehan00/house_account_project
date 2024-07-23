@@ -62,3 +62,17 @@ tbody td input {
   box-sizing: border-box; /* 패딩과 보더를 width와 height에 포함 */
 }
 
+tbody td select {
+  width: 300px; /* Same width as input for consistency */
+  height: 50px; /* Same height as input for better touch interaction */
+  font-size: 1.3rem; /* Large font size for better readability */
+  display: block; /* Makes it easier to apply margins and center align */
+  margin: 0 auto; /* Centers the select box horizontally in the table cell */
+  padding: 5px; /* Adds padding inside the select box */
+  box-sizing: border-box; /* Includes padding and border in the width and height */
+  text-align-last: center; /* Centers the text within the select box in browsers that support it */
+}
+
+tbody td input[type="datetime-local"] {
+  font-size: 1rem; /* Smaller font size for better fit and visibility */
+}

@@ -1,8 +1,8 @@
 import os
-from flask import Flask, render_template, render_template_string, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from datetime import datetime
 import pytz
-from utils import template, upload_file, register_ra_list, register_program_list, get_program_list
+from utils import upload_file, register_ra_list, register_program_list, form_post_reciept
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -73,7 +73,6 @@ def handle_register_ra_list():
 @app.route('/register_program', methods=['GET', 'POST'])
 def handle_register_program():
     set_data = request.form.to_dict()
-    flash(str(set_data))
     return register_program_list(set_data, app.config["UPLOAD_FOLDER_TMP"], url_for("manager"))
 
 @app.route('/manager/process_accounting', methods=['POST'])
@@ -97,71 +96,17 @@ def handle_upload_ra():
     return upload_file(app.config["UPLOAD_FOLDER_RA"], url_for("ra"))
 
 
-@app.route("/post_reciept", methods=['GET', 'POST'])
+@app.route("/ra/post_reciept", methods=['GET', 'POST'])
 def post_reciept():
     if request.method == 'GET':
         today = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%dT%H:%M')
+        return form_post_reciept(today,"2024-1-AVISON")
 
-        def form(format, name, attribute, content, options=None):
-            if format == 'select':
-                    return {'입력창': format, '항목명': name, 'options': options}
-            else:
-                return {'입력창': format, '항목명': name, 'attribute': attribute, 'content': content}
-        url_program = "http://172.28.0.12:5000/api/program"
-        program_list = get_program_list(url_program, "2024-1-AVISON") # 동적으로 수정 필요
-        form_list = [
-            form('text', '사용자명', 'placeholder', '홍길동'),
-            form('checkbox', '주말, 법정 공휴일 및 심야 사용 여부', '', ''),
-            form('text', '계정항목', 'placeholder', '변경예정'),
-            form('select', '프로그램명', 'placeholder', '', options=program_list),
-            form('text', '구매 핵심 사유&핵심 품목 및 수량', 'placeholder', ''),
-            form('text', '구매 내역(종류와 단가)', 'placeholder', ''),
-            form('number', '인원', 'min', '1'),
-            form('datetime-local', '결제일시', 'value', today),
-            form('number', '결제초', 'max', '99'),
-            form('number', '금액', 'placeholder', '200000'),
-            form('text', '가맹점명', 'placeholder', '영수증에 나온 그대로 입력'),
-            form('checkbox', '기념품지급대장 작성여부', 'placeholder', ''),
-            form('checkbox', '분반 프로그램 여부', 'placeholder', ''),
-            form('number', '분반', 'max', '12'),
-            form('text', '업체 선정 사유', 'placeholder', 'ex) 최저가 업체'),
-            form('checkbox', 'isp 여부', 'placeholder', '')
-        ]
-        contents = '''<main>영수증 입력 양식</main>
-                        <form action="/post_reciept" method="POST">
-                            <table>
-                                <thead>
-                                    <tr>
-                                      <th scope="col">항목명</th>
-                                      <th scope="col">입력</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>'''
-        for data in form_list:
-            if data['입력창'] == 'select':
-                option_html = ''.join([f'<option value="{opt["program_id"]}">{opt["program_name"]}</option>' for opt in data['options']])
-                contents += f'''<tr>
-                                            <th scope="row">{data['항목명']}</th>
-                                            <td><select name="{data['항목명']}">{option_html}</select></td>
-                                        </tr>'''
-            else:
-                contents = contents + f'''<tr>
-                                        <th scope="row">{data['항목명']}</th>
-                                        <td><input type="{data['입력창']}" name="{data['항목명']}" {data['attribute']}="{data['content']}"></td>
-                                    </tr>'''
-
-        contents = contents + '''</tbody>
-                                <tfoot>
-                                    <tr>
-                                        <th scope="row" colspan="2"><input type="submit" value="제출"></th>
-                                    </tr>
-                                </tfoot></table></form>'''
-        return template('영수증 입력',contents)
     elif request.method == 'POST':
         datas=''
         for data in request.form:
             datas = datas+data+': '+request.form[data]+'<br>'
-        return datas+'<input type="button" value="돌아가기" onclick="location.href='+"'/post_reciept'"+'">'
+        return datas+'<input type="button" value="돌아가기" onclick="location.href='+"'/ra/post_reciept'"+'">'
 
 if __name__ == "__main__":
     app.run('0.0.0.0',port=8088)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x
