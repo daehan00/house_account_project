@@ -18,3 +18,5 @@ responses:
     description: New RA registered
     schema:
       $ref: '#/definitions/RAData'
+  409:
+    description: "Conflict - RA ID already exists"

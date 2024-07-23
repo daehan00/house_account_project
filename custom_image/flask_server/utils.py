@@ -1,3 +1,5 @@
+import time
+
 from flask import flash, redirect, request, session, url_for
 import os
 import requests
@@ -30,6 +32,26 @@ def load_dict_code():
     except json.JSONDecodeError:
         print("Error: The file is not in proper JSON format.")
         return None
+
+def get_program_list(url, year_semester_house):
+    headers = {
+        "Accept": "application/json"
+    }
+    params = {
+        "year_semester_house": year_semester_house
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        program_list = []
+        for program in data:
+            options = {"program_id":program['program_id'],
+                       "program_name":program['program_name']}
+            program_list.append(options)
+        return program_list  # 반환 값은 JSON 데이터
+    else:
+        return f"Error: {response.status_code}, {response.text}"
 
 def get_house_code(house_name):
     # Open the JSON file and load data
@@ -97,7 +119,7 @@ def api_post_data(url, data):
 
 def register_ra_list(set_data, data_dir, redirect_url):
     # API 엔드포인트 주소
-    url = "http://localhost:5000/api/ra_list"
+    url = "http://172.28.0.12:5000/api/ra_list"
 
     # 입력값 없는 기본설정
     semester = set_data['semester']
@@ -152,19 +174,19 @@ def register_ra_list(set_data, data_dir, redirect_url):
                 failure_list.append(f"{user_id}, {code}")
                 fail_text_list.append(response_text)
 
+
         os.remove(os.path.join(data_dir, file_name))
         print(f'삭제된 파일 : {file_name}')
 
     flash(f"작업 완료. 총 {len(success_list)}건 성공, {len(failure_list)}건 실패. 실패 목록은 다음과 같습니다. {fail_text_list}")
     return redirect(redirect_url)
 
-
 def register_program_list(set_data, data_dir, redirect_url):
     # API 엔드포인트 주소
-    url = "http://localhost:5000/api/program"
+    url = "http://172.28.0.12:5000/api/program"
 
     # 기본 설정
-    house_code = set_data['house_code']
+    house_code = str(set_data['house'])
     year = set_data['year']
     semester = set_data['semester']
 
@@ -176,35 +198,30 @@ def register_program_list(set_data, data_dir, redirect_url):
     file_list = os.listdir(data_dir)
     for file_name in file_list:
         file_path = os.path.join(data_dir, file_name)
-        data = pd.read_excel(file_path, sheet_name='프로그램 개요표', header=1, dtype=object)
-
-        # col_list = ['분류','카테고리','프로그램명','RC인정시간','인원(명)','담당RM','담당RA','예산(안)','기획','실행','환류','학습목표','6대 핵심역량','LLC 유무','사전 조사	방식']
-        # if all(col in data.columns for col in col_list):
-        #     print("All columns in col_list are present in DataFrame columns.")
-        # else:
-        #     print("Some columns in col_list are missing from DataFrame columns.")
-        #     continue
-
-        data = data.dropna(subset=['분류'])
-        selected_col = ['분류', '프로그램명', '담당RA']
-        data = data[selected_col]
+        try:
+            data = pd.read_excel(file_path, sheet_name='프로그램 개요표', header=1, dtype=object)
+            data = data.dropna(subset=['분류'])
+            selected_col = ['분류', '프로그램명', '담당RA']
+            data = data[selected_col]
+        except:
+            continue
 
         data_dict = data.to_dict(orient='records')
-        i =1
+        i = 1
         for program in data_dict:
             if program['분류'] == get_house_name(house_code):
-                year_semester_house = str(year)+'-'+str(semester)+'-'+house_code
-                program_id = year_semester_house+'-'+str(i).zfill(2)
+                year_semester_house = str(year) + '-' + str(semester) + '-' + house_code
+                program_id = year_semester_house + '-' + str(i).zfill(2)
                 program_name = re.sub(r'\s+', ' ', program['프로그램명']).strip()
 
                 program_data = {
-                  "house_name": house_code,
-                  "program_id": program_id,
-                  "program_name": program_name,
-                  "register_check": True,
-                  "semester": semester,
-                  "year": year,
-                  "year_semester_house": year_semester_house
+                    "house_name": house_code,
+                    "program_id": program_id,
+                    "program_name": program_name,
+                    "register_check": True,
+                    "semester": semester,
+                    "year": year,
+                    "year_semester_house": year_semester_house
                 }
 
                 code, response_text = api_post_data(url, program_data)
@@ -218,9 +235,12 @@ def register_program_list(set_data, data_dir, redirect_url):
                     failure_list.append(f"{program_id}, {code}")
                     fail_text_list.append(response_text)
                 i += 1
-
-        # os.remove(os.path.join(data_dir, file_name))
-        # print(f'삭제된 파일 : {file_name}')
+                time.sleep(0.1)
+            else:
+                print(f"하우스 분류가 맞지 않습니다. 제출: {house_code}, 파일: {program['분류']}")
+                continue
+        os.remove(os.path.join(data_dir, file_name))
+        print(f'삭제된 파일 : {file_name}')
 
     flash(f"작업 완료. 총 {len(success_list)}건 성공, {len(failure_list)}건 실패.")
     return redirect(redirect_url)

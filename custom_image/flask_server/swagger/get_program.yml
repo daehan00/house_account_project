@@ -1,0 +1,19 @@
+tags:
+  - Program List
+summary: "Retrieve programs by year, semester, and house"
+description: "Retrieves all program entries that match the specified year_semester_house composite key. This key combines the year, semester, and house name, useful for fetching programs scheduled together in the same session."
+
+parameters:
+  - in: query
+    name: year_semester_house
+    type: string
+    required: true
+    description: "The composite key used to identify the group of programs. It should match the format used in the database for this combined attribute."
+
+responses:
+  200:
+    description: "Returns a list of programs matching the specified year_semester_house key."
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/Program'

@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from flasgger import Swagger, swag_from
 from dotenv import load_dotenv
 import os
@@ -28,7 +29,7 @@ class RAList(db.Model):
     division_num = db.Column(db.Integer)
     email_address = db.Column(db.Text, nullable=False)
     year = db.Column(db.Integer, nullable=False)
-    semester = db.Column(db.Boolean, nullable=False)
+    semester = db.Column(db.Integer, nullable=False)
     house_name = db.Column(db.Text, nullable=False)
     authority = db.Column(db.Boolean)
 
@@ -48,27 +49,46 @@ class RAList(db.Model):
 @app.route('/api/ra_list', methods=['POST'])
 @swag_from('swagger/post_ra_list.yml', methods=['POST'])
 def create_ra():
-    data = request.get_json()
-    new_ra = RAList(
-        user_id=data['user_id'],
-        user_name=data['user_name'],
-        user_num=data['user_num'],
-        division_num=data.get('division_num'),
-        email_address=data['email_address'],
-        year=data['year'],
-        semester=data['semester'],
-        house_name=data['house_name'],
-        authority=data['authority']
-    )
-    db.session.add(new_ra)
-    db.session.commit()
-    return jsonify(new_ra.to_dict()), 201
+    try:
+        data = request.get_json()
+        if not data:
+            abort(400, description="No data provided.")
+
+        existing_ra = RAList.query.filter_by(user_id=data.get('user_id')).first()
+        if existing_ra:
+            return jsonify({"error": "RA with the provided user ID already exists"}), 409
+
+        new_ra = RAList(
+            user_id=data['user_id'],
+            user_name=data['user_name'],
+            user_num=data['user_num'],
+            division_num=data.get('division_num'),
+            email_address=data['email_address'],
+            year=data['year'],
+            semester=data['semester'],
+            house_name=data['house_name'],
+            authority=data.get('authority', False)
+        )
+        db.session.add(new_ra)
+        db.session.commit()
+        return jsonify(new_ra.to_dict()), 201
+    except KeyError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Missing data: {str(e)}"}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/ra_list', methods=['GET'])
 @swag_from('swagger/get_ra_list.yml', methods=['GET'])
 def get_all_ra():
-    ra_list = RAList.query.all()
-    return jsonify([ra.to_dict() for ra in ra_list]), 200
+    try:
+        ra_list = RAList.query.all()
+        if not ra_list:
+            return jsonify({'message': 'No RA found'}), 404
+        return jsonify([ra.to_dict() for ra in ra_list]), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/check_user/<int:user_id>', methods=['GET'])
 @swag_from('swagger/check_user.yml')
@@ -82,17 +102,24 @@ def check_user(user_id):
 @app.route('/api/ra_list/<int:user_id>', methods=['PUT'])
 @swag_from('swagger/put_ra_list.yml', methods=['PUT'])
 def update_ra(user_id):
-    data = request.get_json()
-    ra = RAList.query.get_or_404(user_id)
-    ra.user_name = data.get('user_name', ra.user_name)
-    ra.user_num = data.get('user_num', ra.user_num)
-    ra.division_num = data.get('division_num', ra.division_num)
-    ra.email_address = data.get('email_address', ra.email_address)
-    ra.year = data.get('year', ra.year)
-    ra.semester = data.get('semester', ra.semester)
-    ra.house_name = data.get('house_name', ra.house_name)  # 새로운 필드 포함
-    db.session.commit()
-    return jsonify(ra.to_dict()), 200
+    try:
+        data = request.get_json()
+        ra = RAList.query.get_or_404(user_id)
+        ra.user_name = data.get('user_name', ra.user_name)
+        ra.user_num = data.get('user_num', ra.user_num)
+        ra.division_num = data.get('division_num', ra.division_num)
+        ra.email_address = data.get('email_address', ra.email_address)
+        ra.year = data.get('year', ra.year)
+        ra.semester = data.get('semester', ra.semester)
+        ra.house_name = data.get('house_name', ra.house_name)
+        db.session.commit()
+        return jsonify(ra.to_dict()), 200
+    except KeyError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Missing data: {str(e)}"}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/ra_list/<int:user_id>', methods=['DELETE'])
 @swag_from('swagger/delete_ra_list.yml', methods=['DELETE'])
@@ -109,6 +136,7 @@ def get_ra(user_id):
     return jsonify(ra.to_dict()), 200
 
 class Program(db.Model):
+    __tablename__ = 'program_list_table'
     program_id = db.Column(db.Text, primary_key=True)
     program_name = db.Column(db.Text, nullable=False)
     house_name = db.Column(db.Text, nullable=False)
@@ -128,30 +156,63 @@ class Program(db.Model):
             "year_semester_house": self.year_semester_house
         }
 
+
 @app.route('/api/program', methods=['POST'])
 @swag_from('swagger/post_program.yml', methods=['POST'])
 def create_program():
-    data = request.get_json()
-    new_program = Program(
-        program_id=data['program_id'],
-        program_name=data['program_name'],
-        house_name=data['house_name'],
-        year=data['year'],
-        semester=data['semester'],
-        register_check=data.get('register_check', True),
-        year_semester_house=data['year_semester_house']
-    )
-    db.session.add(new_program)
-    db.session.commit()
-    return jsonify(new_program.to_dict()), 201
+    try:
+        data = request.get_json()
+        if not data:
+            abort(400, description="No data provided.")
+
+        existing_program = Program.query.filter_by(program_id=data['program_id']).first()
+        if existing_program:
+            return jsonify({"error": "Program with the provided program ID already exists"}), 409
+
+        new_program = Program(
+            program_id=data['program_id'],
+            program_name=data['program_name'],
+            house_name=data['house_name'],
+            year=data['year'],
+            semester=data['semester'],
+            register_check=data.get('register_check', True),
+            year_semester_house=data['year_semester_house']
+        )
+        db.session.add(new_program)
+        db.session.commit()
+        return jsonify(new_program.to_dict()), 201
+    except KeyError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Missing data: {str(e)}"}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/program', methods=['DELETE'])
 @swag_from('swagger/delete_program.yml', methods=['DELETE'])
 def delete_program():
-    year_semester_house = request.args.get('year_semester_house')
-    Program.query.filter_by(year_semester_house=year_semester_house).delete()
-    db.session.commit()
-    return jsonify({"message": "Programs deleted"}), 200
+    try:
+        year_semester_house = request.args.get('year_semester_house')
+        result = Program.query.filter_by(year_semester_house=year_semester_house).delete()
+        if result == 0:
+            return jsonify({"message": "No programs found with the specified key"}), 404
+        db.session.commit()
+        return jsonify({"message": "Programs deleted"}), 200
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/program', methods=['GET'])
+@swag_from('swagger/get_program.yml', methods=['GET'])
+def get_program():
+    try:
+        year_semester_house = request.args.get('year_semester_house')
+        programs = Program.query.filter_by(year_semester_house=year_semester_house).all()
+        if not programs:
+            return jsonify({'message': 'No programs found'}), 404
+        return jsonify([program.to_dict() for program in programs]), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':

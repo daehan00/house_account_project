@@ -188,8 +188,8 @@ function createFormContent(houseOptions, formType) {
                 </select><br><br>
                 <label for="year">Year:</label>
                 <input type="number" id="year" name="year" min="2000" max="2099" step="1" value="${new Date().getFullYear()}" required><br><br>
-                <label for="house_name">House Name:</label>
-                <select id="house_name" name="house_name" required>
+                <label for="house">House Name:</label>
+                <select id="house" name="house" required>
                     ${houseOptions}
                 </select><br><br>
                 <input type="submit" value="Submit">
