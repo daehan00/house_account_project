@@ -4,6 +4,8 @@ from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from flasgger import Swagger, swag_from
 from dotenv import load_dotenv
 import os
+from pytz import timezone
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -214,6 +216,102 @@ def get_program():
     except SQLAlchemyError as e:
         return jsonify({"error": str(e)}), 500
 
+
+class ReceiptSubmission(db.Model):
+    __tablename__ = 'receipt_submissions_table'
+    id = db.Column(db.Text, primary_key=True)
+    year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    day = db.Column(db.Integer, nullable=False)
+    time = db.Column(db.Text, nullable=False)
+    date = db.Column(db.TIMESTAMP(timezone=True), nullable=False)
+    house_name = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.BigInteger, nullable=False)
+    program_id = db.Column(db.Text, nullable=False)
+    category_id = db.Column(db.Text, nullable=False)
+    head_count = db.Column(db.Integer, nullable=False)
+    expenditure = db.Column(db.BigInteger, nullable=False)
+    store_name = db.Column(db.Text, nullable=False)
+    division_num = db.Column(db.Text)
+    reason_store = db.Column(db.Text, nullable=False)
+    isp_check = db.Column(db.Boolean, nullable=False)
+    holiday_check = db.Column(db.Boolean, nullable=False)
+    souvenir_record = db.Column(db.Boolean, nullable=False)
+    division_program = db.Column(db.Boolean, nullable=False)
+    purchase_reason = db.Column(db.Text, nullable=False)
+    key_items_quantity = db.Column(db.Text, nullable=False)
+    purchase_details = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.TIMESTAMP(timezone=True), default=datetime.now(timezone('Asia/Seoul')))
+    updated_at = db.Column(db.TIMESTAMP(timezone=True), default=datetime.now(timezone('Asia/Seoul')), onupdate=datetime.now(timezone('Asia/Seoul')))
+    warning_division = db.Column(db.Text)
+
+    def to_dict(self):
+        return {column.name: getattr(self, column.name).isoformat() if isinstance(getattr(self, column.name),datetime) else getattr(self,column.name)
+                for column in self.__class__.__table__.columns}
+
+@app.route('/api/receipts', methods=['POST'])
+@swag_from('swagger/post_receipt.yml', methods=['POST'])
+def create_receipt():
+    data = request.get_json()
+    if not data:
+        abort(400, description="No data provided.")
+
+    # Define the required fields for a ReceiptSubmission
+    required_fields = ['id', 'year', 'month', 'day', 'time', 'date', 'house_name',
+                       'user_id', 'program_id', 'category_id', 'head_count', 'expenditure',
+                       'store_name', 'reason_store', 'isp_check', 'holiday_check',
+                       'souvenir_record', 'division_program', 'purchase_reason',
+                       'key_items_quantity', 'purchase_details']
+
+    # Check if all required fields are present in the incoming data
+    missing_fields = [field for field in required_fields if field not in data]
+    if missing_fields:
+        return jsonify({'error': 'Missing required data fields', 'missing_fields': missing_fields}), 400
+
+    try:
+        receipt = ReceiptSubmission(**data)
+        db.session.add(receipt)
+        db.session.commit()
+        return jsonify(receipt.to_dict()), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/receipts/user/<int:user_id>', methods=['GET'])
+@swag_from('swagger/get_receipts_by_user.yml')
+def get_receipts_by_user(user_id):
+    try:
+        receipts = ReceiptSubmission.query.filter_by(user_id=user_id).all()
+        if not receipts:
+            abort(404, description=f"No receipts found for user ID {user_id}")
+        return jsonify([receipt.to_dict() for receipt in receipts]), 200
+    except Exception as e:
+        abort(500, description=str(e))
+
+@app.route('/api/receipts/house/<house_name>', methods=['GET'])
+@swag_from('swagger/get_receipts_by_house.yml')
+def get_receipts_by_house(house_name):
+    try:
+        receipts = ReceiptSubmission.query.filter_by(house_name=house_name).all()
+        if not receipts:
+            abort(404, description=f"No receipts found for house name {house_name}")
+        return jsonify([receipt.to_dict() for receipt in receipts]), 200
+    except Exception as e:
+        abort(500, description=str(e))
+
+@app.route('/api/receipts/<receipt_id>', methods=['DELETE'])
+@swag_from('swagger/delete_receipt.yml')
+def delete_receipt(receipt_id):
+    try:
+        receipt = ReceiptSubmission.query.get(receipt_id)
+        if not receipt:
+            abort(404, description=f"Receipt with ID {receipt_id} not found")
+        db.session.delete(receipt)
+        db.session.commit()
+        return '', 204
+    except Exception as e:
+        db.session.rollback()
+        abort(500, description=str(e))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

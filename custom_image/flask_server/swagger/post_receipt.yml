@@ -1,0 +1,24 @@
+tags:
+  - Receipt Submissions
+summary: Create a new receipt submission
+description: Adds a new receipt submission to the database.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: receipt
+    description: The receipt submission data.
+    required: true
+    schema:
+      $ref: '#/definitions/ReceiptSubmission'
+responses:
+  201:
+    description: Receipt submission created successfully.
+    schema:
+      $ref: '#/definitions/ReceiptSubmission'
+  400:
+    description: Invalid input received.
+  500:
+    description: Internal server error.

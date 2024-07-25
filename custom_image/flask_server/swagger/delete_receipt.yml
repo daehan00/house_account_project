@@ -1,0 +1,17 @@
+tags:
+  - Receipt Submissions
+summary: Delete a receipt submission
+description: Deletes a receipt submission based on the provided ID.
+parameters:
+  - in: path
+    name: receipt_id
+    required: true
+    type: string
+    description: The ID of the receipt submission to delete.
+responses:
+  204:
+    description: Receipt deleted successfully
+  404:
+    description: Receipt with the provided ID not found
+  500:
+    description: Internal Server Error - Error during the deletion process

@@ -74,7 +74,7 @@ def init(postgres_conn_id, **kwargs):
             division_program BOOLEAN NOT NULL, -- 분반 프로그램 여부
             purchase_reason TEXT NOT NULL,  -- 구매 핵심 사유
             key_items_quantity TEXT NOT NULL,  -- 핵심 품목 및 수량
-            purchase_details TEXT NOT NULL
+            purchase_details TEXT NOT NULL,
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             warning_division TEXT

@@ -1,0 +1,21 @@
+tags:
+  - Receipt Submissions
+summary: Retrieve receipt submissions by house name
+description: Returns a list of receipt submissions associated with the specified house name.
+parameters:
+  - in: path
+    name: house_name
+    required: true
+    type: string
+    description: The house name to retrieve receipts for.
+responses:
+  200:
+    description: A list of receipt submissions
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/ReceiptSubmission'
+  404:
+    description: No receipts found for the provided house name
+  500:
+    description: Internal Server Error - Error retrieving data

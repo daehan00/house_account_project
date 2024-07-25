@@ -74,3 +74,109 @@ definitions:
       year_semester_house:
         type: string
         description: 색인을 위한 코드.
+  ReceiptSubmission:
+    type: object
+    required:
+      - id
+      - year
+      - month
+      - day
+      - time
+      - date
+      - house_name
+      - user_id
+      - program_id
+      - category_id
+      - head_count
+      - expenditure
+      - store_name
+      - reason_store
+      - isp_check
+      - holiday_check
+      - souvenir_record
+      - division_program
+      - purchase_reason
+      - key_items_quantity
+      - purchase_details
+    properties:
+      id:
+        type: string
+        description: "Unique identifier for the receipt submission."
+      year:
+        type: integer
+        description: "Year of the receipt submission."
+      month:
+        type: integer
+        description: "Month of the receipt submission."
+      day:
+        type: integer
+        description: "Day of the receipt submission."
+      time:
+        type: string
+        description: "Time of the receipt submission."
+      date:
+        type: string
+        format: date-time
+        description: "Exact timestamp of the receipt submission, with timezone."
+      house_name:
+        type: string
+        description: "House name associated with the receipt submission."
+      user_id:
+        type: integer
+        format: int64
+        description: "User identifier related to the receipt submission."
+      program_id:
+        type: string
+        description: "Program identifier related to the receipt."
+      category_id:
+        type: string
+        description: "Category identifier related to the receipt."
+      head_count:
+        type: integer
+        description: "Number of people covered by the receipt."
+      expenditure:
+        type: integer
+        format: int64
+        description: "Total amount spent, represented in the smallest currency unit (e.g., cents)."
+      store_name:
+        type: string
+        description: "Name of the store where the purchase was made."
+      division_num:
+        type: string
+        description: "Division number, if applicable."
+      reason_store:
+        type: string
+        description: "Reason for choosing this particular store."
+      isp_check:
+        type: boolean
+        description: "Boolean flag indicating if the ISP check was passed."
+      holiday_check:
+        type: boolean
+        description: "Boolean flag indicating if this was a holiday purchase."
+      souvenir_record:
+        type: boolean
+        description: "Indicates if a souvenir record was made."
+      division_program:
+        type: boolean
+        description: "Indicates if this is part of a division program."
+      purchase_reason:
+        type: string
+        description: "Core reason for the purchase."
+      key_items_quantity:
+        type: string
+        description: "List of key items and their quantities."
+      purchase_details:
+        type: string
+        description: "Detailed description of the purchase."
+      created_at:
+        type: string
+        format: date-time
+        description: "Timestamp when the receipt was created, with timezone."
+      updated_at:
+        type: string
+        format: date-time
+        description: "Timestamp when the receipt was last updated, with timezone."
+      warning_division:
+        type: string
+        description: "Any warning or special notes about the division."
+
