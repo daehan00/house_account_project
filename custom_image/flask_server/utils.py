@@ -5,6 +5,8 @@ import requests
 import json
 import pandas as pd
 import re
+from datetime import datetime
+import pytz
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -260,13 +262,19 @@ def register_program_list(set_data, data_dir, redirect_url):
     flash(f"작업 완료. 총 {len(success_list)}건 성공, {len(failure_list)}건 실패.")
     return redirect(redirect_url)
 
-def form(format, name, attribute, content, options=None):
-    if format == 'select':
-        return {'입력창': format, '항목명': name, 'options': options}
+def form(input_type, name, name_id, attribute, content, options=None, required=True):
+    """폼 필드 생성 함수에 required 파라미터 추가"""
+    attributes = f'{attribute}="{content}"'
+    if required:
+        attributes += ' required'  # 필수 입력 필드로 설정
+    if input_type == 'select':
+        return {'입력창': input_type, '항목명': name, 'name': name_id, 'options': options, 'attributes': attributes}
     else:
-        return {'입력창': format, '항목명': name, 'attribute': attribute, 'content': content}
+        return {'입력창': input_type, '항목명': name, 'name': name_id, 'attributes': attributes}
 
-def form_post_reciept(today, year_semester_house):
+def form_post_receipt(year_semester_house):
+    today = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%dT%H:%M')
+    user_list = [{'program_id':2019122044,'program_name':'김대한'},{'program_id':2022124085,'program_name':'박지영'}]
     category_expenses = get_category_expenses()
     url_program = os.getenv('URL_PROGRAM')
     try:
@@ -276,26 +284,26 @@ def form_post_reciept(today, year_semester_house):
         return redirect("/ra")
 
     form_list = [
-        form('text', '사용자명', 'placeholder', '홍길동'),
-        form('checkbox', '주말, 법정 공휴일 및 심야 사용 여부', '', ''),
-        form('select', '계정항목', 'placeholder', '', options=category_expenses),
-        form('select', '프로그램명', 'placeholder', '', options=program_list),
-        form('text', '구매 핵심 사유', 'placeholder', '운영물품 구매'),
-        form('text', '핵심 품목 및 수량', 'placeholder', '콜라 등 5종'),
-        form('text', '구매 내역(종류와 단가)', 'placeholder', ''),
-        form('number', '인원', 'min', '1'),
-        form('datetime-local', '결제일시', 'value', today),
-        form('number', '결제초', 'max', '99'),
-        form('number', '금액', 'placeholder', '숫자만'),
-        form('text', '가맹점명', 'placeholder', '영수증에 나온 그대로'),
-        form('checkbox', '기념품지급대장 작성여부', 'placeholder', ''),
-        form('checkbox', '분반 프로그램 여부', 'placeholder', ''),
-        form('number', '분반', 'max', '12'),
-        form('text', '업체 선정 사유', 'placeholder', 'ex) 최저가 업체'),
-        form('checkbox', 'isp 사용여부', 'placeholder', '')
+        form('select', '사용자명', 'user_id', '', '', options=user_list),
+        form('checkbox', '주말, 법정 공휴일 및 심야 사용 여부', 'holiday_check', '', '', required=False),
+        form('select', '계정항목', 'category_id','placeholder', '', options=category_expenses),
+        form('select', '프로그램명','program_id', 'placeholder', '', options=program_list),
+        form('text', '구매 핵심 사유', 'purchase_reason', 'placeholder', '운영물품 구매'),
+        form('text', '핵심 품목 및 수량', 'key_items_quantity', 'placeholder', '콜라 등 5종'),
+        form('text', '구매 내역(종류와 단가)', 'purchase_details', 'placeholder', ''),
+        form('number', '인원', 'head_count', 'min', '1'),
+        form('datetime-local', '결제일시', 'datetime', 'value', today),
+        form('number', '초', 'sec', 'max', '99'),
+        form('number', '금액', 'expenditure', 'placeholder', '숫자만'),
+        form('text', '가맹점명', 'store_name', 'placeholder', '영수증에 나온 그대로'),
+        form('checkbox', '기념품지급대장 작성여부', 'souvenir_record', 'placeholder', '', required=False),
+        form('checkbox', '분반 프로그램 여부', 'division_program', 'placeholder', '', required=False),
+        form('number', '분반', 'division_num', 'max', '12', required=False),
+        form('text', '업체 선정 사유', 'reason_store', 'placeholder', 'ex) 최저가 업체'),
+        form('checkbox', 'isp 사용여부', 'isp_check', 'placeholder', '', required=False)
     ]
     contents = '''<main>영수증 입력 양식</main>
-                            <form action="/ra/post_reciept" method="POST">
+                            <form action="/ra/post_receipt" method="POST">
                                 <table>
                                     <thead>
                                         <tr>
@@ -310,12 +318,12 @@ def form_post_reciept(today, year_semester_house):
                 [f'<option value="{opt["program_id"]}">{opt["program_name"]}</option>' for opt in data['options']])
             contents += f'''<tr>
                                                 <th scope="row">{data['항목명']}</th>
-                                                <td><select name="{data['항목명']}">{option_html}</select></td>
+                                                <td><select name="{data['name']}">{option_html}</select></td>
                                             </tr>'''
         else:
             contents = contents + f'''<tr>
                                             <th scope="row">{data['항목명']}</th>
-                                            <td><input type="{data['입력창']}" name="{data['항목명']}" {data['attribute']}="{data['content']}"></td>
+                                            <td><input type="{data['입력창']}" name="{data['name']}" {data['attributes']}></td>
                                         </tr>'''
 
     contents = contents + '''</tbody>

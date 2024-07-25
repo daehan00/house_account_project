@@ -1,8 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-from datetime import datetime
-import pytz
-from utils import upload_file, register_ra_list, register_program_list, form_post_reciept
+
+from utils import upload_file, register_ra_list, register_program_list, form_post_receipt
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -96,17 +95,16 @@ def handle_upload_ra():
     return upload_file(app.config["UPLOAD_FOLDER_RA"], url_for("ra"))
 
 
-@app.route("/ra/post_reciept", methods=['GET', 'POST'])
-def post_reciept():
+@app.route("/ra/post_receipt", methods=['GET', 'POST'])
+def post_receipt():
     if request.method == 'GET':
-        today = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%dT%H:%M')
-        return form_post_reciept(today,"2024-1-AVISON")
+        return form_post_receipt("2024-1-AVISON")
 
     elif request.method == 'POST':
-        datas=''
+        datas={}
         for data in request.form:
-            datas = datas+data+': '+request.form[data]+'<br>'
-        return datas+'<input type="button" value="돌아가기" onclick="location.href='+"'/ra/post_reciept'"+'">'
+            datas[data] = request.form[data]  # datas+data+': '+request.form[data]+'<br>'
+        return str(datas)+'<p><input type="button" value="돌아가기" onclick="location.href='+"'/ra/post_receipt'"+'"></p>'
 
 if __name__ == "__main__":
     app.run('0.0.0.0',port=8088)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x

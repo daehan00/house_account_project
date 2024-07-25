@@ -32,35 +32,64 @@ def init(postgres_conn_id, **kwargs):
         );"""
 
     create_ra_list_table = """
-            CREATE TABLE IF NOT EXISTS ra_list_table (
-                user_id BIGINT PRIMARY KEY,
-                user_name TEXT NOT NULL,
-                user_num TEXT NOT NULL,
-                division_num INTEGER,
-                email_address TEXT NOT NULL,
-                year INTEGER NOT NULL,
-                semester integer NOT NULL,
-                house_name TEXT NOT NULL,
-                authority BOOLEAN DEFAULT false
-            );"""
+        CREATE TABLE IF NOT EXISTS ra_list_table (
+            user_id BIGINT PRIMARY KEY,
+            user_name TEXT NOT NULL,
+            user_num TEXT NOT NULL,
+            division_num INTEGER,
+            email_address TEXT NOT NULL,
+            year INTEGER NOT NULL,
+            semester integer NOT NULL,
+            house_name TEXT NOT NULL,
+            authority BOOLEAN DEFAULT false
+        );"""
 
     create_category_list_table = """
-                CREATE TABLE IF NOT EXISTS category_list_table (
-                    category_id TEXT PRIMARY KEY,
-                    category_name TEXT NOT NULL,
-                    description TEXT
-                );"""
+        CREATE TABLE IF NOT EXISTS category_list_table (
+            category_id TEXT PRIMARY KEY,
+            category_name TEXT NOT NULL,
+            description TEXT
+        );"""
+
+    create_receipt_submissions_table = """
+        CREATE TABLE IF NOT EXISTS receipt_submissions_table (
+            id TEXT PRIMARY KEY,
+            year INTEGER NOT NULL,
+            month INTEGER NOT NULL,
+            day INTEGER NOT NULL,
+            time TEXT NOT NULL,
+            date TIMESTAMP WITH TIME ZONE NOT NULL,
+            house_name TEXT NOT NULL,
+            user_id BIGINT NOT NULL,
+            program_id TEXT NOT NULL,
+            category_id TEXT NOT NULL,
+            head_count INTEGER NOT NULL,
+            expenditure BIGINT NOT NULL,
+            store_name TEXT NOT NULL,
+            division_num TEXT,
+            reason_store TEXT NOT NULL,
+            isp_check BOOLEAN NOT NULL,
+            holiday_check BOOLEAN NOT NULL,
+            souvenir_record BOOLEAN NOT NULL,  -- 기념품지급대장 작성여부
+            division_program BOOLEAN NOT NULL, -- 분반 프로그램 여부
+            purchase_reason TEXT NOT NULL,  -- 구매 핵심 사유
+            key_items_quantity TEXT NOT NULL,  -- 핵심 품목 및 수량
+            purchase_details TEXT NOT NULL
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            warning_division TEXT
+        );"""
 
     # trigger 생성
-    create_trigger_function = """
-            CREATE OR REPLACE FUNCTION update_modified_column()
-            RETURNS TRIGGER AS $$
-            BEGIN
-                NEW.updated_at = NOW();  -- 현재 시간을 updated_at 필드에 설정
-                RETURN NEW;              -- 수정된 레코드 반환
-            END;
-            $$ LANGUAGE plpgsql;
-            """
+    # create_trigger_function = """
+    #         CREATE OR REPLACE FUNCTION update_modified_column()
+    #         RETURNS TRIGGER AS $$
+    #         BEGIN
+    #             NEW.updated_at = NOW();  -- 현재 시간을 updated_at 필드에 설정
+    #             RETURN NEW;              -- 수정된 레코드 반환
+    #         END;
+    #         $$ LANGUAGE plpgsql;
+    #         """
     # create_trigger = """
     #         CREATE TRIGGER update_updated_at_before_update
     #         BEFORE UPDATE ON order_test_table
@@ -70,10 +99,10 @@ def init(postgres_conn_id, **kwargs):
 
     # 데이터 삽입
     try:
-        cur.execute(create_program_list_table)
-        cur.execute(create_ra_list_table)
+        # cur.execute(create_program_list_table)
+        # cur.execute(create_ra_list_table)
         # cur.execute(create_category_list_table)
-
+        cur.execute(create_receipt_submissions_table)
 
         # cur.execute(create_trigger_function)
         conn.commit()
