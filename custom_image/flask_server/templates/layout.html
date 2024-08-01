@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Application{% endblock %}</title>
+    <script src="{{ url_for('static', filename='js/functions.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+</head>
+<body>
+    <div id="flash-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="flash-message-text"></p>
+        </div>
+    </div>
+
+    {% block body %}{% endblock %}
+
+    <script type="text/javascript">
+        window.onload = function() {
+            var messages = {{ get_flashed_messages(with_categories=True)|tojson }};
+            if (messages.length > 0) {
+                var modal = document.getElementById("flash-modal");
+                var span = document.getElementsByClassName("close")[0];
+                var messageText = document.getElementById("flash-message-text");
+                var modalContent = document.querySelector(".modal-content");
+
+                messages.forEach(function(message) {
+                    messageText.textContent = message[1]; // 메시지 내용 설정
+                    modalContent.classList.add(message[0]); // 카테고리별 스타일 적용
+                });
+
+                modal.style.display = "block"; // 모달 창 표시
+
+                span.onclick = function() {
+                    modal.style.display = "none";
+                    modalContent.classList.remove('info', 'success', 'warning', 'error'); // 기존 카테고리 제거
+                }
+
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = "none";
+                        modalContent.classList.remove('info', 'success', 'warning', 'error'); // 기존 카테고리 제거
+                    }
+                }
+                document.onkeydown = function(event) {
+                    if (event.key === "Escape") {
+                        modal.style.display = "none";
+                        modalContent.classList.remove('info', 'success', 'warning', 'error'); // 기존 카테고리 제거
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

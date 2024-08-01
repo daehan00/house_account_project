@@ -1,54 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Manager Page</title>
-    <script src="{{ url_for('static', filename='js/functions.js') }}"></script>
-    <script>
-        window.onload = function() {
-            {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                {% for message in messages %}
-                alert("{{ message }}");
-                {% endfor %}
-            {% endif %}
-            {% endwith %}
-        }
-    </script>
-</head>
-<body>
-  <h1>Manager Page</h1>
-    <ul>
-        <li>
-            <h3>초기 설정</h3>
-            <ol>
-                <li>RA명단 등록<input type="button" value="등록" onclick="showForm('RA List Registration');"></li>
-                <li>프로그램 명단 등록<input type="button" value="등록" onclick="showForm('Program Registration');"></li>
-            </ol>
-            <p>
-                <form action="/upload/manager" method="post" enctype="multipart/form-data">
-                    <label for="file">Upload File:</label>
-                    <input type="file" id="file" name="file" required>
-                    <br><br>
-                    <input type="submit" value="Upload">
-                </form>
-            </p>
-        </li>
-        <li>
-            <h3>전체 영수증 제출 관리</h3>
-            <ol>
-                <li>제출내역 확인</li>
-                <li>삭제</li>
-            </ol>
-        </li>
-        <li>
-            <h3>회계자료 제작</h3>
-            <ol>
-                <li><input type="button" value="기간별 회계자료 정산" onclick="showAccountingPopup();"></li>
-                <li><input type="button" value="학기말 회계자료 정산" onclick=""></li>
-            </ol>
-        </li>
-
-    </ul>
-</body>
-</html>
+{% extends "layout.html" %}
+{% block title %}Home{% endblock %}
+{% block body %}
+<h1>Manager Page</h1>
+<ul>
+    <li>
+        <h3>초기 설정</h3>
+        <ol>
+            <li>RA명단 등록<input type="button" value="등록" onclick="showForm('RA List Registration');"></li>
+            <li>프로그램 명단 등록<input type="button" value="등록" onclick="showForm('Program Registration');"></li>
+        </ol>
+        <p>
+            <form action="/upload/manager" method="post" enctype="multipart/form-data">
+                <label for="file">Upload File:</label>
+                <input type="file" id="file" name="file" required>
+                <br><br>
+                <input type="submit" value="Upload">
+            </form>
+        </p>
+    </li>
+    <li>
+        <h3>전체 영수증 제출 관리</h3>
+        <ol>
+            <li>제출내역 확인</li>
+            <table>
+                <thead>
+                    <tr>
+                        {% for column in columns %}
+                            <th>{{ column }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        {% for column in columns %}
+                        <td>{{ row[column] }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <li>삭제</li>
+        </ol>
+    </li>
+    <li>
+        <h3>회계자료 제작</h3>
+        <ol>
+            <li><input type="button" value="기간별 회계자료 정산" onclick="showAccountingPopup();"></li>
+            <li><input type="button" value="학기말 회계자료 정산" onclick=""></li>
+        </ol>
+    </li>
+</ul>
+{% endblock %}

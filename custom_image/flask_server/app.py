@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 
-from utils import upload_file, register_ra_list, register_program_list, form_post_receipt
+from utils import upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -21,8 +21,8 @@ def home():
 @app.route('/logout')
 def logout():
     session.clear()  # 세션 데이터 모두 제거
-    flash('You have been successfully logged out.')
-    return redirect("/")  # 홈 페이지나 로그인 페이지로 리디렉션
+    flash('You have been successfully logged out.', 'info')
+    return redirect("/")  # 홈 페이지로 리디렉션
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
@@ -31,7 +31,8 @@ def admin():
         input_password = request.form['password']
         if input_password == admin_password:
             session['admin'] = True
-            return render_template("admin.html")
+            flash('Logged in successfully', 'success')
+            return redirect("/admin")  # 리디렉션하여 GET 요청 처리
         else:
             flash("Invalid password", "error")
             return redirect("/")
@@ -40,12 +41,12 @@ def admin():
             return render_template("admin.html")
         else:
             flash("You are not logged in", "error")
-            return redirect("/")
+            return redirect("/")  # 홈 페이지로 리디렉션
 
 @app.route('/upload/admin', methods=['POST'])
 def handle_upload_admin():
     if 'admin' not in session or not session['admin']:
-        flash('You are not logged in')
+        flash('You are not logged in', "error")
         return redirect(url_for('/'))  # 메인 페이지로 리다이렉션
 
     return upload_file(app.config["UPLOAD_FOLDER_ADMIN"], url_for("admin"))
@@ -53,7 +54,10 @@ def handle_upload_admin():
 
 @app.route("/manager")
 def manager():
-    return render_template("manager.html")
+    house_name = 'AVISON'
+    columns = ['user_id', 'date', 'program_id', 'category_id', 'expenditure']
+    data = get_receipt_list(os.getenv("URL_API")+'receipts/house', house_name)
+    return render_template("manager.html", data=data, columns=columns)
 
 @app.route('/upload/manager', methods=['POST'])
 def handle_upload_manager():
@@ -84,7 +88,9 @@ def process_accounting():
 
 @app.route("/ra")
 def ra():
-    return render_template("ra.html")
+    user_id = '2019122044'
+    data = get_receipt_list(os.getenv("URL_API")+'receipts/house', user_id)
+    return render_template("ra.html", data = data)
 
 @app.route('/upload/ra', methods=['POST'])
 def handle_upload_ra():
@@ -96,15 +102,17 @@ def handle_upload_ra():
 
 
 @app.route("/ra/post_receipt", methods=['GET', 'POST'])
-def post_receipt():
+def post_receipt_form():
     if request.method == 'GET':
         return form_post_receipt("2024-1-AVISON")
 
-    elif request.method == 'POST':
-        datas={}
-        for data in request.form:
-            datas[data] = request.form[data]  # datas+data+': '+request.form[data]+'<br>'
-        return str(datas)+'<p><input type="button" value="돌아가기" onclick="location.href='+"'/ra/post_receipt'"+'"></p>'
+
+@app.route("/ra/post_receipt_data", methods=['POST'])
+def post_receipt():
+    datas = {}
+    for data in request.form:
+        datas[data] = request.form[data]
+    return post_receipt_data(datas)
 
 if __name__ == "__main__":
     app.run('0.0.0.0',port=8088)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x

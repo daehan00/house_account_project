@@ -17,8 +17,19 @@ def template(title, contents):
                     <meta charset="UTF-8">
                     <title>{title}</title>
                     <link rel="stylesheet" href=" { url_for('static', filename='css/table.css') }">
+                    <script>
+                        window.onload = function() '''+'''{
+                            {% with messages = get_flashed_messages() %}
+                            {% if messages %}
+                                {% for message in messages %}
+                                alert("{{ message }}");
+                                {% endfor %}
+                            {% endif %}
+                            {% endwith %}
+                        }
+                    </script>
                 </head>
-                <body>
+                <body>'''+f'''
                     {contents}
                 </body>
             </html>
@@ -57,6 +68,38 @@ def get_program_list(url, year_semester_house):
     else:
         print(f"Error: {response.status_code}, {response.text}")
         return program_list
+
+def get_ra_list(url):
+    headers = {
+        "Accept": "application/json"
+    }
+
+    response = requests.get(url, headers=headers)
+    ra_list = []
+
+    if response.status_code == 200:
+        data = response.json()
+        for ra in data:
+            options = {"program_id": ra['user_id'],
+                       "program_name": ra['user_name']}
+            ra_list.append(options)
+        return ra_list  # 반환 값은 JSON 데이터
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
+        return ra_list
+
+def get_receipt_list(url, search_id):
+    headers = {
+        "Accept": "application/json"
+    }
+
+    response = requests.get(f"{url}/{search_id}", headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        return data  # 반환 값은 JSON 데이터
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
+        return None
 
 def get_house_code(house_name):
     # Open the JSON file and load data
@@ -105,19 +148,19 @@ def allowed_file(filename):
 
 def upload_file(upload_folder, redirect_url):
     if 'file' not in request.files:
-        flash('No file part')
+        flash('No file part', 'error')
         return redirect(request.url)
 
     file = request.files['file']
     if file.filename == '':
-        flash('No selected file')
+        flash('No selected file', 'error')
         return redirect(request.url)
     if allowed_file(file.filename):
         filename = file.filename
         file.save(os.path.join(upload_folder, filename))
-        flash('File successfully uploaded')
+        flash('File successfully uploaded', 'success')
     else:
-        flash('Invalid file type')
+        flash('Invalid file type', 'error')
 
     return redirect(redirect_url)
 
@@ -136,7 +179,7 @@ def api_post_data(url, data):
 
 def register_ra_list(set_data, data_dir, redirect_url):
     # API 엔드포인트 주소
-    url = "http://172.28.0.12:5000/api/ra_list"
+    url = os.getenv('URL_API')+'ra_list'
 
     # 입력값 없는 기본설정
     semester = set_data['semester']
@@ -195,12 +238,12 @@ def register_ra_list(set_data, data_dir, redirect_url):
         os.remove(os.path.join(data_dir, file_name))
         print(f'삭제된 파일 : {file_name}')
 
-    flash(f"작업 완료. 총 {len(success_list)}건 성공, {len(failure_list)}건 실패. 실패 목록은 다음과 같습니다. {fail_text_list}")
+    flash(f"작업 완료. 총 {len(success_list)}건 성공, {len(failure_list)}건 실패. 실패 목록은 다음과 같습니다. {fail_text_list}", 'info')
     return redirect(redirect_url)
 
 def register_program_list(set_data, data_dir, redirect_url):
     # API 엔드포인트 주소
-    url = "http://172.28.0.12:5000/api/program"
+    url = os.getenv("URL_API")+"program"
 
     # 기본 설정
     house_code = str(set_data['house'])
@@ -259,7 +302,7 @@ def register_program_list(set_data, data_dir, redirect_url):
         os.remove(os.path.join(data_dir, file_name))
         print(f'삭제된 파일 : {file_name}')
 
-    flash(f"작업 완료. 총 {len(success_list)}건 성공, {len(failure_list)}건 실패.")
+    flash(f"작업 완료. 총 {len(success_list)}건 성공, {len(failure_list)}건 실패.", 'info')
     return redirect(redirect_url)
 
 def form(input_type, name, name_id, attribute, content, options=None, required=True):
@@ -274,13 +317,12 @@ def form(input_type, name, name_id, attribute, content, options=None, required=T
 
 def form_post_receipt(year_semester_house):
     today = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%dT%H:%M')
-    user_list = [{'program_id':2019122044,'program_name':'김대한'},{'program_id':2022124085,'program_name':'박지영'}]
+    user_list = get_ra_list(os.getenv('URL_API')+'ra_list')
     category_expenses = get_category_expenses()
-    url_program = os.getenv('URL_PROGRAM')
+    url_program = os.getenv('URL_API')+'program'
     try:
         program_list = get_program_list(url_program, year_semester_house)
     except Exception as e:
-        flash(e)
         return redirect("/ra")
 
     form_list = [
@@ -293,7 +335,7 @@ def form_post_receipt(year_semester_house):
         form('text', '구매 내역(종류와 단가)', 'purchase_details', 'placeholder', ''),
         form('number', '인원', 'head_count', 'min', '1'),
         form('datetime-local', '결제일시', 'datetime', 'value', today),
-        form('number', '초', 'sec', 'max', '99'),
+        form('number', '초', 'sec', 'max', '60'),
         form('number', '금액', 'expenditure', 'placeholder', '숫자만'),
         form('text', '가맹점명', 'store_name', 'placeholder', '영수증에 나온 그대로'),
         form('checkbox', '기념품지급대장 작성여부', 'souvenir_record', 'placeholder', '', required=False),
@@ -303,7 +345,7 @@ def form_post_receipt(year_semester_house):
         form('checkbox', 'isp 사용여부', 'isp_check', 'placeholder', '', required=False)
     ]
     contents = '''<main>영수증 입력 양식</main>
-                            <form action="/ra/post_receipt" method="POST">
+                            <form action="/ra/post_receipt_data" method="POST">
                                 <table>
                                     <thead>
                                         <tr>
@@ -333,3 +375,54 @@ def form_post_receipt(year_semester_house):
                                         </tr>
                                     </tfoot></table></form>'''
     return template('영수증 입력', contents)
+
+def post_receipt_data(request_data):
+    url = os.getenv('URL_API')+'receipts'
+    int_data_list = ['user_id', 'head_count', 'expenditure', 'division_num']
+    bool_data_list = ['holiday_check', 'souvenir_record', 'division_program', 'isp_check']
+    request_data['house_name'] = 'AVISON'
+    request_data['id'] = request_data['program_id'] + str(request_data['datetime'])
+    for data in request_data:
+        if data in int_data_list:
+            request_data[data] = int(request_data[data]) if request_data[data]!='' else None
+        if data in bool_data_list:
+            request_data[data] = True
+        if data == 'datetime':
+            sec = f"{int(request_data['sec']):02d}"
+            request_data[data] = datetime.strptime(request_data[data] + ':' + sec, "%Y-%m-%dT%H:%M:%S")
+            request_data[data] = pytz.timezone("Asia/Seoul").localize(request_data[data])
+
+    # API 요청에 사용할 데이터 변환
+    api_request_data = {
+        "id": request_data['id'],
+        "year": request_data['datetime'].year,
+        "month": request_data['datetime'].month,
+        "day": request_data['datetime'].day,
+        "time": request_data['datetime'].strftime("%H:%M:%S"),
+        "date": request_data['datetime'].isoformat(),
+        "house_name": request_data['house_name'],
+        "user_id": request_data['user_id'],
+        "program_id": request_data['program_id'],
+        "category_id": request_data['category_id'],
+        "division_num": request_data.get('division_num', None),
+        "division_program": request_data.get('division_program', False),
+        "expenditure": request_data['expenditure'],
+        "head_count": request_data['head_count'],
+        "holiday_check": request_data.get('holiday_check', False),
+        "isp_check": request_data.get('isp_check', False),
+        "key_items_quantity": request_data['key_items_quantity'],
+        "purchase_details": request_data['purchase_details'],
+        "purchase_reason": request_data['purchase_reason'],
+        "reason_store": request_data['reason_store'],
+        "souvenir_record": request_data.get('souvenir_record', False),
+        "store_name": request_data['store_name'],
+        "warning_division": request_data.get('warning_division', None),
+    }
+
+    code, response_text = api_post_data(url, api_request_data)
+    if code == 201:
+        flash('성공적으로 처리되었습니다.', 'success')
+        return redirect(url_for("ra"))
+    else:
+        flash(f"에러 발생 : {response_text}", 'error')
+        return redirect(url_for("ra/post_receipt"))
