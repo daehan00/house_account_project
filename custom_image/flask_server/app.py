@@ -57,6 +57,8 @@ def manager():
     house_name = 'AVISON'
     columns = ['user_id', 'date', 'program_id', 'category_id', 'expenditure']
     data = get_receipt_list(os.getenv("URL_API")+'receipts/house', house_name)
+    if not data:
+        return render_template("manager.html", data=None, columns=columns)
     return render_template("manager.html", data=data, columns=columns)
 
 @app.route('/upload/manager', methods=['POST'])
@@ -88,9 +90,12 @@ def process_accounting():
 
 @app.route("/ra")
 def ra():
-    user_id = '2019122044'
-    data = get_receipt_list(os.getenv("URL_API")+'receipts/house', user_id)
-    return render_template("ra.html", data = data)
+    user_id = '201912204'
+    columns = ['user_id', 'date', 'program_id', 'category_id', 'expenditure']
+    data = get_receipt_list(os.getenv("URL_API")+'receipts/user', user_id)
+    if not data:
+        return render_template("ra.html", data=None, columns=columns)
+    return render_template("ra.html", data=data, columns=columns)
 
 @app.route('/upload/ra', methods=['POST'])
 def handle_upload_ra():

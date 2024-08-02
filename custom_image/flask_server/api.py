@@ -95,11 +95,14 @@ def get_all_ra():
 @app.route('/api/check_user/<int:user_id>', methods=['GET'])
 @swag_from('swagger/check_user.yml')
 def check_user(user_id):
-    user = RAList.query.get(user_id)
-    if user:
-        return jsonify({'message': 'User exists', 'exists': True}), 200
-    else:
-        return jsonify({'message': 'User does not exist', 'exists': False}), 404
+    try:
+        user = RAList.query.get(user_id)
+        if user:
+            return jsonify({'message': 'User exists', 'exists': True, 'authority': user.authority}), 200
+        else:
+            return jsonify({'message': 'User does not exist', 'exists': False}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/ra_list/<int:user_id>', methods=['PUT'])
 @swag_from('swagger/put_ra_list.yml', methods=['PUT'])

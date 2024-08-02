@@ -6,7 +6,28 @@
     <li><input type="button" value="영수증 제출" onclick="location.href='/ra/post_receipt'"></li>
     <li>
         <h3>영수증 제출 내역 확인(본인)</h3>
-        <table></table>
+        {% if data %}
+            <table>
+                <thead>
+                    <tr>
+                        {% for column in columns %}
+                            <th>{{ column }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        {% for column in columns %}
+                        <td>{{ row[column] }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+                <p>No data available for the selected user.</p>
+            {% endif %}
     </li>
     <li><h3>파일 제출</h3>
         <form action="/upload/ra" method="post" enctype="multipart/form-data">

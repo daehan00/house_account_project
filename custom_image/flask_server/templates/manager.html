@@ -22,6 +22,7 @@
         <h3>전체 영수증 제출 관리</h3>
         <ol>
             <li>제출내역 확인</li>
+            {% if data %}
             <table>
                 <thead>
                     <tr>
@@ -40,6 +41,9 @@
                     {% endfor %}
                 </tbody>
             </table>
+            {% else %}
+                <p>No data available for the selected house.</p>
+            {% endif %}
             <li>삭제</li>
         </ol>
     </li>
