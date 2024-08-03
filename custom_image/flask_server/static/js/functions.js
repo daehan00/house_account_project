@@ -203,6 +203,14 @@ function showForm(formType) {
     fetchDataAndRenderForm(formType);
 }
 
-// 사용 예시
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
 
+document.addEventListener("DOMContentLoaded", function() {
+    const numberCells = document.querySelectorAll("td.number");
+    numberCells.forEach(function(cell) {
+        cell.textContent = formatNumber(cell.textContent);
+    });
+});
 

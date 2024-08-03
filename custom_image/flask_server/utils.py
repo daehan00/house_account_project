@@ -1,6 +1,7 @@
 import time
 from flask import flash, redirect, request, session, url_for
 import os
+import openpyxl
 import requests
 import json
 import pandas as pd
@@ -37,7 +38,7 @@ def template(title, contents):
 
 def load_dict_code():
     try:
-        with open(os.getenv("JSON_PATH"), 'r', encoding='utf-8') as file:
+        with open(os.getenv("DATA_PATH")+'dict_code.json', 'r', encoding='utf-8') as file:
             data = json.load(file)
             return data
     except FileNotFoundError:
@@ -443,3 +444,32 @@ def post_receipt_data(request_data):
     else:
         flash(f"에러 발생 : {response_text}", 'error')
         return redirect(url_for("ra/post_receipt"))
+
+
+def modify_and_save_excel(data, save_dir):
+    try:
+        date = datetime.strptime(data['date'], '%Y-%m-%d')
+
+        file_name = date.strftime('%y%m%d')+f"(영)_{data['user_name']}RA_{data['program_name']}.xlsx"
+
+        # 엑셀 파일 열기
+        workbook = openpyxl.load_workbook(os.getenv("DATA_PATH")+'영수증_양식_파일.xlsx')
+        sheet = workbook.active
+
+        # 데이터 수정
+        sheet['B3'] = data['house_name']
+        sheet['D3'] = data['user_name']
+        sheet['B4'] = data['program_name']
+        sheet['B5'] = date.strftime('%Y. %m. %d')
+        sheet['B6'] = int(data['expenditure'])
+        sheet['B7'] = data['reason_store']
+        sheet['D5'] = int(data['head_count'])
+
+        save_path = os.path.join(save_dir, file_name)
+        # 파일 저장
+        workbook.save(save_path)
+        return save_path, None
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None, e

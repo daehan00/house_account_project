@@ -35,7 +35,7 @@
                     {% for row in data %}
                     <tr>
                         {% for column in columns %}
-                        <td>{{ row[column] }}</td>
+                        <td class="{% if column == 'expenditure' or column == 'head_count' %}number{% endif %}">{{ row[column] }}</td>
                         {% endfor %}
                     </tr>
                     {% endfor %}

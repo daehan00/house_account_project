@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 
-from utils import ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list
+from utils import ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -79,7 +79,7 @@ def handle_upload_admin():
 def manager():
     if session.get('manager') or session.get('admin'):
         house_name = session['userData'].split('-')[-1]
-        columns = ['user_id', 'date', 'program_id', 'category_id', 'expenditure']
+        columns = ['date', 'time', 'expenditure', 'store_name', 'category_id', 'program_name', 'purchase_reason', 'key_items_quantity', 'purchase_details']
         data = get_receipt_list(os.getenv("URL_API")+'receipts/house', house_name)
         if not data:
             return render_template("manager.html", data=None, columns=columns)
@@ -135,15 +135,32 @@ def process_accounting():
 def ra():
     if session.get('ra') or session.get('manager') or session.get('admin'):
         user_id = session['userId']
-        columns = ['user_id', 'date', 'program_id', 'category_id', 'expenditure']
-        data = get_receipt_list(os.getenv("URL_API")+'receipts/user', user_id)
-
-        if not data:
+        columns = ['user_name', 'date', 'time', 'expenditure', 'store_name', 'category_id', 'program_name', 'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
+        raw_data = get_receipt_list(os.getenv("URL_API")+'receipts/user', user_id)
+        if not raw_data:
             return render_template("ra.html", data=None, columns=columns)
+        data = raw_data
+        for i in raw_data:
+            i['date'] = i['date'].split('T')[0]
         return render_template("ra.html", data=data, columns=columns)
     else:
         flash("Please login first.", "warning")
         return redirect("/")
+
+@app.route('/ra/create_xlsx', methods=['POST'])
+def create_xlsx():
+    data = request.form.to_dict()
+    data['house_name'] = session['userData'].split('-')[-1]
+    save_path, error = modify_and_save_excel(data, os.getenv("UPLOAD_FOLDER_TMP"))
+    if save_path:
+        flash(f"{save_path}file created", "success")
+    else:
+        flash(f"file not created. error:{error}", "error")
+    return redirect("/ra")
+    # flash(f"{data}")
+    # return redirect("/ra")
+    # return modify_and_save_excel(data, os.getenv("UPLOAD_FOLDER_TMP"))
+
 @app.route('/upload/ra', methods=['POST'])
 def handle_upload_ra():
     if session.get('ra') or session.get('manager') or session.get('admin'):
