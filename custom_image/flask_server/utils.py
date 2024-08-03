@@ -88,6 +88,23 @@ def get_ra_list(url):
         print(f"Error: {response.status_code}, {response.text}")
         return ra_list
 
+def ra_login(url, user_id):
+    headers = {
+        "Accept": "application/json"
+    }
+    response = requests.get(url+str(user_id), headers=headers)
+
+    data = response.json()
+    if response.status_code == 200:
+        if data['authority'] == True:
+            return 'manager'
+        else :
+            return 'ra'
+    elif response.status_code == 404:
+        return 'wrongid'
+    else:
+        return 'error'
+
 def get_receipt_list(url, search_id):
     headers = {
         "Accept": "application/json"

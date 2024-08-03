@@ -110,6 +110,7 @@ def update_ra(user_id):
     try:
         data = request.get_json()
         ra = RAList.query.get_or_404(user_id)
+        ra.authority = data.get('authority', ra.authority)
         ra.user_name = data.get('user_name', ra.user_name)
         ra.user_num = data.get('user_num', ra.user_num)
         ra.division_num = data.get('division_num', ra.division_num)
