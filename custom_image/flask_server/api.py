@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import relationship
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from flasgger import Swagger, swag_from
 from dotenv import load_dotenv
@@ -98,7 +99,7 @@ def check_user(user_id):
     try:
         user = RAList.query.get(user_id)
         if user:
-            return jsonify({'message': 'User exists', 'exists': True, 'authority': user.authority}), 200
+            return jsonify({'message': 'User exists', 'exists': True, 'authority': user.authority, 'user_id':user_id, 'user_data': str(user.year)+'-'+str(user.semester)+'-'+user.house_name}), 200
         else:
             return jsonify({'message': 'User does not exist', 'exists': False}), 404
     except Exception as e:
@@ -230,8 +231,8 @@ class ReceiptSubmission(db.Model):
     time = db.Column(db.Text, nullable=False)
     date = db.Column(db.TIMESTAMP(timezone=True), nullable=False)
     house_name = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.BigInteger, nullable=False)
-    program_id = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.BigInteger, db.ForeignKey('ra_list_table.user_id'), nullable=False)
+    program_id = db.Column(db.Text, db.ForeignKey('program_list_table.program_id'), nullable=False)
     category_id = db.Column(db.Text, nullable=False)
     head_count = db.Column(db.Integer, nullable=False)
     expenditure = db.Column(db.BigInteger, nullable=False)
@@ -249,9 +250,14 @@ class ReceiptSubmission(db.Model):
     updated_at = db.Column(db.TIMESTAMP(timezone=True), default=datetime.now(timezone('Asia/Seoul')), onupdate=datetime.now(timezone('Asia/Seoul')))
     warning_division = db.Column(db.Text)
 
+    ra = relationship("RAList", backref="receipts")
+    program = relationship("Program", backref="receipts")
+
     def to_dict(self):
-        return {column.name: getattr(self, column.name).isoformat() if isinstance(getattr(self, column.name),datetime) else getattr(self,column.name)
-                for column in self.__class__.__table__.columns}
+        return {
+            column.name: getattr(self, column.name).isoformat() if isinstance(getattr(self, column.name), datetime) else getattr(self, column.name)
+            for column in self.__class__.__table__.columns
+        }
 
 @app.route('/api/receipts', methods=['POST'])
 @swag_from('swagger/post_receipt.yml', methods=['POST'])
@@ -281,25 +287,47 @@ def create_receipt():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/receipts/user/<int:user_id>', methods=['GET'])
-@swag_from('swagger/get_receipts_by_user.yml')
-def get_receipts_by_user(user_id):
-    try:
-        receipts = ReceiptSubmission.query.filter_by(user_id=user_id).all()
-        if not receipts:
-            abort(404, description=f"No receipts found for user ID {user_id}")
-        return jsonify([receipt.to_dict() for receipt in receipts]), 200
-    except Exception as e:
-        abort(500, description=str(e))
 
 @app.route('/api/receipts/house/<house_name>', methods=['GET'])
 @swag_from('swagger/get_receipts_by_house.yml')
 def get_receipts_by_house(house_name):
     try:
-        receipts = ReceiptSubmission.query.filter_by(house_name=house_name).all()
+        receipts = db.session.query(ReceiptSubmission).join(RAList).join(Program).filter(
+            ReceiptSubmission.house_name == house_name
+        ).all()
         if not receipts:
             abort(404, description=f"No receipts found for house name {house_name}")
-        return jsonify([receipt.to_dict() for receipt in receipts]), 200
+
+        results = []
+        for receipt in receipts:
+            receipt_dict = receipt.to_dict()
+            receipt_dict['user_name'] = receipt.ra.user_name
+            receipt_dict['program_name'] = receipt.program.program_name
+            results.append(receipt_dict)
+
+        return jsonify(results), 200
+    except Exception as e:
+        abort(500, description=str(e))
+
+
+@app.route('/api/receipts/user/<int:user_id>', methods=['GET'])
+@swag_from('swagger/get_receipts_by_user.yml')
+def get_receipts_by_user(user_id):
+    try:
+        receipts = db.session.query(ReceiptSubmission).join(RAList).join(Program).filter(
+            ReceiptSubmission.user_id == user_id
+        ).all()
+        if not receipts:
+            abort(404, description=f"No receipts found for user ID {user_id}")
+
+        results = []
+        for receipt in receipts:
+            receipt_dict = receipt.to_dict()
+            receipt_dict['user_name'] = receipt.ra.user_name
+            receipt_dict['program_name'] = receipt.program.program_name
+            results.append(receipt_dict)
+
+        return jsonify(results), 200
     except Exception as e:
         abort(500, description=str(e))
 

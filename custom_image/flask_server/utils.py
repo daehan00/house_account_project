@@ -96,14 +96,14 @@ def ra_login(url, user_id):
 
     data = response.json()
     if response.status_code == 200:
-        if data['authority'] == True:
-            return 'manager'
+        if data['authority']:
+            return 'manager', data
         else :
-            return 'ra'
+            return 'ra', data
     elif response.status_code == 404:
-        return 'wrongid'
+        return 'wrongid', data
     else:
-        return 'error'
+        return 'error', data
 
 def get_receipt_list(url, search_id):
     headers = {

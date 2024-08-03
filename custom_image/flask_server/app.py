@@ -24,14 +24,18 @@ def login():
         return render_template("login.html")
     elif request.method == "POST":
         user_id = request.form["userId"]
-        login = ra_login(os.getenv("URL_API")+"check_user/", user_id)
-        if login == 'manager':
+        auth, data = ra_login(os.getenv("URL_API")+"check_user/", user_id)
+        if auth == 'manager':
             session['manager'] = True
+            session['userId'] = user_id
+            session['userData'] = data['user_data']
             flash('Logged in as manager!', 'success')
-        elif login == 'ra':
+        elif auth == 'ra':
             session['ra'] = True
+            session['userId'] = user_id
+            session['userData'] = data['user_data']
             flash('Logged in as RA', 'success')
-        elif login == 'worngid':
+        elif auth == 'worngid':
             flash("Invalid id", 'error')
         else:
             flash('Invalid login', 'warning')
@@ -74,14 +78,14 @@ def handle_upload_admin():
 @app.route("/manager")
 def manager():
     if session.get('manager') or session.get('admin'):
-        house_name = 'AVISON'
+        house_name = session['userData'].split('-')[-1]
         columns = ['user_id', 'date', 'program_id', 'category_id', 'expenditure']
         data = get_receipt_list(os.getenv("URL_API")+'receipts/house', house_name)
         if not data:
             return render_template("manager.html", data=None, columns=columns)
         return render_template("manager.html", data=data, columns=columns)
     elif session.get('ra'):
-        flash("You don't have authority to access.", "warning")
+        flash("You do not have permission to access this page.", "warning")
         return redirect("/")
     else:
         flash("please login first", "warning")
@@ -93,7 +97,7 @@ def handle_upload_manager():
     if session.get('manager') or session.get('admin'):
         return upload_file(app.config["UPLOAD_FOLDER_TMP"], url_for("manager"))
     else:
-        flash("You don't have authority to access.", "warning")
+        flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
 @app.route('/register_ra_list', methods=['GET', 'POST'])
@@ -103,7 +107,7 @@ def handle_register_ra_list():
         set_data['authority'] = False
         return register_ra_list(set_data, app.config["UPLOAD_FOLDER_TMP"], url_for("manager"))
     else:
-        flash("You don't have authority to access.", "warning")
+        flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
 @app.route('/register_program', methods=['GET', 'POST'])
@@ -112,7 +116,7 @@ def handle_register_program():
         set_data = request.form.to_dict()
         return register_program_list(set_data, app.config["UPLOAD_FOLDER_TMP"], url_for("manager"))
     else:
-        flash("You don't have authority to access.", "warning")
+        flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
 @app.route('/manager/process_accounting', methods=['POST'])
@@ -124,15 +128,16 @@ def process_accounting():
         # 월과 회차 데이터 처리 로직
         return jsonify(message=f"Month: {month}, Session: {data_session} processed successfully")
     else:
-        flash("You don't have authority to access.", "warning")
+        flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
 @app.route("/ra")
 def ra():
     if session.get('ra') or session.get('manager') or session.get('admin'):
-        user_id = '201912204'
+        user_id = session['userId']
         columns = ['user_id', 'date', 'program_id', 'category_id', 'expenditure']
         data = get_receipt_list(os.getenv("URL_API")+'receipts/user', user_id)
+
         if not data:
             return render_template("ra.html", data=None, columns=columns)
         return render_template("ra.html", data=data, columns=columns)
@@ -144,7 +149,7 @@ def handle_upload_ra():
     if session.get('ra') or session.get('manager') or session.get('admin'):
         return upload_file(app.config["UPLOAD_FOLDER_RA"], url_for("ra"))
     else:
-        flash("You don't have authority to access.", "warning")
+        flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
 @app.route("/ra/post_receipt")
@@ -152,7 +157,7 @@ def post_receipt_form():
     if session.get('ra') or session.get('manager') or session.get('admin'):
         return form_post_receipt("2024-1-AVISON")
     else:
-        flash("You don't have authority to access.", "warning")
+        flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
 @app.route("/ra/post_receipt_data", methods=['POST'])
@@ -163,7 +168,7 @@ def post_receipt():
             datas[data] = request.form[data]
         return post_receipt_data(datas)
     else:
-        flash("You don't have authority to access.", "warning")
+        flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
 if __name__ == "__main__":
