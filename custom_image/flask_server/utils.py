@@ -2,6 +2,8 @@ import time
 from flask import flash, redirect, request, url_for
 import os
 import openpyxl
+import xlwings as xw
+from PyPDF2 import PdfMerger
 import requests
 import json
 import pandas as pd
@@ -489,3 +491,79 @@ def modify_and_save_excel(data):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None, None
+
+
+
+
+
+def get_excel_files(input_directory, month, period):
+    excel_files = [f for f in os.listdir(input_directory) if f.endswith('.xlsx') or f.endswith('.xls')]
+    year = datetime.now().year
+
+    selected_files = []
+    for file in excel_files:
+        try:
+            date_str = file[:6]
+            date = datetime.strptime(date_str, '%y%m%d')
+            # 연도와 월이 일치하는지 확인
+            if date.year == year and date.month == int(month):
+                # 날짜 구간에 따라 파일을 선택
+                if (int(period) == 1 and 1 <= date.day <= 15) or (int(period) == 2 and 16 <= date.day):
+                    selected_files.append(file)
+        except ValueError:
+            print(f"파일명에서 날짜를 추출할 수 없습니다: {file}")
+    if not selected_files:
+        return None
+    return sorted(selected_files)
+
+def convert_excel_to_pdf(excel_path, pdf_path):
+    # Open the Excel file
+    app = xw.App(visible=False)
+    wb = app.books.open(excel_path)
+
+    # Save as PDF
+    wb.to_pdf(pdf_path)
+
+    # Close the workbook and app
+    wb.close()
+    app.quit()
+
+def merge_pdfs(pdf_list, output_path):
+    merger = PdfMerger()
+    for pdf in pdf_list:
+        merger.append(pdf)
+    merger.write(output_path)
+    merger.close()
+
+def convert_and_merge_excel_to_pdf(input_directory, output_pdf_path, month, period):
+    try:
+        excel_files = get_excel_files(input_directory, month, period)
+        if not excel_files:
+            return "no_files", None
+        pdf_files = []
+
+        # Convert each Excel file to PDF
+        for excel_file in excel_files:
+            excel_path = os.path.join(input_directory, excel_file)
+            pdf_file = os.path.join(input_directory, excel_file.replace('.xlsx', '.pdf').replace('.xls', '.pdf'))
+            convert_excel_to_pdf(excel_path, pdf_file)
+            pdf_files.append(pdf_file)
+
+        if not os.path.exists(output_pdf_path):
+            os.makedirs(output_pdf_path)
+
+        # PDF 파일 이름 설정
+        merged_pdf_name = f"{month}월_{period}차.pdf"
+        merged_pdf_path = os.path.join(output_pdf_path, merged_pdf_name)
+
+        # Merge all PDFs into one
+        merge_pdfs(pdf_files, merged_pdf_path)
+
+        # Optionally, remove individual PDF files after merging
+        for pdf_file in pdf_files:
+            os.remove(pdf_file)
+
+        print(f"Merged PDF saved as {merged_pdf_name}")
+        return "success", merged_pdf_path
+    except Exception as e:
+        return "error", e

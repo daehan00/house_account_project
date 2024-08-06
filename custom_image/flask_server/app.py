@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
-from utils import ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import convert_and_merge_excel_to_pdf, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -158,11 +158,22 @@ def handle_register_program():
 @app.route('/manager/process_accounting', methods=['POST'])
 def process_accounting():
     if session.get('manager') or session.get('admin'):
-        data = request.get_json()
+        data = request.form.to_dict()
         month = data['month']
-        data_session = data['session']
-        # 월과 회차 데이터 처리 로직
-        return jsonify(message=f"Month: {month}, Session: {data_session} processed successfully")
+        period = data['period']
+        house_name = session['userData'].split('-')[-1]
+        data_dir = os.getenv('UPLOAD_FOLDER_RA')+'/'+house_name
+        result_path = os.getenv("UPLOAD_FOLDER_MANAGER")+f"/{house_name}"
+        trial, message = convert_and_merge_excel_to_pdf(data_dir, result_path, month, period)
+        if trial == "success":
+            flash(f"{month}월_{period}차 processed successfully, file_path={message}", "success")
+            return send_file(message, as_attachment=True)
+        elif trial == "no_files":
+            flash(f"{month}월_{period}차 파일이 존재하지 않습니다. 기간 선택을 확인하세요.", "info")
+        else:
+            flash(f"Processing failed, error: {message}", "error")
+        return redirect("/manager")
+
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
@@ -173,12 +184,12 @@ def process_accounting():
 def ra():
     if session.get('ra') or session.get('manager') or session.get('admin'):
         user_id = session['userId']
-        columns = ['user_name', 'date', 'time', 'expenditure', 'store_name', 'category_id', 'program_name', 'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
+        columns = ['date', 'time', 'expenditure', 'store_name', 'category_id', 'program_name', 'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
         raw_data = get_receipt_list(os.getenv("URL_API")+'receipts/user', user_id)
         if not raw_data:
             return render_template("ra.html", data=None, columns=columns)
         data = raw_data
-        for i in raw_data:
+        for i in data:
             i['date'] = i['date'].split('T')[0]
         return render_template("ra.html", data=data, columns=columns)
     else:
@@ -211,7 +222,8 @@ def create_xlsx():
 @app.route('/upload/ra', methods=['POST'])
 def handle_upload_ra():
     if session.get('ra') or session.get('manager') or session.get('admin'):
-        return upload_file(app.config["UPLOAD_FOLDER_RA"], url_for("ra"))
+        house_name = session['userData'].split('-')[-1]
+        return upload_file(app.config["UPLOAD_FOLDER_RA"]+'/'+house_name, url_for("ra"))
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
@@ -220,7 +232,8 @@ def handle_upload_ra():
 def post_receipt_form():
     if session.get('ra') or session.get('manager') or session.get('admin'):
         user_id = session['userId']
-        year_semester_house = session['userData']
+        # year_semester_house = session['userData']
+        year_semester_house = '2024-1-AVISON'
         return form_post_receipt(year_semester_house, user_id)
     else:
         flash("You do not have permission to access this page.", "warning")

@@ -92,8 +92,8 @@ function showAccountingPopup() {
                 <option value="11">November</option>
                 <option value="12">December</option>
             </select>
-            <label for="session">회차:</label>
-            <select id="session" name="session">
+            <label for="period">기간:</label>
+            <select id="period" name="period">
                 <option value="1">1</option>
                 <option value="2">2</option>
             </select>
@@ -115,13 +115,13 @@ function closePopup() {
 
 async function submitAccountingForm() {
     const month = document.getElementById('month').value;
-    const session = document.getElementById('session').value;
+    const period = document.getElementById('period').value;
 
     try {
         const response = await fetch('/manager/process_accounting', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ month, session })
+            body: JSON.stringify({ month, period })
         });
         const data = await response.json();
         alert('Data processed: ' + data.message);

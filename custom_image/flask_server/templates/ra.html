@@ -13,6 +13,7 @@
                         {% for column in columns %}
                             <th>{{ column }}</th>
                         {% endfor %}
+                        <th style="display:none;">user_name</th>
                         <th>양식 생성</th> <!-- 양식 생성 열 추가 -->
                     </tr>
                 </thead>
@@ -22,6 +23,7 @@
                         {% for column in columns %}
                         <td class="{% if column == 'expenditure' %}number{% endif %}">{{ row[column] }}</td>
                         {% endfor %}
+                        <td style="display:none;">{{ row['user_name'] }}</td>
                         <td>
                             <form action="/ra/create_xlsx" method="post" style="display:inline;">
                                 {% for column in columns %}
