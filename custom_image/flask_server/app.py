@@ -1,8 +1,8 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-
-from utils import ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
+from utils import ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
+from datetime import datetime
 load_dotenv()
 
 app = Flask(__name__)
@@ -79,11 +79,34 @@ def handle_upload_admin():
 def manager():
     if session.get('manager') or session.get('admin'):
         house_name = session['userData'].split('-')[-1]
-        columns = ['date', 'time', 'expenditure', 'store_name', 'category_id', 'program_name', 'purchase_reason', 'key_items_quantity', 'purchase_details']
-        data = get_receipt_list(os.getenv("URL_API")+'receipts/house', house_name)
-        if not data:
+        columns = ['date', 'user_name', 'time', 'expenditure', 'store_name', 'category_id', 'program_name',
+                   'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
+        raw_data = get_receipt_list(os.getenv("URL_API") + 'receipts/house', house_name)
+
+        if not raw_data:
             return render_template("manager.html", data=None, columns=columns)
-        return render_template("manager.html", data=data, columns=columns)
+
+        # Get current year and month
+        now = datetime.now()
+        current_year = now.year
+        current_month = now.month
+
+        # Get year and month from query parameters
+        year = request.args.get('year', default=current_year, type=int)
+        month = request.args.get('month', type=int)
+
+        if year and month:
+            filtered_data = [item for item in raw_data if item['year'] == year and item['month'] == month]
+        elif year:
+            filtered_data = [item for item in raw_data if item['year'] == year]
+        else:
+            filtered_data = raw_data
+
+        for i in filtered_data:
+            i['date'] = i['date'].split('T')[0]
+
+        return render_template("manager.html", data=filtered_data, columns=columns, current_year=current_year,
+                               current_month=current_month)
     elif session.get('ra'):
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
@@ -91,6 +114,19 @@ def manager():
         flash("please login first", "warning")
         return redirect("/")
 
+@app.route("/manager/delete_receipt", methods=["POST"])
+def delete_receipt():
+    if session.get('manager') or session.get('admin'):
+        receipt_id = request.form.get('id')
+        delete = delete_receipt_data(os.getenv("URL_API")+"receipts/", receipt_id)
+        if delete:
+            flash("Receipt deleted", "success")
+        else:
+            flash(f"Receipt with id {id} not deleted", "error")
+        return redirect("/manager")
+    else:
+        flash("You do not have permission to access this button.", "error")
+        return redirect("/")
 
 @app.route('/upload/manager', methods=['POST'])
 def handle_upload_manager():
@@ -131,6 +167,8 @@ def process_accounting():
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
+
+
 @app.route("/ra")
 def ra():
     if session.get('ra') or session.get('manager') or session.get('admin'):
@@ -151,15 +189,24 @@ def ra():
 def create_xlsx():
     data = request.form.to_dict()
     data['house_name'] = session['userData'].split('-')[-1]
-    save_path, error = modify_and_save_excel(data, os.getenv("UPLOAD_FOLDER_TMP"))
-    if save_path:
-        flash(f"{save_path}file created", "success")
+    tmp_path, file_name = modify_and_save_excel(data)
+    if tmp_path and file_name:
+        try:
+            response = send_file(
+                tmp_path,
+                as_attachment=True,
+                download_name=file_name,
+                mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            os.remove(tmp_path)  # 파일 전송 후 임시 파일 삭제
+            return response
+        except Exception as e:
+            flash(f"An error occurred while downloading the file: {e}", "error")
+            return redirect("/")
     else:
-        flash(f"file not created. error:{error}", "error")
-    return redirect("/ra")
-    # flash(f"{data}")
-    # return redirect("/ra")
-    # return modify_and_save_excel(data, os.getenv("UPLOAD_FOLDER_TMP"))
+        flash("Unexpected error", "error")
+    return redirect("/")
+
 
 @app.route('/upload/ra', methods=['POST'])
 def handle_upload_ra():
@@ -172,7 +219,9 @@ def handle_upload_ra():
 @app.route("/ra/post_receipt")
 def post_receipt_form():
     if session.get('ra') or session.get('manager') or session.get('admin'):
-        return form_post_receipt("2024-1-AVISON")
+        user_id = session['userId']
+        year_semester_house = session['userData']
+        return form_post_receipt(year_semester_house, user_id)
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")

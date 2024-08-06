@@ -1,5 +1,5 @@
 import time
-from flask import flash, redirect, request, session, url_for
+from flask import flash, redirect, request, url_for
 import os
 import openpyxl
 import requests
@@ -9,6 +9,7 @@ import re
 from datetime import datetime
 import pytz
 from dotenv import load_dotenv
+import tempfile
 load_dotenv()
 
 def template(title, contents):
@@ -114,10 +115,22 @@ def get_receipt_list(url, search_id):
     response = requests.get(f"{url}/{search_id}", headers=headers)
     if response.status_code == 200:
         data = response.json()
-        return data  # 반환 값은 JSON 데이터
+        sorted_data = sorted(data, key=lambda x: datetime.fromisoformat(x['date']))
+        return sorted_data  # 반환 값은 JSON 데이터
     else:
         print(f"Error: {response.status_code}, {response.text}")
         return None
+
+def delete_receipt_data(url, id):
+    headers = {
+        "Accept": "application/json"
+    }
+    response = requests.delete(f"{url}/{id}", headers=headers)
+    if response.status_code == 204:
+        return True
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
+        return False
 
 def get_house_code(house_name):
     # Open the JSON file and load data
@@ -333,21 +346,21 @@ def form(input_type, name, name_id, attribute, content, options=None, required=T
     else:
         return {'입력창': input_type, '항목명': name, 'name': name_id, 'attributes': attributes}
 
-def form_post_receipt(year_semester_house):
+def form_post_receipt(year_semester_house, user_id):
     today = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%dT%H:%M')
     user_list = get_ra_list(os.getenv('URL_API')+'ra_list')
     category_expenses = get_category_expenses()
     url_program = os.getenv('URL_API')+'program'
     try:
         program_list = get_program_list(url_program, year_semester_house)
-    except Exception as e:
+    except Exception:
         return redirect("/ra")
 
     form_list = [
         form('select', '사용자명', 'user_id', '', '', options=user_list),
         form('checkbox', '주말, 법정 공휴일 및 심야 사용 여부', 'holiday_check', '', '', required=False),
         form('select', '계정항목', 'category_id','placeholder', '', options=category_expenses),
-        form('select', '프로그램명','program_id', 'placeholder', '', options=program_list),
+        form('select', '프로그램명','program_id', '', '', options=program_list),
         form('text', '구매 핵심 사유', 'purchase_reason', 'placeholder', '운영물품 구매'),
         form('text', '핵심 품목 및 수량', 'key_items_quantity', 'placeholder', '콜라 등 5종'),
         form('text', '구매 내역(종류와 단가)', 'purchase_details', 'placeholder', ''),
@@ -375,10 +388,10 @@ def form_post_receipt(year_semester_house):
     for data in form_list:
         if data['입력창'] == 'select':
             option_html = ''.join(
-                [f'<option value="{opt["program_id"]}">{opt["program_name"]}</option>' for opt in data['options']])
+                [f'<option value="{opt["program_id"]}" {"selected" if str(opt["program_id"]) == str(user_id) else ""}>{opt["program_name"]}</option>' for opt in data['options']])
             contents += f'''<tr>
                                                 <th scope="row">{data['항목명']}</th>
-                                                <td><select name="{data['name']}">{option_html}</select></td>
+                                                <td><select name="{data['name']}" {data['attributes']}>{option_html}</select></td>
                                             </tr>'''
         else:
             contents = contents + f'''<tr>
@@ -389,7 +402,7 @@ def form_post_receipt(year_semester_house):
     contents = contents + '''</tbody>
                                     <tfoot>
                                         <tr>
-                                            <th scope="row" colspan="2"><input type="submit" value="제출"></th>
+                                            <th scope="row" colspan="2"><input type="submit" value="제출"><input type="button" value="돌아가기" onclick="location.href='/ra'"></th>
                                         </tr>
                                     </tfoot></table></form>'''
     return template('영수증 입력', contents)
@@ -446,7 +459,7 @@ def post_receipt_data(request_data):
         return redirect(url_for("ra/post_receipt"))
 
 
-def modify_and_save_excel(data, save_dir):
+def modify_and_save_excel(data):
     try:
         date = datetime.strptime(data['date'], '%Y-%m-%d')
 
@@ -465,11 +478,14 @@ def modify_and_save_excel(data, save_dir):
         sheet['B7'] = data['reason_store']
         sheet['D5'] = int(data['head_count'])
 
-        save_path = os.path.join(save_dir, file_name)
-        # 파일 저장
-        workbook.save(save_path)
-        return save_path, None
+        # 임시 파일 생성
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as tmp:
+            workbook.save(tmp.name)
+            tmp_path = tmp.name
+
+        print(f"Temporary file created at {tmp_path}")
+        return tmp_path, file_name
 
     except Exception as e:
         print(f"An error occurred: {e}")
-        return None, e
+        return None, None

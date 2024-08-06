@@ -21,7 +21,25 @@
     <li>
         <h3>전체 영수증 제출 관리</h3>
         <ol>
-            <li>제출내역 확인</li>
+            <li>제출내역 확인<br>
+                <form method="GET" action="/manager" style="display:inline;">
+                    <label for="year">연도:</label>
+                    <select id="year" name="year">
+                        {% for y in range(2024, 2030) %}
+                            <option value="{{ y }}" {% if y == current_year %}selected{% endif %}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                    <label for="month">월:</label>
+                    <select id="month" name="month">
+                        <option value="" {% if not current_month %}selected{% endif %}>All</option>
+                        {% for m in range(1, 13) %}
+                            <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" value="필터 적용">
+                    <input type="button" value="필터 해제" onclick="window.location.href='/manager';">
+                </form>
+            </li>
             {% if data %}
             <table>
                 <thead>
@@ -29,6 +47,9 @@
                         {% for column in columns %}
                             <th>{{ column }}</th>
                         {% endfor %}
+                        <th style="display:none;">id</th>
+                        <th>양식 생성</th> <!-- 양식 생성 열 추가 -->
+                        <th>삭제</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -37,6 +58,21 @@
                         {% for column in columns %}
                         <td class="{% if column == 'expenditure' or column == 'head_count' %}number{% endif %}">{{ row[column] }}</td>
                         {% endfor %}
+                        <td style="display:none;">{{ row['id'] }}</td> <!-- Hidden cell for ID -->
+                        <td>
+                            <form action="/ra/create_xlsx" method="post" style="display:inline;">
+                                {% for column in columns %}
+                                <input type="hidden" name="{{ column }}" value="{{ row[column] }}">
+                                {% endfor %}
+                                <button type="submit">다운</button>
+                            </form>
+                        </td>
+                        <td>
+                            <form action="/manager/delete_receipt" method="post" style="display:inline;">
+                                <input type="hidden" name="id" value="{{ row['id'] }}">
+                                <button type="submit">삭제</button>
+                            </form>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -44,7 +80,7 @@
             {% else %}
                 <p>No data available for the selected house.</p>
             {% endif %}
-            <li>삭제</li>
+            <li>수정</li>
         </ol>
     </li>
     <li>
