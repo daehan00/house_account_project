@@ -9,3 +9,4 @@ Flask-WTF
 pandas
 requests
 openpyxl
+PyPDF2

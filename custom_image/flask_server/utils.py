@@ -2,7 +2,7 @@ import time
 from flask import flash, redirect, request, url_for
 import os
 import openpyxl
-import xlwings as xw
+import subprocess
 from PyPDF2 import PdfMerger
 import requests
 import json
@@ -517,16 +517,14 @@ def get_excel_files(input_directory, month, period):
     return sorted(selected_files)
 
 def convert_excel_to_pdf(excel_path, pdf_path):
-    # Open the Excel file
-    app = xw.App(visible=False)
-    wb = app.books.open(excel_path)
-
-    # Save as PDF
-    wb.to_pdf(pdf_path)
-
-    # Close the workbook and app
-    wb.close()
-    app.quit()
+    try:
+        subprocess.run(
+            ['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', os.path.dirname(pdf_path), excel_path],
+            check=True,
+            env={"LANG": "ko_KR.UTF-8", "LC_ALL": "ko_KR.UTF-8"}
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"Error converting {excel_path} to PDF: {e}")
 
 def merge_pdfs(pdf_list, output_path):
     merger = PdfMerger()
