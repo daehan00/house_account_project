@@ -516,15 +516,38 @@ def get_excel_files(input_directory, month, period):
         return None
     return sorted(selected_files)
 
+
 def convert_excel_to_pdf(excel_path, pdf_path):
     try:
-        subprocess.run(
-            ['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', os.path.dirname(pdf_path), excel_path],
+        # Ensure the output directory exists
+        output_dir = os.path.dirname(pdf_path)
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        # Use existing environment variables and add necessary locales
+        env = os.environ.copy()
+        env['LANG'] = 'ko_KR.UTF-8'
+        env['LC_ALL'] = 'ko_KR.UTF-8'
+
+        # Run LibreOffice command to convert Excel to PDF
+        result = subprocess.run(
+            ['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', output_dir, excel_path],
             check=True,
-            env={"LANG": "ko_KR.UTF-8", "LC_ALL": "ko_KR.UTF-8"}
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
         )
+
+        print(f"LibreOffice output: {result.stdout.decode('utf-8')}")
+        print(f"LibreOffice errors: {result.stderr.decode('utf-8')}")
+
     except subprocess.CalledProcessError as e:
         print(f"Error converting {excel_path} to PDF: {e}")
+        print(f"Command output: {e.stdout.decode('utf-8')}")
+        print(f"Command error: {e.stderr.decode('utf-8')}")
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
 
 def merge_pdfs(pdf_list, output_path):
     merger = PdfMerger()
