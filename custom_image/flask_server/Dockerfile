@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
     libreoffice-writer \
     libreoffice-calc \
     libreoffice-impress \
+    libreoffice-hwp \
     locales \
     fonts-noto-cjk \
     && echo "ko_KR.UTF-8 UTF-8" > /etc/locale.gen \

@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
-from utils import convert_and_merge_excel_to_pdf, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -88,28 +88,55 @@ def manager():
 
         # Get current year and month
         now = datetime.now()
-        current_year = now.year
+        year = now.year
         current_month = now.month
 
         # Get year and month from query parameters
-        year = request.args.get('year', default=current_year, type=int)
         month = request.args.get('month', type=int)
+        period = request.args.get('period', type=int)
 
-        if year and month:
-            filtered_data = [item for item in raw_data if item['year'] == year and item['month'] == month]
-        elif year:
-            filtered_data = [item for item in raw_data if item['year'] == year]
+        receipt_files = []
+        minutes_files = []
+        receipt_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/receipts"
+        minutes_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/minutes"
+        filtered_data = [item for item in raw_data if item['year'] == year]
+
+        if period and month:
+            filtered_data = [item for item in filtered_data if item['month'] == month]
+            if period == 1:
+                filtered_data = [item for item in filtered_data if int(item['day']) <= 15]
+            elif period == 2:
+                filtered_data = [item for item in filtered_data if int(item['day']) > 15]
+
+            receipt_files = get_files(receipt_dir, month, period)
+            minutes_files = get_files(minutes_dir, month, period)
+
+        elif month:
+            filtered_data = [item for item in filtered_data if item['month'] == month]
+            for i in range(1, 3):
+                receipt_files_period = get_files(receipt_dir, month, i)
+                minutes_files_period = get_files(minutes_dir, month, i)
+                receipt_files.extend(receipt_files_period)
+                minutes_files.extend(minutes_files_period)
         else:
-            filtered_data = raw_data
+            receipt_files = get_files_from_directory(receipt_dir)
+            minutes_files = get_files_from_directory(minutes_dir)
 
         for i in filtered_data:
             i['date'] = i['date'].split('T')[0]
 
-        return render_template("manager.html", data=filtered_data, columns=columns, current_year=current_year,
-                               current_month=current_month)
+
+        # 두 리스트를 zip하고, 만약 길이가 다르면 None으로 채우기
+        max_len = max(len(receipt_files), len(minutes_files))
+        receipt_files.extend([None] * (max_len - len(receipt_files)))
+        minutes_files.extend([None] * (max_len - len(minutes_files)))
+
+        file_pairs = zip(receipt_files, minutes_files)
+        return render_template("manager.html", data=filtered_data, columns=columns, current_period=period,
+                               current_month=current_month, selected_month=month, file_pairs=file_pairs)
     elif session.get('ra'):
-        flash("You do not have permission to access this page.", "warning")
-        return redirect("/")
+            flash("You do not have permission to access this page.", "warning")
+            return redirect("/")
     else:
         flash("please login first", "warning")
         return redirect("/")
@@ -135,6 +162,45 @@ def handle_upload_manager():
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
+
+
+@app.route("/manager/download_file", methods=["POST"])
+def download_file():
+    file_type = request.form['type']
+    filename = request.form['filename']
+
+    if file_type == 'receipt':
+        directory = os.getenv("UPLOAD_FOLDER_RA") + "/AVISON/receipts"
+    elif file_type == 'minute':
+        directory = os.getenv("UPLOAD_FOLDER_RA") + "/AVISON/minutes"
+    else:
+        flash("Invalid file type.", "error")
+        return redirect("/manager")
+    file_path = os.path.join(directory, filename)
+    return send_file(file_path, as_attachment=True)
+
+
+@app.route("/manager/delete_file", methods=["POST"])
+def delete_file():
+    file_type = request.form['type']
+    filename = request.form['filename']
+
+    if file_type == 'receipt':
+        directory = os.getenv("UPLOAD_FOLDER_RA")+"/AVISON/receipts"
+    elif file_type == 'minute':
+        directory = os.getenv("UPLOAD_FOLDER_RA")+"/AVISON/minutes"
+    else:
+        flash("Invalid file type.", "error")
+        return redirect("/manager")
+
+    try:
+        os.remove(os.path.join(directory, filename))
+        flash(f"{filename} has been deleted.", "success")
+    except FileNotFoundError:
+        flash(f"{filename} not found.", "error")
+
+    return redirect("/manager")
+
 
 @app.route('/register_ra_list', methods=['GET', 'POST'])
 def handle_register_ra_list():
@@ -162,9 +228,9 @@ def process_accounting():
         month = data['month']
         period = data['period']
         house_name = session['userData'].split('-')[-1]
-        data_dir = os.getenv('UPLOAD_FOLDER_RA')+'/'+house_name
+        data_dir = os.getenv('UPLOAD_FOLDER_RA')+f'/{house_name}/'
         result_path = os.getenv("UPLOAD_FOLDER_MANAGER")+f"/{house_name}"
-        trial, message = convert_and_merge_excel_to_pdf(data_dir, result_path, month, period)
+        trial, message = process_files(data_dir, result_path, month, period)
         if trial == "success":
             flash(f"{month}월_{period}차 processed successfully, file_path={message}", "success")
             return send_file(message, as_attachment=True)
@@ -173,7 +239,6 @@ def process_accounting():
         else:
             flash(f"Processing failed, error: {message}", "error")
         return redirect("/manager")
-
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")

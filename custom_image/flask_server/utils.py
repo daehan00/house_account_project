@@ -197,6 +197,12 @@ def upload_file(upload_folder, redirect_url):
 
     return redirect(redirect_url)
 
+def get_files_from_directory(directory_path):
+    try:
+        files = os.listdir(directory_path)
+        return sorted(files)
+    except FileNotFoundError:
+        return []
 
 def api_post_data(url, data):
     # 헤더 설정
@@ -495,59 +501,41 @@ def modify_and_save_excel(data):
 
 
 
-
-def get_excel_files(input_directory, month, period):
-    excel_files = [f for f in os.listdir(input_directory) if f.endswith('.xlsx') or f.endswith('.xls')]
+def get_files(input_directory, month, period):
+    file_extensions = ['.xlsx', '.xls', '.hwp', '.hwpx']
+    files = [f for f in os.listdir(input_directory) if any(f.endswith(ext) for ext in file_extensions)]
     year = datetime.now().year
 
     selected_files = []
-    for file in excel_files:
+    for file in files:
         try:
             date_str = file[:6]
             date = datetime.strptime(date_str, '%y%m%d')
-            # 연도와 월이 일치하는지 확인
-            if date.year == year and date.month == int(month):
-                # 날짜 구간에 따라 파일을 선택
-                if (int(period) == 1 and 1 <= date.day <= 15) or (int(period) == 2 and 16 <= date.day):
-                    selected_files.append(file)
+            if date.year == year and date.month == int(month) and (
+                    (int(period) == 1 and 1 <= date.day <= 15) or (int(period) == 2 and 16 <= date.day)):
+                selected_files.append(file)
         except ValueError:
             print(f"파일명에서 날짜를 추출할 수 없습니다: {file}")
-    if not selected_files:
-        return None
     return sorted(selected_files)
 
 
-def convert_excel_to_pdf(excel_path, pdf_path):
+def convert_to_pdf(input_directory, file_path, output_directory):
+    if not output_directory:
+        os.makedirs(output_directory)
+
+    env = os.environ.copy()
+    env['LANG'] = 'ko_KR.UTF-8'
+    env['LC_ALL'] = 'ko_KR.UTF-8'
+    output_file = os.path.join(output_directory,
+                               file_path.replace('.xlsx', '.pdf').replace('.xls', '.pdf').replace('.hwp', '.pdf').replace('.hwpx', '.pdf'))
+
     try:
-        # Ensure the output directory exists
-        output_dir = os.path.dirname(pdf_path)
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-
-        # Use existing environment variables and add necessary locales
-        env = os.environ.copy()
-        env['LANG'] = 'ko_KR.UTF-8'
-        env['LC_ALL'] = 'ko_KR.UTF-8'
-
-        # Run LibreOffice command to convert Excel to PDF
-        result = subprocess.run(
-            ['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', output_dir, excel_path],
-            check=True,
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-
-        print(f"LibreOffice output: {result.stdout.decode('utf-8')}")
-        print(f"LibreOffice errors: {result.stderr.decode('utf-8')}")
-
+        subprocess.run(['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', output_file,
+                        os.path.join(input_directory, file_path)], check=True, env=env)
+        return output_file
     except subprocess.CalledProcessError as e:
-        print(f"Error converting {excel_path} to PDF: {e}")
-        print(f"Command output: {e.stdout.decode('utf-8')}")
-        print(f"Command error: {e.stderr.decode('utf-8')}")
+        print(f"Error converting {file_path} to PDF: {e}")
 
-    except Exception as e:
-        print(f"Unexpected error: {e}")
 
 def merge_pdfs(pdf_list, output_path):
     merger = PdfMerger()
@@ -556,35 +544,28 @@ def merge_pdfs(pdf_list, output_path):
     merger.write(output_path)
     merger.close()
 
-def convert_and_merge_excel_to_pdf(input_directory, output_pdf_path, month, period):
+
+def process_files(input_directory, output_directory, month, period):
     try:
-        excel_files = get_excel_files(input_directory, month, period)
-        if not excel_files:
-            return "no_files", None
+        data_dir = [input_directory+'receipts', input_directory+'minutes']
         pdf_files = []
+        for directory in data_dir:
+            files = get_files(directory, month, period)
+            for file in files:
+                pdf_path = convert_to_pdf(directory, file, output_directory)
+                if pdf_path:
+                    pdf_files.append(pdf_path)
 
-        # Convert each Excel file to PDF
-        for excel_file in excel_files:
-            excel_path = os.path.join(input_directory, excel_file)
-            pdf_file = os.path.join(input_directory, excel_file.replace('.xlsx', '.pdf').replace('.xls', '.pdf'))
-            convert_excel_to_pdf(excel_path, pdf_file)
-            pdf_files.append(pdf_file)
+        if not pdf_files:
+            return "no_files", None
 
-        if not os.path.exists(output_pdf_path):
-            os.makedirs(output_pdf_path)
-
-        # PDF 파일 이름 설정
-        merged_pdf_name = f"{month}월_{period}차.pdf"
-        merged_pdf_path = os.path.join(output_pdf_path, merged_pdf_name)
-
-        # Merge all PDFs into one
+        merged_pdf_path = os.path.join(output_directory, f"{month}월_{period}차.pdf")
         merge_pdfs(pdf_files, merged_pdf_path)
 
-        # Optionally, remove individual PDF files after merging
-        for pdf_file in pdf_files:
-            os.remove(pdf_file)
+        for pdf_path in pdf_files:
+            os.remove(pdf_path)
 
-        print(f"Merged PDF saved as {merged_pdf_name}")
+        print(f"Merged PDF saved as {merged_pdf_path}")
         return "success", merged_pdf_path
     except Exception as e:
         return "error", e
