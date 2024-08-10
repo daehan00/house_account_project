@@ -1,4 +1,5 @@
 import os
+import unicodedata
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
 from utils import get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
@@ -126,10 +127,10 @@ def manager():
             i['date'] = i['date'].split('T')[0]
 
         hwp_files = [f.split(".")[0] for f in minutes_files if f.endswith('.hwp')]
-        pdf_files = [f.split(".")[0] for f in minutes_files if f.endswith('.pdf')]
+        pdf_files = [unicodedata.normalize('NFC', f.split(".")[0]) for f in minutes_files if f.endswith('.pdf')]
         minutes_data = []
         for i in hwp_files:
-            if i in pdf_files:
+            if unicodedata.normalize('NFC', i) in pdf_files:
                 i = {'filename': i, 'pdf': '제출'}
             else:
                 i = {'filename': i, 'pdf': '미제출'}

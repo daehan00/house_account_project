@@ -12,6 +12,7 @@ from datetime import datetime
 import pytz
 from dotenv import load_dotenv
 import tempfile
+import unicodedata
 load_dotenv()
 
 def template(title, contents):
@@ -179,21 +180,25 @@ def allowed_file(upload_folder, filename, div):
     if any(filename_lower.endswith(ext) for ext in file_extensions):
         if div == "manager":
             if not filename_lower.endswith('.xlsx'):
-                return None, 'error'
-            return filename, 'success'
+                return None, None, 'error'
+            return upload_folder, filename, 'success'
         if div == "ra":
             try:
                 date_str = filename[:6]
                 date = datetime.strptime(date_str, '%y%m%d')
+                if filename_lower.endswith('.xlsx'):
+                    return upload_folder+'/receipts', filename, 'success'
                 if filename_lower.endswith('.pdf'):
-                    file_list = [f.split('.')[0] for f in os.listdir(upload_folder) if f.lower().endswith('.xlsx')]
-                    if not filename.split('.')[0] in file_list:
-                        return filename, 'pdf_error'
+                    file_list = [unicodedata.normalize('NFC', f.split('.')[0]) for f in os.listdir(upload_folder+'/minutes') if f.endswith('.hwp')]
+                    file_name = unicodedata.normalize('NFC', filename.split('.')[0])
+                    if not file_name in file_list:
+                        return upload_folder, filename, 'pdf_error'
+
             except ValueError:
-                return filename, 'name_error'
-            return filename, 'success'
+                return upload_folder, filename, 'name_error'
+            return upload_folder+'/minutes', filename, 'success'
     else:
-        return None, 'error'
+        return None, None, 'error'
 
 def upload_file(upload_folder, redirect_url, div):
     if 'file' not in request.files:
@@ -205,10 +210,10 @@ def upload_file(upload_folder, redirect_url, div):
         flash('No selected file', 'error')
         return redirect(request.url)
 
-    filename, error_type = allowed_file(upload_folder, file.filename, div)
+    upload_folder_, filename, error_type = allowed_file(upload_folder, file.filename, div)
     if error_type == 'success':
         try:
-            file.save(os.path.join(upload_folder, filename))
+            file.save(os.path.join(upload_folder_, filename))
             flash('File successfully uploaded', 'success')
         except IOError as e:
             flash('File save error: ' + str(e), 'error')
@@ -527,7 +532,7 @@ def modify_and_save_excel(data):
 
 
 def get_files(input_directory, month, period):
-    file_extensions = ['.xlsx', '.xls', '.hwp', '.hwpx']
+    file_extensions = ['.xlsx', '.xls', '.hwp', '.hwpx', '.pdf']
     files = [f for f in os.listdir(input_directory) if any(f.endswith(ext) for ext in file_extensions)]
     year = datetime.now().year
 
@@ -580,9 +585,9 @@ def process_files(input_directory, output_directory, month, period):
             pdf_path = convert_to_pdf(receipt_dir, file, output_directory)
             if pdf_path:
                 pdf_files.append(pdf_path)
-        minutes_pdf = [f for f in os.listdir(minutes_dir) if f.endswith('.pdf')]
+        minutes_pdf = [os.path.join(minutes_dir, f) for f in get_files(minutes_dir, month, period) if f.endswith('.pdf')]
         if minutes_pdf:
-            pdf_files.extend(sorted(minutes_pdf))
+            pdf_files.extend(minutes_pdf)
 
         if not pdf_files:
             return "no_files", None
