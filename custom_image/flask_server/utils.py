@@ -527,10 +527,10 @@ def convert_to_pdf(input_directory, file_path, output_directory):
     env['LANG'] = 'ko_KR.UTF-8'
     env['LC_ALL'] = 'ko_KR.UTF-8'
     output_file = os.path.join(output_directory,
-                               file_path.replace('.xlsx', '.pdf').replace('.xls', '.pdf').replace('.hwp', '.pdf').replace('.hwpx', '.pdf'))
+                               file_path.replace('.xlsx', '.pdf').replace('.xls', '.pdf'))
 
     try:
-        subprocess.run(['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', output_file,
+        subprocess.run(['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', output_directory,
                         os.path.join(input_directory, file_path)], check=True, env=env)
         return output_file
     except subprocess.CalledProcessError as e:
@@ -547,14 +547,17 @@ def merge_pdfs(pdf_list, output_path):
 
 def process_files(input_directory, output_directory, month, period):
     try:
-        data_dir = [input_directory+'receipts', input_directory+'minutes']
+        receipt_dir = input_directory+'receipts'
+        minutes_dir = input_directory+'minutes'
         pdf_files = []
-        for directory in data_dir:
-            files = get_files(directory, month, period)
-            for file in files:
-                pdf_path = convert_to_pdf(directory, file, output_directory)
-                if pdf_path:
-                    pdf_files.append(pdf_path)
+        receipt_files = get_files(receipt_dir, month, period)
+        for file in receipt_files:
+            pdf_path = convert_to_pdf(receipt_dir, file, output_directory)
+            if pdf_path:
+                pdf_files.append(pdf_path)
+        minutes_pdf = [f for f in os.listdir(minutes_dir) if f.endswith('.pdf')]
+        if minutes_pdf:
+            pdf_files.extend(sorted(minutes_pdf))
 
         if not pdf_files:
             return "no_files", None
