@@ -72,7 +72,7 @@ def handle_upload_admin():
         flash('You are not logged in', "error")
         return redirect(url_for('/'))  # 메인 페이지로 리다이렉션
 
-    return upload_file(app.config["UPLOAD_FOLDER_ADMIN"], url_for("admin"))
+    return upload_file(app.config["UPLOAD_FOLDER_ADMIN"], url_for("admin"), "admin")
 
 
 @app.route("/manager")
@@ -125,13 +125,23 @@ def manager():
         for i in filtered_data:
             i['date'] = i['date'].split('T')[0]
 
+        hwp_files = [f.split(".")[0] for f in minutes_files if f.endswith('.hwp')]
+        pdf_files = [f.split(".")[0] for f in minutes_files if f.endswith('.pdf')]
+        minutes_data = []
+        for i in hwp_files:
+            if i in pdf_files:
+                i = {'filename': i, 'pdf': '제출'}
+            else:
+                i = {'filename': i, 'pdf': '미제출'}
+            minutes_data.append(i)
+
 
         # 두 리스트를 zip하고, 만약 길이가 다르면 None으로 채우기
-        max_len = max(len(receipt_files), len(minutes_files))
-        receipt_files.extend([None] * (max_len - len(receipt_files)))
-        minutes_files.extend([None] * (max_len - len(minutes_files)))
+        max_len = max(len(receipt_files), len(minutes_data))
+        receipt_files.extend([{'filename': None, 'pdf': None}] * (max_len - len(receipt_files)))
+        minutes_data.extend([{'filename': None, 'pdf': None}] * (max_len - len(minutes_data)))
 
-        file_pairs = zip(receipt_files, minutes_files)
+        file_pairs = zip(receipt_files, minutes_data)
         return render_template("manager.html", data=filtered_data, columns=columns, current_period=period,
                                current_month=current_month, selected_month=month, file_pairs=file_pairs)
     elif session.get('ra'):
@@ -158,49 +168,60 @@ def delete_receipt():
 @app.route('/upload/manager', methods=['POST'])
 def handle_upload_manager():
     if session.get('manager') or session.get('admin'):
-        return upload_file(app.config["UPLOAD_FOLDER_TMP"], url_for("manager"))
+        return upload_file(app.config["UPLOAD_FOLDER_TMP"], url_for("manager"), "manager")
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
-
 
 @app.route("/manager/download_file", methods=["POST"])
 def download_file():
     file_type = request.form['type']
     filename = request.form['filename']
+    pdf_filename = request.form['pdf']
 
     if file_type == 'receipt':
         directory = os.getenv("UPLOAD_FOLDER_RA") + "/AVISON/receipts"
     elif file_type == 'minute':
         directory = os.getenv("UPLOAD_FOLDER_RA") + "/AVISON/minutes"
+        if pdf_filename:
+            filename = filename + '.pdf'
+        else:
+            filename = filename + '.hwp'
     else:
         flash("Invalid file type.", "error")
         return redirect("/manager")
     file_path = os.path.join(directory, filename)
     return send_file(file_path, as_attachment=True)
 
-
 @app.route("/manager/delete_file", methods=["POST"])
 def delete_file():
     file_type = request.form['type']
     filename = request.form['filename']
+    pdf_filename = request.form['pdf']
 
     if file_type == 'receipt':
         directory = os.getenv("UPLOAD_FOLDER_RA")+"/AVISON/receipts"
     elif file_type == 'minute':
         directory = os.getenv("UPLOAD_FOLDER_RA")+"/AVISON/minutes"
+        if pdf_filename:
+            filename = [filename + '.pdf', filename + '.hwp']
+        else:
+            filename = filename + '.hwp'
     else:
         flash("Invalid file type.", "error")
         return redirect("/manager")
 
     try:
-        os.remove(os.path.join(directory, filename))
-        flash(f"{filename} has been deleted.", "success")
+        if type(filename) == list:
+            for i in filename:
+                os.remove(os.path.join(directory, i))
+        else:
+            os.remove(os.path.join(directory, filename))
+        flash(f"{str(filename)} has been deleted.", "success")
     except FileNotFoundError:
         flash(f"{filename} not found.", "error")
 
     return redirect("/manager")
-
 
 @app.route('/register_ra_list', methods=['GET', 'POST'])
 def handle_register_ra_list():
@@ -283,12 +304,11 @@ def create_xlsx():
         flash("Unexpected error", "error")
     return redirect("/")
 
-
 @app.route('/upload/ra', methods=['POST'])
 def handle_upload_ra():
     if session.get('ra') or session.get('manager') or session.get('admin'):
         house_name = session['userData'].split('-')[-1]
-        return upload_file(app.config["UPLOAD_FOLDER_RA"]+'/'+house_name, url_for("ra"))
+        return upload_file(app.config["UPLOAD_FOLDER_RA"]+'/'+house_name, url_for("ra"), "ra")
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")

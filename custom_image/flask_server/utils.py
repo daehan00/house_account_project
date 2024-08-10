@@ -172,14 +172,30 @@ def get_category_expenses():
     ]
     return new_category
 
-# 허용되는 파일 확장자 목록
-ALLOWED_EXTENSIONS = {'pdf', 'hwp', 'xlsx', 'xls'}
+def allowed_file(upload_folder, filename, div):
+    file_extensions = ['.pdf', '.hwp', '.xlsx', '.xls']  # 확장자 앞에 점 추가
+    filename_lower = filename.lower()  # 파일 이름을 소문자로 변환
 
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    if any(filename_lower.endswith(ext) for ext in file_extensions):
+        if div == "manager":
+            if not filename_lower.endswith('.xlsx'):
+                return None, 'error'
+            return filename, 'success'
+        if div == "ra":
+            try:
+                date_str = filename[:6]
+                date = datetime.strptime(date_str, '%y%m%d')
+                if filename_lower.endswith('.pdf'):
+                    file_list = [f.split('.')[0] for f in os.listdir(upload_folder) if f.lower().endswith('.xlsx')]
+                    if not filename.split('.')[0] in file_list:
+                        return filename, 'pdf_error'
+            except ValueError:
+                return filename, 'name_error'
+            return filename, 'success'
+    else:
+        return None, 'error'
 
-def upload_file(upload_folder, redirect_url):
+def upload_file(upload_folder, redirect_url, div):
     if 'file' not in request.files:
         flash('No file part', 'error')
         return redirect(request.url)
@@ -188,10 +204,19 @@ def upload_file(upload_folder, redirect_url):
     if file.filename == '':
         flash('No selected file', 'error')
         return redirect(request.url)
-    if allowed_file(file.filename):
-        filename = file.filename
-        file.save(os.path.join(upload_folder, filename))
-        flash('File successfully uploaded', 'success')
+
+    filename, error_type = allowed_file(upload_folder, file.filename, div)
+    if error_type == 'success':
+        try:
+            file.save(os.path.join(upload_folder, filename))
+            flash('File successfully uploaded', 'success')
+        except IOError as e:
+            flash('File save error: ' + str(e), 'error')
+            return redirect(request.url)
+    elif error_type == 'name_error':
+        flash('파일명 설정이 잘못되었습니다. 파일명을 확인해주세요.', 'error')
+    elif error_type == 'pdf_error':
+        flash('한글 파일이 없습니다. 영수증 한글 파일을 먼저 업로드해주세요.', 'error')
     else:
         flash('Invalid file type', 'error')
 

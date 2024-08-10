@@ -91,7 +91,8 @@
                             <th>영수증 파일</th>
                             <th>다운로드</th>
                             <th>삭제</th>
-                            <th>회의록 파일</th>
+                            <th>회의록 hwp</th>
+                            <th>회의록 pdf</th>
                             <th>다운로드</th>
                             <th>삭제</th>
                         </tr>
@@ -106,6 +107,7 @@
                                 <form action="/manager/download_file" method="post" style="display:inline;">
                                     <input type="hidden" name="filename" value="{{ receipt }}">
                                     <input type="hidden" name="type" value="receipt">
+                                    <input type="hidden" name="pdf" value="">
                                     <button type="submit">다운</button>
                                 </form>
                                 {% endif %}
@@ -115,18 +117,21 @@
                                 <form action="/manager/delete_file" method="post" style="display:inline;">
                                     <input type="hidden" name="filename" value="{{ receipt }}">
                                     <input type="hidden" name="type" value="receipt">
+                                    <input type="hidden" name="pdf" value="">
                                     <button type="submit">삭제</button>
                                 </form>
                                 {% endif %}
                             </td>
 
                             <!-- 회의록 파일 열 -->
-                            <td>{{ minute }}</td>
+                            <td>{{ minute['filename'] }}</td>
+                            <td>{{ minute['pdf'] }}</td>
                             <td>
                                 {% if minute %}
                                 <form action="/manager/download_file" method="post" style="display:inline;">
-                                    <input type="hidden" name="filename" value="{{ minute }}">
+                                    <input type="hidden" name="filename" value="{{ minute['filename'] }}">
                                     <input type="hidden" name="type" value="minute">
+                                    <input type="hidden" name="pdf" value="{{ minute['pdf'] }}">
                                     <button type="submit">다운</button>
                                 </form>
                                 {% endif %}
@@ -134,8 +139,9 @@
                             <td>
                                 {% if minute %}
                                 <form action="/manager/delete_file" method="post" style="display:inline;">
-                                    <input type="hidden" name="filename" value="{{ minute }}">
+                                    <input type="hidden" name="filename" value="{{ minute['filename'] }}">
                                     <input type="hidden" name="type" value="minute">
+                                    <input type="hidden" name="pdf" value="{{ minute['pdf'] }}">
                                     <button type="submit">삭제</button>
                                 </form>
                                 {% endif %}
