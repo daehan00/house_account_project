@@ -93,6 +93,46 @@ def get_ra_list(url):
         print(f"Error: {response.status_code}, {response.text}")
         return ra_list
 
+def get_ra_list_sorted():
+    headers = {"Accept": "application/json"}
+
+    response = requests.get(os.getenv("URL_API")+'ra_list', headers=headers)
+    if response.status_code == 200:
+        data = response.json()
+        df = pd.DataFrame(data)
+
+        df_sorted = df.sort_values(by='user_name')
+
+        auth_true = df_sorted[df_sorted['authority']]
+        auth_false = df_sorted[~df_sorted['authority']]
+
+        return auth_true.to_dict(orient='records'), auth_false.to_dict(orient='records')
+    else:
+        print(f"Error: {response.status_code}, {response.text}")
+        return None, None
+
+def update_ra_authority(user_id, authority):
+    url = os.getenv("URL_API") + 'ra_list/update/' + str(user_id)
+
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    data = {
+        "authority": authority
+    }
+
+    response = requests.put(url, headers=headers, data=data)
+
+    if response.status_code == 200:
+        if authority:
+            return 'success', f'{user_id} 권한 부여되었습니다.'
+        else:
+            return 'success', f'{user_id} 권한 삭제되었습니다.'
+    else:
+        return 'error', response.text
+
 def ra_login(url, user_id):
     headers = {
         "Accept": "application/json"
@@ -386,7 +426,7 @@ def form(input_type, name, name_id, attribute, content, options=None, required=T
 
 def form_post_receipt(year_semester_house, user_id):
     today = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%dT%H:%M')
-    user_list = get_ra_list(os.getenv('URL_API')+'ra_list')
+    user_list = get_ra_list(os.getenv('URL_API')+'ra_list/get')
     category_expenses = get_category_expenses()
     url_program = os.getenv('URL_API')+'program'
     try:

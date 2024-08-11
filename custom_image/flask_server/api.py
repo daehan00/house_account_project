@@ -82,7 +82,7 @@ def create_ra():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/ra_list', methods=['GET'])
+@app.route('/api/ra_list/get', methods=['GET'])
 @swag_from('swagger/get_ra_list.yml', methods=['GET'])
 def get_all_ra():
     try:
@@ -105,7 +105,7 @@ def check_user(user_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/ra_list/<int:user_id>', methods=['PUT'])
+@app.route('/api/ra_list/update/<int:user_id>', methods=['PUT'])
 @swag_from('swagger/put_ra_list.yml', methods=['PUT'])
 def update_ra(user_id):
     try:
@@ -128,7 +128,7 @@ def update_ra(user_id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/ra_list/<int:user_id>', methods=['DELETE'])
+@app.route('/api/ra_list/delete/<int:user_id>', methods=['DELETE'])
 @swag_from('swagger/delete_ra_list.yml', methods=['DELETE'])
 def delete_ra(user_id):
     ra = RAList.query.get_or_404(user_id)
@@ -136,7 +136,7 @@ def delete_ra(user_id):
     db.session.commit()
     return '', 204
 
-@app.route('/api/ra_list/<int:user_id>', methods=['GET'])
+@app.route('/api/ra_list/get/<int:user_id>', methods=['GET'])
 @swag_from('swagger/get_ra.yml', methods=['GET'])
 def get_ra(user_id):
     ra = RAList.query.get_or_404(user_id)

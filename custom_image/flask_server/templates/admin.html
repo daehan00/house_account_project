@@ -2,10 +2,83 @@
 {% block title %}Admin{% endblock %}
 {% block body %}
 <h1>Accounting System Admin</h1>
-<p><form action="/upload/admin" method="post" enctype="multipart/form-data">
+<p>
+    <form action="/upload/admin" method="post" enctype="multipart/form-data">
     <label for="file">Upload File:</label>
     <input type="file" id="file" name="file" required>
     <br><br>
     <input type="submit" value="Upload">
-</form></p>
+    </form>
+</p>
+<h2>RA 관리</h2>
+<ol>
+    <li>
+        <h3>선임/회계 담당 RA</h3>
+        {% if auth_true %}
+            <table>
+                <thead>
+                    <tr>
+                        {% for column in columns %}
+                            <th>{{ column }}</th>
+                        {% endfor %}
+                        <th>권한 삭제</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in auth_true %}
+                    <tr>
+                        {% for column in columns %}
+                        <td>{{ row[column] }}</td>
+                        {% endfor %}
+                        <td>
+                            <form action="/admin/authority/delete" method="post" style="display:inline;">
+                                {% for column in columns %}
+                                <input type="hidden" name="userId" value="{{ row[user_id] }}">
+                                {% endfor %}
+                                <button type="submit">권한삭제</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>권한이 부여된 RA가 없습니다.</p>
+        {% endif %}
+    </li>
+    <li>
+        <h3>일반 사용자</h3>
+        {% if auth_false %}
+            <table>
+                <thead>
+                    <tr>
+                        {% for column in columns %}
+                            <th>{{ column }}</th>
+                        {% endfor %}
+                        <th>권한 부여</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in auth_false %}
+                    <tr>
+                        {% for column in columns %}
+                        <td>{{ row[column] }}</td>
+                        {% endfor %}
+                        <td>
+                            <form action="/admin/authority/create" method="post" style="display:inline;">
+                                {% for column in columns %}
+                                <input type="hidden" name="user_id" value="{{ row[user_id] }}">
+                                {% endfor %}
+                                <button type="submit">권한부여</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>권한이 부여된 RA가 없습니다.</p>
+        {% endif %}
+    </li>
+</ol>
 {% endblock %}

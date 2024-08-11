@@ -1,7 +1,7 @@
 import os
 import unicodedata
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
-from utils import get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -62,10 +62,34 @@ def admin():
             return redirect("/")
     elif request.method == "GET":
         if 'admin' in session and session['admin']:
-            return render_template("admin.html")
+            auth_true, auth_false = get_ra_list_sorted()
+            columns = ['year', 'semester', 'house_name', 'user_name', 'user_id', 'email_address']
+            return render_template("admin.html", auth_true=auth_true, auth_false=auth_false, columns=columns)
         else:
             flash("You are not logged in", "error")
             return redirect("/")  # 홈 페이지로 리디렉션
+
+@app.route("/admin/authority/create", methods=["POST"])
+def create_authority():
+    if session.get('admin'):
+        user_id = request.form.get('userId')
+        category, message = update_ra_authority(user_id, True)
+        flash(message, category)
+        return redirect("/admin")
+    else:
+        flash("You do not have permission to create authority", "error")
+        return redirect("/")
+
+@app.route("/admin/authority/delete", methods=["POST"])
+def delete_authority():
+    if session.get('admin'):
+        user_id = request.form.get('user_id')
+        category, message = update_ra_authority(user_id, False)
+        flash(message, category)
+        return redirect("/admin")
+    else:
+        flash("You do not have permission to create authority", "error")
+        return redirect("/")
 
 @app.route('/upload/admin', methods=['POST'])
 def handle_upload_admin():
