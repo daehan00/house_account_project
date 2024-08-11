@@ -72,7 +72,7 @@ def admin():
 @app.route("/admin/authority/create", methods=["POST"])
 def create_authority():
     if session.get('admin'):
-        user_id = request.form.get('userId')
+        user_id = request.form['userId']
         category, message = update_ra_authority(user_id, True)
         flash(message, category)
         return redirect("/admin")
@@ -83,7 +83,7 @@ def create_authority():
 @app.route("/admin/authority/delete", methods=["POST"])
 def delete_authority():
     if session.get('admin'):
-        user_id = request.form.get('user_id')
+        user_id = request.form.get('userId')
         category, message = update_ra_authority(user_id, False)
         flash(message, category)
         return redirect("/admin")

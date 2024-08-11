@@ -33,7 +33,7 @@
                         <td>
                             <form action="/admin/authority/delete" method="post" style="display:inline;">
                                 {% for column in columns %}
-                                <input type="hidden" name="userId" value="{{ row[user_id] }}">
+                                <input type="hidden" name="userId" value="{{ row['user_id'] }}">
                                 {% endfor %}
                                 <button type="submit">권한삭제</button>
                             </form>
@@ -67,7 +67,7 @@
                         <td>
                             <form action="/admin/authority/create" method="post" style="display:inline;">
                                 {% for column in columns %}
-                                <input type="hidden" name="user_id" value="{{ row[user_id] }}">
+                                <input type="hidden" name="userId" value="{{ row['user_id'] }}">
                                 {% endfor %}
                                 <button type="submit">권한부여</button>
                             </form>

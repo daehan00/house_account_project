@@ -96,7 +96,7 @@ def get_ra_list(url):
 def get_ra_list_sorted():
     headers = {"Accept": "application/json"}
 
-    response = requests.get(os.getenv("URL_API")+'ra_list', headers=headers)
+    response = requests.get(os.getenv("URL_API")+'ra_list/get', headers=headers)
     if response.status_code == 200:
         data = response.json()
         df = pd.DataFrame(data)
@@ -119,9 +119,9 @@ def update_ra_authority(user_id, authority):
         "Content-Type": "application/json"
     }
 
-    data = {
+    data = json.dumps({
         "authority": authority
-    }
+    })
 
     response = requests.put(url, headers=headers, data=data)
 
@@ -131,7 +131,7 @@ def update_ra_authority(user_id, authority):
         else:
             return 'success', f'{user_id} 권한 삭제되었습니다.'
     else:
-        return 'error', response.text
+        return 'error', f"{user_id}, {response.text}"
 
 def ra_login(url, user_id):
     headers = {
