@@ -271,7 +271,8 @@ def process_accounting():
 def ra():
     if session.get('ra') or session.get('manager') or session.get('admin'):
         user_id = session['userId']
-        columns = ['date', 'time', 'expenditure', 'store_name', 'category_id', 'program_name', 'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
+        columns = ['date', 'user_name', 'time', 'expenditure', 'store_name', 'category_id', 'program_name',
+                   'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
         raw_data = get_receipt_list(os.getenv("URL_API")+'receipts/user', user_id)
         if not raw_data:
             return render_template("ra.html", data=None, columns=columns)
