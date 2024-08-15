@@ -48,6 +48,24 @@ def logout():
     flash('You have been successfully logged out.', 'info')
     return redirect("/")  # 홈 페이지로 리디렉션
 
+@app.route("/calendar")
+def calendar():
+    if session.get('manager') or session.get('admin') or session.get('ra'):
+        return render_template("calendar.html")
+    else:
+        flash('You are not authorized to access this page', 'warning')
+        return redirect("/")
+
+@app.route("/calendar/submit-event", methods=["POST"])
+def submit_event():
+    if session.get('manager') or session.get('admin') or session.get('ra'):
+        data = request.json
+        flash(f"{data} is submitted", "success")
+        return redirect("/calendar")
+    else:
+        flash('You are not authorized to access this page', 'warning')
+        return redirect("/")
+
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
     if request.method == "POST":

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Calendar for card/isp reservation</title>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@latest/main.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@latest/main.min.js"></script>
+    <style>
+        body { margin: 40px 10px; padding: 0; font-family: Arial, sans-serif; }
+        #calendar, #event-details { max-width: 900px; margin: 0 auto; }
+        #event-details { margin-top: 20px; padding: 10px; background: #f9f9f9; border: 1px solid #ccc; display: flex; flex-direction: column; }
+        .event-section-container { display: flex; width: 100%; }
+        .event-section { flex: 1; padding: 5px; }
+        h2 { width: 100%; text-align: center; margin-top: 0; }
+        .event-item, .add-event-button {
+            padding: 10px;
+            margin-top: 5px;
+            background: #fff;
+            border: 1px solid #ddd;
+            text-align: center;
+            cursor: pointer;
+        }
+        .add-event-button:hover { background-color: #e2e2e2; }
+        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+        .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id='calendar'></div>
+    <div id='event-details'>
+        <div class="event-section-container">
+            <div class="event-section" id="isp-events"></div>
+            <div class="event-section" id="card-events"></div>
+        </div>
+        <div class="add-event-button">+ 이벤트를 추가하세요</div>
+    </div>
+
+    <!-- Modal HTML -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="eventForm">
+                <label for="userName">사용자 이름:</label>
+                <input type="text" id="userName" name="userName"><br><br>
+                <label for="purpose">사용 목적:</label>
+                <input type="text" id="purpose" name="purpose"><br><br>
+                <label for="ispCard">ISP/Card 선택:</label>
+                <select id="ispCard" name="ispCard">
+                    <option value="true">ISP</option>
+                    <option value="false">Card</option>
+                </select><br><br>
+                <label for="startDate">시작 날짜와 시간:</label>
+                <input type="datetime-local" id="startDate" name="startDate" value="">
+                <script>
+                    var now = new Date();
+                    var startTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, -8);
+                    document.getElementById('startDate').value = startTime;
+                </script>
+                <br><br>
+                <label for="endDate">종료 날짜와 시간:</label>
+                <input type="datetime-local" id="endDate" name="endDate" value="">
+                <script>
+                    var endTime = new Date(now.getTime() + 60*60000 - now.getTimezoneOffset() * 60000).toISOString().slice(0, -8);
+                    document.getElementById('endDate').value = endTime;
+                </script>
+                <br><br>
+                <input type="submit" value="이벤트 추가">
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var ispEventsEl = document.getElementById('isp-events');
+            var cardEventsEl = document.getElementById('card-events');
+            var modal = document.getElementById("myModal");
+            var span = document.getElementsByClassName("close")[0];
+
+            // Initialize FullCalendar
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                initialDate: new Date(),
+                events: [
+                  { title: 'Meeting', start: '2024-08-25T10:00:00', end: '2024-08-25T12:00:00', type: 'isp', backgroundColor: '#28a745' },
+                  { title: 'Date', start: '2024-08-25T14:00:00', end: '2024-08-25T18:00:00', type: 'isp', backgroundColor: '#28a745' },
+                  { title: 'Lunch Break', start: '2024-08-26T12:00:00', end: '2024-08-26T13:00:00', type: 'card', backgroundColor: '#007bff' },
+                  { title: '김대한', start: '2024-08-26T16:00:00', end: '2024-08-26T18:00:00', type: 'isp', backgroundColor: '#28a745' }
+                ],
+                dateClick: function(info) {
+                    const events = calendar.getEvents().filter(event => event.startStr.slice(0,10) === info.dateStr);
+                    ispEventsEl.innerHTML = '<h2>ISP Events</h2>';
+                    cardEventsEl.innerHTML = '<h2>Card Events</h2>';
+                    events.forEach(event => {
+                        const eventEl = document.createElement('div');
+                        eventEl.className = 'event-item';
+                        const timeOptions = { hour: '2-digit', minute: '2-digit' };
+                        eventEl.innerHTML = `<strong>${event.title}</strong> (${event.start.toLocaleTimeString('en-US', timeOptions)} - ${event.end.toLocaleTimeString('en-US', timeOptions)})`;
+                        if (event.extendedProps.type === 'isp') {
+                            ispEventsEl.appendChild(eventEl);
+                        } else {
+                            cardEventsEl.appendChild(eventEl);
+                        }
+                    });
+                }
+            });
+            calendar.render();
+
+            // Open the modal when button is clicked
+            document.querySelector('.add-event-button').onclick = function() {
+                modal.style.display = "block";
+            };
+
+            // Close the modal when (x) is clicked
+            span.onclick = function() {
+                modal.style.display = "none";
+            };
+
+            // Close the modal when clicking outside of it
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            };
+
+            // Handle form submission
+            document.getElementById('eventForm').onsubmit = function(event) {
+                event.preventDefault(); // Prevent default form submission
+                const userName = document.getElementById('userName').value;
+                const purpose = document.getElementById('purpose').value;
+                const ispCard = document.getElementById('ispCard').value === 'true';
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+
+                // Validate end time is after start time
+                if (new Date(endDate) <= new Date(startDate)) {
+                    alert("종료 시간은 시작 시간보다 빠를 수 없습니다.");
+                    return;
+                }
+
+                // Post data to your Flask API route
+                fetch('/calendar/submit-event', {  // 이 부분이 Flask 라우트로 데이터를 보내도록 수정되었습니다.
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userName: userName,
+                        purpose: purpose,
+                        ispCard: ispCard,
+                        startDate: startDate,
+                        endDate: endDate
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        calendar.refetchEvents(); // Reload the events from the server
+                        modal.style.display = "none"; // Close the modal on success
+                    } else {
+                        alert('Failed to add event');
+                    }
+                });
+            };
+        });
+    </script>
+</body>
+</html>

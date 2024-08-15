@@ -80,6 +80,22 @@ def init(postgres_conn_id, **kwargs):
             warning_division TEXT
         );"""
 
+    create_card_reservations_table = """
+        CREATE TABLE IF NOT EXISTS card_reservations_table (
+            id SERIAL PRIMARY KEY,
+            house_name TEXT NOT NULL,
+            reservation_date DATE NOT NULL,
+            user_id INTEGER NOT NULL,
+            start_time TIME NOT NULL,
+            end_time TIME NOT NULL,
+            isp_card BOOLEAN NOT NULL,
+            program_id TEXT NOT NULL, 
+            purpose TEXT NOT NULL,
+            weekend_night_usage BOOLEAN NOT NULL,
+            created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );"""
+
     # trigger 생성
     # create_trigger_function = """
     #         CREATE OR REPLACE FUNCTION update_modified_column()
@@ -102,7 +118,8 @@ def init(postgres_conn_id, **kwargs):
         # cur.execute(create_program_list_table)
         # cur.execute(create_ra_list_table)
         # cur.execute(create_category_list_table)
-        cur.execute(create_receipt_submissions_table)
+        # cur.execute(create_receipt_submissions_table)
+        cur.execute(create_card_reservations_table)
 
         # cur.execute(create_trigger_function)
         conn.commit()

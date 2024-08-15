@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Calendar for card/isp reservation</title>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@latest/main.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@latest/main.min.js"></script>
+    <style>
+        body { margin: 40px 10px; padding: 0; font-family: Arial, sans-serif; }
+        #calendar, #event-details { max-width: 900px; margin: 0 auto; }
+        #event-details { margin-top: 20px; padding: 10px; background: #f9f9f9; border: 1px solid #ccc; display: flex; flex-direction: column; }
+        .event-section-container { display: flex; width: 100%; }
+        .event-section { flex: 1; padding: 5px; }
+        h2 { width: 100%; text-align: center; margin-top: 0; } /* Center align the headers */
+        .event-item, .add-event-button {
+            padding: 10px;
+            margin-top: 5px;
+            background: #fff;
+            border: 1px solid #ddd;
+            text-align: center;
+            cursor: pointer;
+        }
+        .add-event-button:hover {
+            background-color: #e2e2e2;
+        }
+        .add-event-button {
+            align-self: stretch; /* Stretch to fill the container width */
+            order: 2; /* Ensures it is always at the bottom within the column */
+        }
+    </style>
+</head>
+<body>
+    <div id='calendar'></div>
+    <div id='event-details'>
+        <div class="event-section-container">
+            <div class="event-section" id="isp-events"></div>
+            <div class="event-section" id="card-events"></div>
+        </div>
+        <div class="add-event-button">+ 이벤트를 추가하세요</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var ispEventsEl = document.getElementById('isp-events');
+            var cardEventsEl = document.getElementById('card-events');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth'
+                },
+                initialDate: new Date(),
+                events: [
+                  { title: 'Meeting', start: '2024-08-25T10:00:00', end: '2024-08-25T12:00:00', type: 'isp', backgroundColor: '#28a745' },
+                  { title: 'Date', start: '2024-08-25T14:00:00', end: '2024-08-25T18:00:00', type: 'isp', backgroundColor: '#28a745' },
+                  { title: 'Lunch Break', start: '2024-08-26T12:00:00', end: '2024-08-26T13:00:00', type: 'card', backgroundColor: '#007bff' },
+                  { title: '김대한', start: '2024-08-26T16:00:00', end: '2024-08-26T18:00:00', type: 'isp', backgroundColor: '#28a745' }
+                ],
+                dateClick: function(info) {
+                    const events = calendar.getEvents().filter(event => event.startStr.slice(0,10) === info.dateStr);
+                    ispEventsEl.innerHTML = '<h2>ISP Events</h2>';
+                    cardEventsEl.innerHTML = '<h2>Card Events</h2>';
+                    events.forEach(event => {
+                        const eventEl = document.createElement('div');
+                        eventEl.className = 'event-item';
+                        const timeOptions = { hour: '2-digit', minute: '2-digit' };
+                        eventEl.innerHTML = `<strong>${event.title}</strong> (${event.start.toLocaleTimeString('en-US', timeOptions)} - ${event.end.toLocaleTimeString('en-US', timeOptions)})`;
+                        if (event.extendedProps.type === 'isp') {
+                            ispEventsEl.appendChild(eventEl);
+                        } else {
+                            cardEventsEl.appendChild(eventEl);
+                        }
+                    });
+                }
+            });
+            calendar.render();
+
+            document.querySelector('.add-event-button').onclick = function() {
+                const title = prompt('Enter event title:');
+                const date = prompt('Enter start date (YYYY-MM-DD):');
+                if (title && date) {
+                    fetch('/api/add-event', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ title: title, date: date })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            calendar.refetchEvents(); // Reload the events from the server
+                        } else {
+                            alert('Failed to add event');
+                        }
+                    });
+                }
+            };
+        });
+    </script>
+</body>
+</html>

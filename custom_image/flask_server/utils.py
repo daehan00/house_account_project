@@ -620,11 +620,13 @@ def process_files(input_directory, output_directory, month, period):
         receipt_dir = input_directory+'receipts'
         minutes_dir = input_directory+'minutes'
         pdf_files = []
+        del_pdf_files = []
         receipt_files = get_files(receipt_dir, month, period)
         for file in receipt_files:
             pdf_path = convert_to_pdf(receipt_dir, file, output_directory)
             if pdf_path:
                 pdf_files.append(pdf_path)
+                del_pdf_files.append(pdf_path)
         minutes_pdf = [os.path.join(minutes_dir, f) for f in get_files(minutes_dir, month, period) if f.endswith('.pdf')]
         if minutes_pdf:
             pdf_files.extend(minutes_pdf)
@@ -635,10 +637,10 @@ def process_files(input_directory, output_directory, month, period):
         merged_pdf_path = os.path.join(output_directory, f"{month}월_{period}차.pdf")
         merge_pdfs(pdf_files, merged_pdf_path)
 
-        for pdf_path in pdf_files:
-            os.remove(pdf_path)
+        for del_pdf_file in del_pdf_files:
+            os.remove(del_pdf_file)
 
         print(f"Merged PDF saved as {merged_pdf_path}")
-        return "success", merged_pdf_path
+        return "success", f"{month}월_{period}차.pdf"
     except Exception as e:
         return "error", e
