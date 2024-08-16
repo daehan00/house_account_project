@@ -179,4 +179,31 @@ definitions:
       warning_division:
         type: string
         description: "Any warning or special notes about the division."
-
+  Reservation:
+    type: object
+    required:
+      - house_name
+      - user_id
+      - start_datetime
+      - end_datetime
+      - isp_card
+      - weekend_night_usage
+    properties:
+      house_name:
+        type: string
+      user_id:
+        type: integer
+      start_datetime:
+        type: string
+        format: date-time
+      end_datetime:
+        type: string
+        format: date-time
+      isp_card:
+        type: boolean
+      weekend_night_usage:
+        type: boolean
+      program_id:
+        type: string
+      purpose:
+        type: string

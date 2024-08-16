@@ -345,5 +345,121 @@ def delete_receipt(receipt_id):
         db.session.rollback()
         abort(500, description=str(e))
 
+
+
+class CardReservation(db.Model):
+    __tablename__ = 'card_reservations_table'
+
+    id = db.Column(db.Integer, primary_key=True)
+    house_name = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)
+    start_datetime = db.Column(db.TIMESTAMP, nullable=False)
+    end_datetime = db.Column(db.TIMESTAMP, nullable=False)
+    isp_card = db.Column(db.Boolean, nullable=False)
+    weekend_night_usage = db.Column(db.Boolean, nullable=False)
+    program_id = db.Column(db.Text, nullable=False)
+    purpose = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.TIMESTAMP(timezone=True), default=datetime.now(timezone('Asia/Seoul')))
+    updated_at = db.Column(db.TIMESTAMP(timezone=True), default=datetime.now(timezone('Asia/Seoul')),
+                           onupdate=datetime.now(timezone('Asia/Seoul')))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "house_name": self.house_name,
+            "user_id": self.user_id,
+            "start_datetime": self.start_datetime.isoformat(),
+            "end_datetime": self.end_datetime.isoformat(),
+            "isp_card": self.isp_card,
+            "weekend_night_usage": self.weekend_night_usage,
+            "program_id": self.program_id,
+            "purpose": self.purpose,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat()
+        }
+
+@app.route('/api/calendar/create', methods=['POST'])
+@swag_from('swagger/calendar_create.yml')
+def create_reservation():
+    data = request.json
+    try:
+        new_reservation = CardReservation(
+            house_name=data['house_name'],
+            user_id=data['user_id'],
+            start_datetime=data['start_datetime'],
+            end_datetime=data['end_datetime'],
+            isp_card=data['isp_card'],
+            weekend_night_usage=data['weekend_night_usage'],
+            program_id=data['program_id'],
+            purpose=data.get('purpose')
+        )
+        db.session.add(new_reservation)
+        db.session.commit()
+        return jsonify(new_reservation.id), 201
+    except Exception as e:
+        db.session.rollback()
+        abort(500, description=str(e))
+
+@app.route('/api/calendar/update/<int:id>', methods=['PUT'])
+@swag_from('swagger/calendar_update.yml')
+def update_reservation(id):
+    reservation = CardReservation.query.get(id)
+    if not reservation:
+        abort(404, description="Reservation not found")
+
+    data = request.json
+    try:
+        reservation.house_name = data.get('house_name', reservation.house_name)
+        reservation.user_id = data.get('user_id', reservation.user_id)
+        reservation.start_datetime = data.get('start_datetime', reservation.start_datetime)
+        reservation.end_datetime = data.get('end_datetime', reservation.end_datetime)
+        reservation.isp_card = data.get('isp_card', reservation.isp_card)
+        reservation.weekend_night_usage = data.get('weekend_night_usage', reservation.weekend_night_usage)
+        reservation.program_id = data.get('program_id', reservation.program_id)
+        reservation.purpose = data.get('purpose', reservation.purpose)
+
+        db.session.commit()
+        return jsonify({"message": "Reservation updated successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        abort(500, description=str(e))
+
+@app.route('/api/calendar/all', methods=['GET'])
+@swag_from('swagger/calendar_get_all.yml')
+def get_reservations():
+    try:
+        reservations = CardReservation.query.all()
+        return jsonify([reservation.to_dict() for reservation in reservations]), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/calendar/house/<house_name>', methods=['GET'])
+@swag_from('swagger/calendar_get_by_house.yml')
+def get_reservations_by_house(house_name):
+    try:
+        reservations = CardReservation.query.filter_by(house_name=house_name).all()
+        if reservations:
+            return jsonify([reservation.to_dict() for reservation in reservations]), 200
+        else:
+            return jsonify({"message": "No reservations found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/calendar/delete/<int:id>', methods=['DELETE'])
+@swag_from('swagger/calendar_delete.yml')
+def delete_reservation(id):
+    reservation = CardReservation.query.get(id)
+    if not reservation:
+        return jsonify({"message": "Reservation not found"}), 404
+
+    try:
+        db.session.delete(reservation)
+        db.session.commit()
+        return jsonify({"message": "Reservation deleted successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

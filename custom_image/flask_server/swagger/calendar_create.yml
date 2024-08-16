@@ -1,0 +1,20 @@
+tags:
+  - Calendar
+summary: "Create a new reservation"
+description: ""
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+parameters:
+  - in: body
+    name: body
+    description: "Reservation object that needs to be added to the database"
+    required: true
+    schema:
+      $ref: "#/definitions/Reservation"
+responses:
+  201:
+    description: "Reservation created successfully"
+  400:
+    description: "Invalid input or database error"

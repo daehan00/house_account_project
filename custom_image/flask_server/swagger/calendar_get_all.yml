@@ -1,0 +1,15 @@
+tags:
+  - "Calendar"
+summary: "Retrieve all reservations"
+description: "Fetches all reservations from the database"
+produces:
+  - "application/json"
+responses:
+  200:
+    description: "List of all reservations"
+    schema:
+      type: "array"
+      items:
+        $ref: '#/definitions/Reservation'
+  500:
+    description: "Error fetching the reservations"

@@ -1,0 +1,17 @@
+tags:
+  - "Calendar"
+summary: "Delete a reservation"
+description: "Deletes a reservation by its ID"
+parameters:
+  - in: "path"
+    name: "id"
+    required: true
+    type: "integer"
+    description: "ID of the reservation to delete"
+responses:
+  200:
+    description: "Reservation deleted successfully"
+  404:
+    description: "Reservation not found"
+  500:
+    description: "Error deleting the reservation"

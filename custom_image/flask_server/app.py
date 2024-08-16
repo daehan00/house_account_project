@@ -1,7 +1,7 @@
 import os
 import unicodedata
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
-from utils import update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -50,18 +50,27 @@ def logout():
 
 @app.route("/calendar")
 def calendar():
+    # Check user role from session
     if session.get('manager') or session.get('admin') or session.get('ra'):
-        return render_template("calendar.html")
+        year_semester_house = "2024-1-AVISON"
+        url_program = os.getenv('URL_API') + 'program'
+        try:
+            programs = get_program_list(url_program, year_semester_house)
+            return render_template("calendar.html", programs=programs)
+        except Exception as e:
+            flash(f"An error occurred: {str(e)}", 'error')
+            return redirect("/")
     else:
         flash('You are not authorized to access this page', 'warning')
         return redirect("/")
 
-@app.route("/calendar/submit-event", methods=["POST"])
+@app.route("/calendar/submit/create", methods=["POST"])
 def submit_event():
     if session.get('manager') or session.get('admin') or session.get('ra'):
-        data = request.json
-        flash(f"{data} is submitted", "success")
-        return redirect("/calendar")
+        data = request.get_json()  # JSON 데이터를 정확하게 받아옵니다.
+        # 데이터 처리 로직 (예: 데이터베이스에 저장)
+        flash(f"{str(data)} event submitted", "success")
+        return jsonify({'success': True, 'message': f'{str(data)} Event successfully created'}), 200
     else:
         flash('You are not authorized to access this page', 'warning')
         return redirect("/")

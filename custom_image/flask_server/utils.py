@@ -66,8 +66,8 @@ def get_program_list(url, year_semester_house):
     if response.status_code == 200:
         data = response.json()
         for program in data:
-            options = {"program_id":program['program_id'],
-                       "program_name":program['program_name']}
+            options = {"program_id": program['program_id'],
+                       "program_name": program['program_name']}
             program_list.append(options)
         return program_list  # 반환 값은 JSON 데이터
     else:
