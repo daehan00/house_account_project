@@ -1,7 +1,7 @@
 import os
 import unicodedata
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
-from utils import get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -29,6 +29,7 @@ def login():
         if auth == 'manager':
             session['manager'] = True
             session['userId'] = user_id
+            session['userName'] = data['user_name']
             session['userData'] = data['user_data']
             flash('Logged in as manager!', 'success')
         elif auth == 'ra':
@@ -80,7 +81,7 @@ def get_events():
             'title': data['program_id'],
             'start': start_date,
             'end': end_date,
-            'type': 'isp' if data['isp_card'] else 'card',
+            'type': 'isp' if data['isp_card'] == True else 'card',
             'backgroundColor': '#28a745' if data['isp_card'] else '#007bff'
         }
         events.append(event)
@@ -89,16 +90,25 @@ def get_events():
 @app.route("/calendar/submit/create", methods=["POST"])
 def submit_event():
     if session.get('manager') or session.get('admin') or session.get('ra'):
-        data = request.get_json()  # JSON 데이터를 정확하게 받아옵니다.
-        data['user_id'] = session.get('userId')
+        data = request.get_json()
+        date_start = datetime.strptime(data['start_datetime'], "%Y-%m-%dT%H:%M")
+        date_end = datetime.strptime(data['end_datetime'], "%Y-%m-%dT%H:%M")
+        data['start_datetime'] = date_start.strftime("%Y-%m-%dT%H:%M:%S")+'.000001'
+        data['end_datetime'] = date_end.strftime("%Y-%m-%dT%H:%M:%S")+'.000001'
+
+        data['user_id'] = session.get('userName')
         data['house_name'] = session['userData'].split('-')[-1]
 
-
-        flash(f"{str(data)} event submitted", "success")
-        return jsonify({'success': True, 'message': f'{str(data)} Event successfully created'}), 200
+        url = os.getenv("URL_API")+"calendar/create"  # Replace with your actual API URL
+        message, code = post_calendar_event(url, data)
+        if code == 201:
+            return jsonify({'success': True, 'message': message}), 200
+        else:
+            return jsonify({'success': False, 'message': message+str(data)}), code
     else:
         flash('You are not authorized to access this page', 'warning')
         return redirect("/")
+
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin():

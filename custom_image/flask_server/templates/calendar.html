@@ -107,7 +107,7 @@
                             const eventEl = document.createElement('div');
                             eventEl.className = 'event-item';
                             eventEl.innerHTML = `<strong>${event.title}</strong> (${start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
-                            if (event.type === 'isp') {
+                            if (event.type === 'isp' || event.extendedProps && event.extendedProps.type === 'isp') {
                                 ispEventsEl.appendChild(eventEl);
                             } else {
                                 cardEventsEl.appendChild(eventEl);

@@ -61,6 +61,18 @@ def get_calendar_event(url):
         print(f"Error: {e}")
         return None
 
+def post_calendar_event(url, data):
+    try:
+        response = requests.post(url, json=data)
+
+        if response.status_code == 201:
+            return f"{data['program_id']} event submitted", 201
+        else:
+            return response.text, 400
+    except requests.RequestException as e:
+        return f"Error: {e}", 400
+
+
 def get_program_list(url, year_semester_house):
     headers = {
         "Accept": "application/json"

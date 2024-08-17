@@ -99,7 +99,7 @@ def check_user(user_id):
     try:
         user = RAList.query.get(user_id)
         if user:
-            return jsonify({'message': 'User exists', 'exists': True, 'authority': user.authority, 'user_id':user_id, 'user_data': str(user.year)+'-'+str(user.semester)+'-'+user.house_name}), 200
+            return jsonify({'message': 'User exists', 'exists': True, 'authority': user.authority, 'user_id':user_id, 'user_name':user.user_name, 'user_data': str(user.year)+'-'+str(user.semester)+'-'+user.house_name}), 200
         else:
             return jsonify({'message': 'User does not exist', 'exists': False}), 404
     except Exception as e:
@@ -378,6 +378,7 @@ class CardReservation(db.Model):
             "updated_at": self.updated_at.isoformat()
         }
 
+
 @app.route('/api/calendar/create', methods=['POST'])
 @swag_from('swagger/calendar_create.yml')
 def create_reservation():
@@ -389,7 +390,7 @@ def create_reservation():
             start_datetime=data['start_datetime'],
             end_datetime=data['end_datetime'],
             isp_card=data['isp_card'],
-            weekend_night_usage=data['weekend_night_usage'],
+            weekend_night_usage=data.get('weekend_night_usage'),
             program_id=data['program_id'],
             purpose=data.get('purpose')
         )
