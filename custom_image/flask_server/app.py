@@ -71,6 +71,8 @@ def get_events():
     url = os.getenv('URL_API') + 'calendar/house/'+session['userData'].split('-')[-1]
     datas = get_calendar_event(url)
     events = []
+    if datas is None:
+        return jsonify([])
     for data in datas:
         date_start = datetime.strptime(data['start_datetime'], "%Y-%m-%dT%H:%M:%S.%f")
         date_end = datetime.strptime(data['end_datetime'], "%Y-%m-%dT%H:%M:%S.%f")

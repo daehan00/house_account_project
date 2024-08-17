@@ -55,11 +55,14 @@ def load_dict_code():
 def get_calendar_event(url):
     try:
         response = requests.get(url)
-        response.raise_for_status()
-        return response.json()
+        if response.status_code == 404:
+            return []  # 404 Not Found 에러 발생 시 빈 목록 반환
+        response.raise_for_status()  # 다른 HTTP 에러 발생 시 예외를 발생시킴
+        return response.json()  # 정상적인 경우, 응답 JSON 반환
     except requests.RequestException as e:
-        print(f"Error: {e}")
-        return None
+        print(f"Handled quietly, no events found: {e}")
+        return []  # 예외 발생 시 빈 목록 반환
+
 
 def post_calendar_event(url, data):
     try:
