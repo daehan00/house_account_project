@@ -299,6 +299,8 @@ def upload_file(upload_folder, redirect_url, div):
     upload_folder_, filename, error_type = allowed_file(upload_folder, file.filename, div)
     if error_type == 'success':
         try:
+            if not upload_folder_:
+                os.makedirs(upload_folder_)
             file.save(os.path.join(upload_folder_, filename))
             flash('File successfully uploaded', 'success')
         except IOError as e:
