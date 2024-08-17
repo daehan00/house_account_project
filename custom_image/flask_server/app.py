@@ -1,7 +1,7 @@
 import os
 import unicodedata
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
-from utils import get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -64,11 +64,36 @@ def calendar():
         flash('You are not authorized to access this page', 'warning')
         return redirect("/")
 
+@app.route("/calendar/get/events")
+def get_events():
+    url = os.getenv('URL_API') + 'calendar/all'
+    datas = get_calendar_event(url)
+    events = []
+    for data in datas:
+        date_start = datetime.strptime(data['start_datetime'], "%Y-%m-%dT%H:%M:%S.%f")
+        date_end = datetime.strptime(data['end_datetime'], "%Y-%m-%dT%H:%M:%S.%f")
+
+        start_date = date_start.strftime("%Y-%m-%dT%H:%M:%S")
+        end_date = date_end.strftime("%Y-%m-%dT%H:%M:%S")
+
+        event = {
+            'title': data['program_id'],
+            'start': start_date,
+            'end': end_date,
+            'type': 'isp' if data['isp_card'] else 'card',
+            'backgroundColor': '#28a745' if data['isp_card'] else '#007bff'
+        }
+        events.append(event)
+    return jsonify(events)
+
 @app.route("/calendar/submit/create", methods=["POST"])
 def submit_event():
     if session.get('manager') or session.get('admin') or session.get('ra'):
         data = request.get_json()  # JSON 데이터를 정확하게 받아옵니다.
-        # 데이터 처리 로직 (예: 데이터베이스에 저장)
+        data['user_id'] = session.get('userId')
+        data['house_name'] = session['userData'].split('-')[-1]
+
+
         flash(f"{str(data)} event submitted", "success")
         return jsonify({'success': True, 'message': f'{str(data)} Event successfully created'}), 200
     else:

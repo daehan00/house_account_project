@@ -352,12 +352,12 @@ class CardReservation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     house_name = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Text, nullable=False)
     start_datetime = db.Column(db.TIMESTAMP, nullable=False)
     end_datetime = db.Column(db.TIMESTAMP, nullable=False)
     isp_card = db.Column(db.Boolean, nullable=False)
-    weekend_night_usage = db.Column(db.Boolean, nullable=False)
     program_id = db.Column(db.Text, nullable=False)
+    weekend_night_usage = db.Column(db.Boolean, nullable=True)
     purpose = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.TIMESTAMP(timezone=True), default=datetime.now(timezone('Asia/Seoul')))
     updated_at = db.Column(db.TIMESTAMP(timezone=True), default=datetime.now(timezone('Asia/Seoul')),

@@ -52,6 +52,15 @@ def load_dict_code():
         print("Error: The file is not in proper JSON format.")
         return None
 
+def get_calendar_event(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        print(f"Error: {e}")
+        return None
+
 def get_program_list(url, year_semester_house):
     headers = {
         "Accept": "application/json"

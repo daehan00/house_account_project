@@ -84,12 +84,12 @@ def init(postgres_conn_id, **kwargs):
         CREATE TABLE IF NOT EXISTS card_reservations_table (
             id SERIAL PRIMARY KEY,
             house_name TEXT NOT NULL,
-            user_id INTEGER NOT NULL,
+            user_id TEXT NOT NULL,
             start_datetime TIMESTAMP WITHOUT TIME ZONE NOT NULL,
             end_datetime TIMESTAMP WITHOUT TIME ZONE NOT NULL,
             isp_card BOOLEAN NOT NULL,
-            weekend_night_usage BOOLEAN NOT NULL,
             program_id TEXT NOT NULL,
+            weekend_night_usage BOOLEAN,
             purpose TEXT,
             created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP

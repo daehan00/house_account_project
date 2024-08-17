@@ -25,6 +25,10 @@
         .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; }
         .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
         .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
+        .fc-day:hover {
+        background-color: #f0f0f0; /* 호버 시 배경색 변경 */
+        cursor: pointer; /* 커서 모양을 포인터로 변경 */
+}
     </style>
 </head>
 <body>
@@ -90,25 +94,26 @@
                     right: 'dayGridMonth'
                 },
                 initialDate: new Date(),
-                events: [
-                  { title: 'Meeting', start: '2024-08-25T10:00:00', end: '2024-08-25T12:00:00', type: 'isp', backgroundColor: '#28a745' },
-                  { title: 'Date', start: '2024-08-25T14:00:00', end: '2024-08-25T18:00:00', type: 'isp', backgroundColor: '#28a745' },
-                  { title: 'Lunch Break', start: '2024-08-26T12:00:00', end: '2024-08-26T13:00:00', type: 'card', backgroundColor: '#007bff' },
-                  { title: '김대한', start: '2024-08-26T16:00:00', end: '2024-08-26T18:00:00', type: 'isp', backgroundColor: '#28a745' }
-                ],
+                events: '/calendar/get/events',
                 dateClick: function(info) {
                     const events = calendar.getEvents().filter(event => event.startStr.slice(0,10) === info.dateStr);
+
                     ispEventsEl.innerHTML = '<h2>ISP Events</h2>';
                     cardEventsEl.innerHTML = '<h2>Card Events</h2>';
                     events.forEach(event => {
-                        const eventEl = document.createElement('div');
-                        eventEl.className = 'event-item';
-                        const timeOptions = { hour: '2-digit', minute: '2-digit' };
-                        eventEl.innerHTML = `<strong>${event.title}</strong> (${event.start.toLocaleTimeString('en-US', timeOptions)} - ${event.end.toLocaleTimeString('en-US', timeOptions)})`;
-                        if (event.extendedProps.type === 'isp') {
-                            ispEventsEl.appendChild(eventEl);
+                        const start = new Date(event.start);
+                        const end = new Date(event.end);
+                        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) { // 날짜 유효성 검사
+                            const eventEl = document.createElement('div');
+                            eventEl.className = 'event-item';
+                            eventEl.innerHTML = `<strong>${event.title}</strong> (${start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
+                            if (event.type === 'isp') {
+                                ispEventsEl.appendChild(eventEl);
+                            } else {
+                                cardEventsEl.appendChild(eventEl);
+                            }
                         } else {
-                            cardEventsEl.appendChild(eventEl);
+                            console.error('Invalid date:', event.start, event.end);
                         }
                     });
                 }
@@ -151,10 +156,10 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        programName: programName,
-                        ispCard: ispCard,
-                        startDate: startDate,
-                        endDate: endDate
+                        program_id: programName,
+                        isp_card: ispCard,
+                        start_datetime: startDate,
+                        end_datetime: endDate
                     })
                 })
                 .then(response => response.json())

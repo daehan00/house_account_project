@@ -25,6 +25,10 @@
         .modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; }
         .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
         .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
+        .fc-day:hover {
+        background-color: #f0f0f0; /* 호버 시 배경색 변경 */
+        cursor: pointer; /* 커서 모양을 포인터로 변경 */
+}
     </style>
 </head>
 <body>
@@ -42,10 +46,12 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <form id="eventForm">
-                <label for="userName">사용자 이름:</label>
-                <input type="text" id="userName" name="userName"><br><br>
-                <label for="purpose">사용 목적:</label>
-                <input type="text" id="purpose" name="purpose"><br><br>
+                <label for="programName">프로그램명:</label>
+                <select id="programName" name="programName">
+                    {% for program in programs %}
+                    <option value="{{ program.program_name }}">{{ program.program_name }}</option>
+                    {% endfor %}
+                </select><br><br>
                 <label for="ispCard">ISP/Card 선택:</label>
                 <select id="ispCard" name="ispCard">
                     <option value="true">ISP</option>
@@ -133,8 +139,7 @@
             // Handle form submission
             document.getElementById('eventForm').onsubmit = function(event) {
                 event.preventDefault(); // Prevent default form submission
-                const userName = document.getElementById('userName').value;
-                const purpose = document.getElementById('purpose').value;
+                const programName = document.getElementById('programName').value;
                 const ispCard = document.getElementById('ispCard').value === 'true';
                 const startDate = document.getElementById('startDate').value;
                 const endDate = document.getElementById('endDate').value;
@@ -146,12 +151,11 @@
                 }
 
                 // Post data to your Flask API route
-                fetch('/calendar/submit-event', {  // 이 부분이 Flask 라우트로 데이터를 보내도록 수정되었습니다.
+                fetch('/calendar/submit/create', {  // 이 부분이 Flask 라우트로 데이터를 보내도록 수정되었습니다.
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        userName: userName,
-                        purpose: purpose,
+                        programName: programName,
                         ispCard: ispCard,
                         startDate: startDate,
                         endDate: endDate
@@ -160,12 +164,14 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        calendar.refetchEvents(); // Reload the events from the server
-                        modal.style.display = "none"; // Close the modal on success
+                        calendar.refetchEvents(); // 캘린더 이벤트를 다시 불러옵니다.
+                        modal.style.display = "none"; // 모달 창을 닫습니다.
+                        alert(data.message); // 성공 메시지 표시
                     } else {
-                        alert('Failed to add event');
+                        alert(data.message); // 에러 메시지 표시
                     }
-                });
+                })
+                .catch(error => console.error('Error:', error));
             };
         });
     </script>
