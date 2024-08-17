@@ -31,6 +31,12 @@
 }
     </style>
 </head>
+<header>
+    <input type="button" value="Home" onclick="location.href='/'">
+    <input type="button" value="calendar" onclick="location.href='/calendar'">
+    <input type="button" value="Login" onclick="location.href='/login'">
+    <input type="button" value="Logout" onclick="logoutUser()">
+</header><br>
 <body>
     <div id='calendar'></div>
     <div id='event-details'>
@@ -60,6 +66,17 @@
                 <label for="startDate">시작 날짜와 시간:</label>
                 <input type="datetime-local" id="startDate" name="startDate" value="">
                 <script>
+                    function getEndTimeFromStart(startTime) {
+                        var startDate = new Date(startTime);
+                        var offset = startDate.getTimezoneOffset();  // 현재 로컬 시간대의 타임존 오프셋(분 단위)
+                        var endDate = new Date(startDate.getTime() + 60 * 60000);  // 1시간 더하기
+
+                        // 타임존 오프셋을 고려하여 ISO 문자열 조정
+                        endDate = new Date(endDate.getTime() - offset * 60000);
+                        return endDate.toISOString().slice(0, -8);  // 'YYYY-MM-DDTHH:MM' 형식으로 포매팅
+                    }
+
+                    // 현재 시간을 기준으로 초기 날짜와 시간 설정
                     var now = new Date();
                     var startTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, -8);
                     document.getElementById('startDate').value = startTime;
@@ -68,11 +85,36 @@
                 <label for="endDate">종료 날짜와 시간:</label>
                 <input type="datetime-local" id="endDate" name="endDate" value="">
                 <script>
-                    var endTime = new Date(now.getTime() + 60*60000 - now.getTimezoneOffset() * 60000).toISOString().slice(0, -8);
-                    document.getElementById('endDate').value = endTime;
+                    document.getElementById('endDate').value = getEndTimeFromStart(startTime);
+
+                    // startDate 값 변경 시 endTime 자동 업데이트
+                    document.getElementById('startDate').addEventListener('change', function() {
+                        document.getElementById('endDate').value = getEndTimeFromStart(this.value);
+                    });
                 </script>
                 <br><br>
                 <input type="submit" value="이벤트 추가">
+            </form>
+        </div>
+    </div>
+
+    <div id="eventDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <form id="eventDetailForm">
+                <label for="editProgramName">프로그램명:</label>
+                <input type="text" id="editProgramName" name="programName" readonly><br><br>
+                <label for="ispCard2">ISP/Card 선택:</label>
+                <select id="ispCard2" name="ispCard2">
+                    <option value="true">ISP</option>
+                    <option value="false">Card</option>
+                </select><br><br>
+                <label for="editStartDate">시작 날짜와 시간:</label>
+                <input type="datetime-local" id="editStartDate" name="startDate"><br><br>
+                <label for="editEndDate">종료 날짜와 시간:</label>
+                <input type="datetime-local" id="editEndDate" name="endDate"><br><br>
+                <input type="button" value="수정" onclick="updateEvent()">
+                <input type="button" value="삭제" onclick="deleteEvent()">
             </form>
         </div>
     </div>
@@ -82,8 +124,11 @@
             var calendarEl = document.getElementById('calendar');
             var ispEventsEl = document.getElementById('isp-events');
             var cardEventsEl = document.getElementById('card-events');
-            var modal = document.getElementById("myModal");
-            var span = document.getElementsByClassName("close")[0];
+            var modalAddEvent = document.getElementById("myModal");
+            var modalEditEvent = document.getElementById("eventDetailModal");
+
+            var spanCloseAddEvent = document.getElementsByClassName("close")[0];
+            var spanCloseEditEvent = document.getElementsByClassName("close")[1];
 
             // Initialize FullCalendar
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -97,16 +142,17 @@
                 events: '/calendar/get/events',
                 dateClick: function(info) {
                     const events = calendar.getEvents().filter(event => event.startStr.slice(0,10) === info.dateStr);
-
-                    ispEventsEl.innerHTML = '<h2>ISP Events</h2>';
-                    cardEventsEl.innerHTML = '<h2>Card Events</h2>';
+                    ispEventsEl.innerHTML = '<h2>ISP 예약</h2>';
+                    cardEventsEl.innerHTML = '<h2>카드 예약</h2>';
                     events.forEach(event => {
                         const start = new Date(event.start);
                         const end = new Date(event.end);
-                        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) { // 날짜 유효성 검사
+                        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
                             const eventEl = document.createElement('div');
                             eventEl.className = 'event-item';
-                            eventEl.innerHTML = `<strong>${event.title}</strong> (${start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
+                            eventEl.setAttribute('data-id', event.id); // 이벤트 ID를 저장
+                            eventEl.innerHTML = `<strong>${event.extendedProps.user} ${event.title}</strong><br> (${start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
+                            eventEl.onclick = () => openEventDetails(event.id); // 클릭 시 상세보기 함수 호출
                             if (event.type === 'isp' || event.extendedProps && event.extendedProps.type === 'isp') {
                                 ispEventsEl.appendChild(eventEl);
                             } else {
@@ -116,24 +162,63 @@
                             console.error('Invalid date:', event.start, event.end);
                         }
                     });
+                },
+                eventClick: function(info) {
+                    var event = info.event;
+
+                    // 로컬 시간대로 조정하기 위해 UTC 시간에서 getTimezoneOffset()의 결과를 빼거나 더합니다.
+                    var startOffset = new Date(event.start.getTime() - event.start.getTimezoneOffset() * 60000);
+                    var endOffset = new Date(event.end.getTime() - event.end.getTimezoneOffset() * 60000);
+
+                    // "YYYY-MM-DDTHH:MM" 형식으로 문자열을 잘라서 반환합니다.
+                    var formattedStart = startOffset.toISOString().slice(0, 16);
+                    var formattedEnd = endOffset.toISOString().slice(0, 16);
+
+                    document.getElementById('editProgramName').value = event.title; // Display only, no edit
+                    document.getElementById('ispCard2').value = event.extendedProps.type === 'isp' ? 'true' : 'false';
+                    document.getElementById('editStartDate').value = formattedStart;
+                    document.getElementById('editEndDate').value = formattedEnd;
+                    document.getElementById('editProgramName').setAttribute('data-id', event.id); // 이벤트 ID 저장
+                    document.getElementById('eventDetailModal').style.display = "block";
                 }
             });
             calendar.render();
 
+            function openEventDetails(eventId) {
+                const event = calendar.getEventById(eventId);
+                if (event) {
+                    var startOffset = new Date(event.start.getTime() - event.start.getTimezoneOffset() * 60000);
+                    var endOffset = new Date(event.end.getTime() - event.end.getTimezoneOffset() * 60000);
+                    var formattedStart = startOffset.toISOString().slice(0, 16);
+                    var formattedEnd = endOffset.toISOString().slice(0, 16);
+
+                    document.getElementById('editProgramName').value = event.title;
+                    document.getElementById('ispCard2').value = event.extendedProps.type === 'isp' ? 'true' : 'false';
+                    document.getElementById('editStartDate').value = formattedStart;
+                    document.getElementById('editEndDate').value = formattedEnd;
+                    document.getElementById('editProgramName').setAttribute('data-id', event.id);
+                    document.getElementById('eventDetailModal').style.display = "block";
+                }
+            }
+
+            function closeModal() {
+                modalAddEvent.style.display = "none";
+                modalEditEvent.style.display = "none";
+            }
+
             // Open the modal when button is clicked
             document.querySelector('.add-event-button').onclick = function() {
-                modal.style.display = "block";
+                modalAddEvent.style.display = "block";
             };
 
             // Close the modal when (x) is clicked
-            span.onclick = function() {
-                modal.style.display = "none";
-            };
+            spanCloseAddEvent.onclick = closeModal;
+            spanCloseEditEvent.onclick = closeModal;
 
             // Close the modal when clicking outside of it
             window.onclick = function(event) {
-                if (event.target == modal) {
-                    modal.style.display = "none";
+                if (event.target === modalAddEvent || event.target === modalEditEvent) {
+                    closeModal();
                 }
             };
 
@@ -151,8 +236,7 @@
                     return;
                 }
 
-                // Post data to your Flask API route
-                fetch('/calendar/submit/create', {  // 이 부분이 Flask 라우트로 데이터를 보내도록 수정되었습니다.
+                fetch('/calendar/submit/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -166,7 +250,64 @@
                 .then(data => {
                     if (data.success) {
                         calendar.refetchEvents(); // 캘린더 이벤트를 다시 불러옵니다.
-                        modal.style.display = "none"; // 모달 창을 닫습니다.
+                        modalAddEvent.style.display = "none"; // 모달 창을 닫습니다.
+                        alert(data.message); // 성공 메시지 표시
+                    } else {
+                        alert(data.message); // 에러 메시지 표시
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            };
+
+            window.updateEvent = function() {
+                const eventId = document.getElementById('editProgramName').getAttribute('data-id');
+                const ispCard = document.getElementById('ispCard2').value === 'true';
+                const startDate = document.getElementById('editStartDate').value;
+                const endDate = document.getElementById('editEndDate').value;
+
+                if (new Date(endDate) <= new Date(startDate)) {
+                    alert("종료 시간은 시작 시간보다 빠를 수 없습니다.");
+                    return;
+                }
+                console.log('Sending update:', eventId, ispCard, startDate, endDate);
+
+                fetch('/calendar/submit/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        event_id: eventId,
+                        isp_card: ispCard,
+                        start_datetime: startDate,
+                        end_datetime: endDate
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        calendar.refetchEvents(); // 캘린더 이벤트를 다시 불러옵니다.
+                        modalEditEvent.style.display = "none"; // 모달 창을 닫습니다.
+                        alert(data.message);  // 성공 메시지 표시
+                    } else {
+                        alert(data.message);  // 실패 메시지 표시
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            };
+
+            window.deleteEvent = function() {
+                const eventId = document.getElementById('editProgramName').getAttribute('data-id'); // Assume event ID is stored
+                fetch(`/calendar/submit/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }, // 이 부분을 추가해야 합니다.
+                    body: JSON.stringify({
+                        id: eventId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        calendar.refetchEvents(); // 캘린더 이벤트를 다시 불러옵니다.
+                        modalEditEvent.style.display = "none"; // 모달 창을 닫습니다.
                         alert(data.message); // 성공 메시지 표시
                     } else {
                         alert(data.message); // 에러 메시지 표시
@@ -176,5 +317,6 @@
             };
         });
     </script>
+
 </body>
 </html>

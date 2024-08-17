@@ -70,8 +70,33 @@ def post_calendar_event(url, data):
         else:
             return response.text, 400
     except requests.RequestException as e:
-        return f"Error: {e}", 400
+        return f"Error: {e}", 500
 
+def put_calendar_event(url, data):
+    try:
+        response = requests.put(url, json=data)
+
+        if response.status_code == 200:
+            return "Event submitted", 200
+        else:
+            return response.text, 400
+    except requests.RequestException as e:
+        return f"Error: {e}", 500
+
+def delete_calendar_event(url):
+    try:
+        headers = {
+            "Accept": "application/json"
+        }
+        response = requests.delete(url, headers=headers)
+        if response.status_code == 200:
+            return "Event deleted", 200
+        elif response.status_code == 404:
+            return "Reservation Not Found", 404
+        else:
+            return response.text, 400
+    except requests.RequestException as e:
+        return f"Error: {e}", 500
 
 def get_program_list(url, year_semester_house):
     headers = {

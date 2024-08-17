@@ -1,7 +1,7 @@
 import os
 import unicodedata
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
-from utils import post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -53,7 +53,8 @@ def logout():
 def calendar():
     # Check user role from session
     if session.get('manager') or session.get('admin') or session.get('ra'):
-        year_semester_house = "2024-1-AVISON"
+        year_semester_house = session['userData']
+        # year_semester_house = "2024-1-AVISON"
         url_program = os.getenv('URL_API') + 'program'
         try:
             programs = get_program_list(url_program, year_semester_house)
@@ -67,7 +68,7 @@ def calendar():
 
 @app.route("/calendar/get/events")
 def get_events():
-    url = os.getenv('URL_API') + 'calendar/all'
+    url = os.getenv('URL_API') + 'calendar/house/'+session['userData'].split('-')[-1]
     datas = get_calendar_event(url)
     events = []
     for data in datas:
@@ -78,11 +79,15 @@ def get_events():
         end_date = date_end.strftime("%Y-%m-%dT%H:%M:%S")
 
         event = {
+            'id': data['id'],
             'title': data['program_id'],
             'start': start_date,
             'end': end_date,
             'type': 'isp' if data['isp_card'] == True else 'card',
-            'backgroundColor': '#28a745' if data['isp_card'] else '#007bff'
+            'backgroundColor': '#28a745' if data['isp_card'] else '#007bff',
+            'extendedProps': {
+                'user': data['user_id']
+            }
         }
         events.append(event)
     return jsonify(events)
@@ -109,6 +114,41 @@ def submit_event():
         flash('You are not authorized to access this page', 'warning')
         return redirect("/")
 
+
+@app.route("/calendar/submit/update", methods=["POST"])
+def update_event():
+    if session.get('manager') or session.get('admin') or session.get('ra'):
+        data = request.get_json()  # Get data from the client
+
+        date_start = datetime.strptime(data['start_datetime'], "%Y-%m-%dT%H:%M")
+        date_end = datetime.strptime(data['end_datetime'], "%Y-%m-%dT%H:%M")
+        data['start_datetime'] = date_start.strftime("%Y-%m-%dT%H:%M:%S") + '.000001'
+        data['end_datetime'] = date_end.strftime("%Y-%m-%dT%H:%M:%S") + '.000001'
+
+        # Build the URL and make the request
+        url = os.getenv("URL_API") + "calendar/update/" + str(data['event_id'])
+        body = {key: data[key] for key in data if key != 'event_id'}  # Exclude the event_id from the data sent
+        message, code = put_calendar_event(url, body)
+        if code == 200:
+            return jsonify({'success': True, 'message': message}), code
+        else:
+            return jsonify({'success': False, 'message': message+str(body)}), code
+    else:
+        return jsonify({'success': False, 'message': 'Not authorized'}), 403
+
+@app.route("/calendar/submit/delete", methods=["POST"])
+def delete_event():
+    if session.get('manager') or session.get('admin') or session.get('ra'):
+        data = request.get_json()
+        del_id = data['id']
+        url = os.getenv("URL_API") + "calendar/delete/" + str(del_id)
+        message, code = delete_calendar_event(url)
+        if code == 200:
+            return jsonify({'success': True, 'message': message}), 200
+        else:
+            return jsonify({'success': False, 'message': message+str(data)}), code
+    else:
+        return jsonify({'success': False, 'message': 'Not authorized'}), 403
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
@@ -405,8 +445,8 @@ def handle_upload_ra():
 def post_receipt_form():
     if session.get('ra') or session.get('manager') or session.get('admin'):
         user_id = session['userId']
-        # year_semester_house = session['userData']
-        year_semester_house = '2024-1-AVISON'
+        year_semester_house = session['userData']
+        # year_semester_house = '2024-1-AVISON'
         return form_post_receipt(year_semester_house, user_id)
     else:
         flash("You do not have permission to access this page.", "warning")

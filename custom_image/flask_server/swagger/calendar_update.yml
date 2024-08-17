@@ -1,20 +1,33 @@
 tags:
   - "Calendar"
-summary: "Create a new reservation"
-description: "Adds a new reservation to the database"
+summary: "Update an existing reservation"
+description: "Updates the details of an existing reservation with the provided ID."
 consumes:
   - "application/json"
 produces:
   - "application/json"
 parameters:
-  - in: body
-    name: body
-    description: "Reservation object that needs to be added to the database"
+  - name: "id"
+    in: "path"
+    required: true
+    description: "ID of the reservation to update"
+    type: "integer"
+  - in: "body"
+    name: "body"
+    description: "Reservation object that needs to be updated"
     required: true
     schema:
-      $ref: "#/definitions/Reservation"
+      $ref: '#/definitions/Reservation'
 responses:
-  201:
-    description: "Reservation created successfully"
-  400:
-    description: "Invalid input or database error"
+  200:
+    description: "Reservation updated successfully"
+    schema:
+      $ref: '#/definitions/Reservation'
+  404:
+    description: "Reservation not found"
+    schema:
+      $ref: '#/definitions/Reservation'
+  500:
+    description: "Error updating the reservation"
+    schema:
+      $ref: '#/definitions/Reservation'
