@@ -120,8 +120,10 @@ def submit_event():
 @app.route("/calendar/submit/update", methods=["POST"])
 def update_event():
     if session.get('manager') or session.get('admin') or session.get('ra'):
-        data = request.get_json()  # Get data from the client
+        if not session.get('userName') == request.json.get('username'):
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
 
+        data = request.get_json()  # Get data from the client
         date_start = datetime.strptime(data['start_datetime'], "%Y-%m-%dT%H:%M")
         date_end = datetime.strptime(data['end_datetime'], "%Y-%m-%dT%H:%M")
         data['start_datetime'] = date_start.strftime("%Y-%m-%dT%H:%M:%S") + '.000001'
@@ -141,6 +143,9 @@ def update_event():
 @app.route("/calendar/submit/delete", methods=["POST"])
 def delete_event():
     if session.get('manager') or session.get('admin') or session.get('ra'):
+        if not session.get('userName') == request.json.get('username'):
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+
         data = request.get_json()
         del_id = data['id']
         url = os.getenv("URL_API") + "calendar/delete/" + str(del_id)

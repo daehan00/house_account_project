@@ -5,6 +5,7 @@
     <title>Calendar for card/isp reservation</title>
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@latest/main.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@latest/main.min.js"></script>
+    <script src="{{ url_for('static', filename='js/functions.js') }}"></script>
     <style>
         body { margin: 40px 10px; padding: 0; font-family: Arial, sans-serif; }
         #calendar, #event-details { max-width: 900px; margin: 0 auto; }
@@ -63,7 +64,7 @@
                     <option value="true">ISP</option>
                     <option value="false">Card</option>
                 </select><br><br>
-                <label for="startDate">시작 날짜와 시간:</label>
+                <label for="startDate">시작 일시:</label>
                 <input type="datetime-local" id="startDate" name="startDate" value="">
                 <script>
                     function getEndTimeFromStart(startTime) {
@@ -82,7 +83,7 @@
                     document.getElementById('startDate').value = startTime;
                 </script>
                 <br><br>
-                <label for="endDate">종료 날짜와 시간:</label>
+                <label for="endDate">종료 일시:</label>
                 <input type="datetime-local" id="endDate" name="endDate" value="">
                 <script>
                     document.getElementById('endDate').value = getEndTimeFromStart(startTime);
@@ -179,6 +180,7 @@
                     document.getElementById('editStartDate').value = formattedStart;
                     document.getElementById('editEndDate').value = formattedEnd;
                     document.getElementById('editProgramName').setAttribute('data-id', event.id); // 이벤트 ID 저장
+                    document.getElementById('editProgramName').setAttribute('data-user', event.extendedProps.user); // Save the username
                     document.getElementById('eventDetailModal').style.display = "block";
                 }
             });
@@ -264,12 +266,13 @@
                 const ispCard = document.getElementById('ispCard2').value === 'true';
                 const startDate = document.getElementById('editStartDate').value;
                 const endDate = document.getElementById('editEndDate').value;
+                const username = document.getElementById('editProgramName').getAttribute('data-user');  // Get user from the attribute
 
                 if (new Date(endDate) <= new Date(startDate)) {
                     alert("종료 시간은 시작 시간보다 빠를 수 없습니다.");
                     return;
                 }
-                console.log('Sending update:', eventId, ispCard, startDate, endDate);
+                console.log('Sending update:', eventId, ispCard, startDate, endDate, username);
 
                 fetch('/calendar/submit/update', {
                     method: 'POST',
@@ -278,7 +281,8 @@
                         event_id: eventId,
                         isp_card: ispCard,
                         start_datetime: startDate,
-                        end_datetime: endDate
+                        end_datetime: endDate,
+                        username: username
                     })
                 })
                 .then(response => response.json())
@@ -296,11 +300,14 @@
 
             window.deleteEvent = function() {
                 const eventId = document.getElementById('editProgramName').getAttribute('data-id'); // Assume event ID is stored
+                const username = document.getElementById('editProgramName').getAttribute('data-user');  // Get user from the attribute
+
                 fetch(`/calendar/submit/delete`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }, // 이 부분을 추가해야 합니다.
                     body: JSON.stringify({
-                        id: eventId
+                        id: eventId,
+                        username: username
                     })
                 })
                 .then(response => response.json())
