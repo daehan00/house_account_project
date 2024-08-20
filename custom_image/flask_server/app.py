@@ -470,5 +470,9 @@ def post_receipt():
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
+@app.route("/ra/yscrc")
+def yscrc():
+    return render_template('yscrc.html')
+
 if __name__ == "__main__":
     app.run('0.0.0.0',port=8088, debug=True)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x

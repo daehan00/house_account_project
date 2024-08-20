@@ -1,0 +1,294 @@
+.htmlwrapper {
+	width:100%;
+	height:100%;
+	max-width:1920px;
+	min-width:1300px;
+	margin:0 auto;
+	padding:0;
+}
+
+#wrapper {
+	position:relative;
+	float:left;
+	width:100%;
+	max-width:1920px;
+	min-width:1300px;
+	min-height:100%;
+}
+
+#skipnavi {
+	position:absolute;
+	z-index:999;
+}
+
+#skipnavi p a {
+	position:absolute;
+	top: -9999px;
+}
+
+#skipnavi p a:focus, #skipnavi p a:active {
+	top: 1px;
+	left: 0px;
+	display: block;
+	width: 150px;
+	color: #000000;
+	height: 30px;
+	padding: 5px 3px 0 3px;
+	margin-left: 0px;
+	text-align: center;
+	font-size: 100%;
+	font-weight: bold;
+	background: #ffffff;
+	text-decoration: none;
+}
+
+#rcs_popup {
+	position:relative;
+	float:left;
+	width:100%;
+	background:#003169;
+}
+
+#rcs_popup_area {
+	width:1280px;
+	margin:0 auto;
+	padding:10px 0 10px 0;
+	border:0;
+	z-index:1;
+}
+
+/* ì‹œìŠ¤í…œ */
+/* ë¡œê³  ë° ë¡œê·¸ì•„ì›ƒë²„íŠ¼ */
+#rcs_top {
+	position:relative;
+	float:left;
+	width:100%;
+	margin:0;
+	padding:0;
+	background-image:url('/images/rcs_topbg.jpg');
+	background-position:top center;
+}
+
+#rcs_top_area {
+	position:relative;
+	width:1280px;
+	height:123px;
+	margin:0 auto;
+}
+
+#rcs_top_logo {
+	position:relative;
+	float:left;
+	width:213px;
+	height:60px;
+	margin-top:35px;
+}
+
+#rcs_top_logo a {
+	display:block;
+	width:100%;
+	height:100%;
+	background-image:url('/images/rcs_toplogo.png');
+	text-indent:-9999px;
+}
+
+#rcs_logout {
+	position:relative;
+	float:right;
+	margin-top:50px;
+}
+
+#rcs_logout a {
+	display:block;
+	padding:5px 20px 5px 20px;
+	background:#3282da;
+	color:#ffffff;
+	border-radius:20px;
+}
+
+/* ë©”ë‰´ */
+#rcs_top_menu {
+	position:relative;
+	float:left;
+	width:100%;
+	background:#3282da;
+}
+
+#rcs_top_menu_area {
+	position:relative;
+	width:1280px;
+	margin:0 auto;
+	padding:10px 0 10px 0;
+}
+
+#rcs_top_menu .itemlist {
+	list-style:none;
+	width:100%;
+}
+
+#rcs_top_menu .itemlist li {
+	display:inline-block;
+	margin-right:60px;
+}
+
+#rcs_top_menu .itemlist li a {
+	font-size:16px;
+	color:#ffffff;
+}
+
+#rcs_top_menu .itemlist li a:hover {
+	color:#fdff72;
+}
+
+#rcs_top_menu .itemlist li a.menu_on {
+	color:#fdff72;
+}
+
+/* ì½˜í…ì¸  */
+#rcs_mid {
+	position:relative;
+	float:left;
+	width:100%;
+	margin:0;
+	padding:0;
+	padding-bottom:130px;
+}
+
+#rcs_mid_area {
+	position:relative;
+	width:1280px;
+	margin:0 auto;
+	padding:0;
+}
+
+#rcs_contents_area {
+	position:relative;
+	float:left;
+	width:1280px;
+	min-height:500px;
+	margin-top:50px;
+}
+
+#rcs_contentsbox {
+	position:relative;
+	float:left;
+	width:100%;
+}
+
+/* íƒ­ */
+#rcs_mid_tab {
+	position:relative;
+	float:left;
+	width:100%;
+	margin:0;
+	margin-bottom:30px;
+	padding:0;
+}
+
+#rcs_mid_tab .itemlist {
+	list-style:none;
+	width:100%;
+}
+
+#rcs_mid_tab .itemlist li {
+	display:inline-block;
+	position:relative;
+	float:left;
+	width:200px;
+	height:50px;
+	margin-right:4px;
+	background:#e1e1e1;
+	border-top-left-radius:10px;
+	border-top-right-radius:10px;
+}
+
+#rcs_mid_tab .itemlist li a {
+	display:block;
+	width:198px;
+	height:48px;
+	text-align:center;
+	color:#222222;
+	background:#ffffff;
+	border:1px solid #a6a6a6;
+	border-top-left-radius:10px;
+	border-top-right-radius:10px;
+	line-height:50px;
+}
+
+#rcs_mid_tab .itemlist li a:hover {
+	display:block;
+	width:100%;
+	height:100%;
+	text-align:center;
+	color:#ffffff;
+	background:#3282da;
+	line-height:50px;
+	border:0;
+	border-top-left-radius:10px;
+	border-top-right-radius:10px;
+}
+
+#rcs_mid_tab .itemlist li a.tab_on {
+	display:block;
+	width:100%;
+	height:100%;
+	text-align:center;
+	color:#ffffff;
+	background:#3282da;
+	line-height:50px;
+	border:0;
+	border-top-left-radius:10px;
+	border-top-right-radius:10px;
+}
+
+/* ë¡œê·¸ì¸ */
+#rcs_login_area {
+	position:relative;
+	float:left;
+	width:1280px;
+	height:420px;
+	margin:0;
+	padding:0;
+}
+
+#rcs_loginbox {
+	position:relative;
+	width:721px;
+	height:420px;
+	margin:0 auto;
+	background-image:url('/images/rcs_loginbox.png');
+}
+
+/* í‘¸í„° */
+#rcs_bottom {
+	position:absolute;
+	bottom:0;
+	width:100%;
+	margin:0;
+	background:#f3f3f3;
+}
+
+#rcs_bottom_area {
+	position:relative;
+	width:1280px;
+	height:90px;
+	margin:0 auto;
+	padding:20px 0 20px 0;
+}
+
+#rcs_bottom_area .itemlist {
+	display:inline-block;
+	margin-top:20px;
+}
+
+#bottom01 {
+	position:relative;
+	float:left;
+	margin-right:20px;
+}
+
+#bottom03 {
+	position:relative;
+	float:right;
+	margin-top:-40px;
+}

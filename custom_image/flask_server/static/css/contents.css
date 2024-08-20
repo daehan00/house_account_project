@@ -1,0 +1,66 @@
+/* ì½˜í…ì¸  */
+td.blue { padding:0 10px 0 10px; background-color:#e2edf6; text-align:center; }
+
+.contentsTable { border-collapse: collapse; border: 0; border-top: 2px solid #929292; border-top: 2px solid #0174b7; text-align:center; }
+.contentsTable th { background-color: #f1f1f1; padding: 5px; color: #000000; text-align: center; font-weight: normal; border: 1px solid #929292; font-size:15px;}
+.contentsTable td { background-color: #ffffff; padding: 5px; color: #000000; font-weight: normal; border: 1px solid #929292; font-size:15px;}
+.contentsTable td.oddline {border:1px solid #c6c6c6; background-color:#f7f7f7;padding:5px; color:#000000; font-size:14px; font-weight:normal;}
+.contentsTable tr.oddline td { background-color:#f7f7f7; }
+.contentsTable tr.bg2 td { background-color: #FDF2F4; padding: 5px; color: #000000; text-align: center; font-weight: normal; border: 1px solid #929292; font-size:15px;}
+
+.contentsTableMap { border-collapse: collapse; border: 0;}
+.contentsTableMap th { background-color: #eceef2; padding: 15px; color: #111111; text-align: center; font-weight: normal; border-top: 1px solid #c7cdd7; border-bottom: 1px solid #c7cdd7; font-size:15px;}
+.contentsTableMap td { background-color: #ffffff; padding: 15px; color: #111111; text-align: left; font-weight: normal; border-top: 1px solid #c7cdd7; border-bottom: 1px solid #c7cdd7; font-size:15px;}
+.top_line { border-top:2px solid #0174b7; }
+
+.contentsTableGray { border-collapse: collapse; border: 0; border-top: 2px solid #0174b7; border-bottom: 1px solid #0174b7; }
+.contentsTableGray th { background-color: #efefef; padding: 5px; color: #000000; text-align: center; font-weight: normal; border: 1px solid #dddddd; font-size:15px;}
+.contentsTableGray td { background-color: #ffffff; padding: 5px; color: #000000; text-align: center; font-weight: normal; border: 1px solid #dddddd; font-size:15px;}
+.contentsTableGray tr.bg2 td { background-color: #FDF2F4; padding: 5px; color: #000000; text-align: center; font-weight: normal; border: 1px solid #dddddd; font-size:15px;}
+
+.contentsTableBlue { border-collapse: collapse; border: 0; border-bottom: 2px solid #818181; margin-top:20px; width:100%;}
+.contentsTableBlue th { background-color: #3068aa; padding: 5px; color: #ffffff; text-align: center; font-size:15px;}
+.contentsTableBlue td { background-color: #ffffff; padding: 5px; color: #131313; text-align: center; border-bottom: 1px solid #d1cfcf; font-size:15px;}
+
+
+
+
+.frm_auto {
+	width:1030px;
+}
+
+#rcs_sbox {
+	position:relative;
+	padding: 10px;
+	margin:0;
+	margin-bottom:10px;
+	background-color:#FEFCEF;
+	border:1px solid #d9e2eb;
+	border-radius: 4px;
+	font-size:14px;
+	clear:both;
+}
+
+#rcs_infobox {
+	position:relative;
+	float:left;
+	width:1240px;
+	padding:20px;
+	background:#f3f3f3;
+	border-radius:10px;
+}
+
+#rcs_infobox p {
+	margin:0;
+	padding:0;
+	font-size:14px;
+	color:#333333;
+}
+
+#rcs_contents {
+	position:relative;
+	float:left;
+	width:1280px;
+	margin-top:20px;
+	margin-bottom:100px;
+}
