@@ -17,7 +17,7 @@ app.config['UPLOAD_FOLDER_MANAGER'] = os.getenv('UPLOAD_FOLDER_MANAGER')
 
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("main.html")
+    return render_template("03_info.html", tab_id="main")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -209,7 +209,7 @@ def handle_upload_admin():
     return upload_file(app.config["UPLOAD_FOLDER_ADMIN"], url_for("admin"), "admin")
 
 
-@app.route("/manager")
+@app.route("/manager/check_list")
 def manager():
     if session.get('manager') or session.get('admin'):
         house_name = session['userData'].split('-')[-1]
@@ -218,7 +218,7 @@ def manager():
         raw_data = get_receipt_list(os.getenv("URL_API") + 'receipts/house', house_name)
 
         if not raw_data:
-            return render_template("manager.html", data=None, columns=columns)
+            return render_template("02_manager.html", data=None, columns=columns)
 
         # Get current year and month
         now = datetime.now()
@@ -276,13 +276,29 @@ def manager():
         minutes_data.extend([{'filename': None, 'pdf': None}] * (max_len - len(minutes_data)))
 
         file_pairs = zip(receipt_files, minutes_data)
-        return render_template("manager.html", data=filtered_data, columns=columns, current_period=period,
+        return render_template("03_check_list.html", data=filtered_data, tab_id="check_list", columns=columns, current_period=period,
                                current_month=current_month, selected_month=month, file_pairs=file_pairs)
     elif session.get('ra'):
             flash("You do not have permission to access this page.", "warning")
             return redirect("/")
     else:
         flash("please login first", "warning")
+        return redirect("/")
+
+@app.route("/manager/setup")
+def manager_setup():
+    if session.get('manager') or session.get('admin'):
+        return render_template("03_setup.html", tab_id="setup")
+    else:
+        flash("You do not have permission to access this page.", "warning")
+        return redirect("/")
+
+@app.route("/manager/accounting")
+def manager_accounting():
+    if session.get('manager') or session.get('admin'):
+        return render_template("03_accounting.html", tab_id="accounting")
+    else:
+        flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
 @app.route("/manager/delete_receipt", methods=["POST"])
@@ -400,7 +416,7 @@ def process_accounting():
 
 
 
-@app.route("/ra")
+@app.route("/ra/check_ra_list")
 def ra():
     if session.get('ra') or session.get('manager') or session.get('admin'):
         user_id = session['userId']
@@ -408,11 +424,19 @@ def ra():
                    'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
         raw_data = get_receipt_list(os.getenv("URL_API")+'receipts/user', user_id)
         if not raw_data:
-            return render_template("ra.html", data=None, columns=columns)
+            return render_template("03_check_ra_list.html", data=None, columns=columns)
         data = raw_data
         for i in data:
             i['date'] = i['date'].split('T')[0]
-        return render_template("ra.html", data=data, columns=columns)
+        return render_template("03_check_ra_list.html", data=data, columns=columns, tab_id='check_ra_list')
+    else:
+        flash("Please login first.", "warning")
+        return redirect("/")
+
+@app.route("/ra/upload_ra")
+def upload_ra():
+    if session.get('ra') or session.get('manager') or session.get('admin'):
+        return render_template("03_upload_ra.html", tab_id='upload_ra')
     else:
         flash("Please login first.", "warning")
         return redirect("/")
@@ -454,7 +478,8 @@ def post_receipt_form():
         user_id = session['userId']
         year_semester_house = session['userData']
         # year_semester_house = '2024-1-AVISON'
-        return form_post_receipt(year_semester_house, user_id)
+        title, contents = form_post_receipt(year_semester_house, user_id)
+        return render_template('03_post_receipt.html', contents=contents, tab_id='post_receipt')
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
@@ -470,9 +495,9 @@ def post_receipt():
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
-@app.route("/ra/yscrc")
-def yscrc():
-    return render_template('yscrc.html')
+@app.route("/ra/yicrc")
+def yicrc():
+    return render_template('yicrc.html')
 
 if __name__ == "__main__":
     app.run('0.0.0.0',port=8088, debug=True)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x

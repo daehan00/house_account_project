@@ -1,0 +1,36 @@
+{% extends "02_ra.html" %}
+{% block contents %}
+{% if data %}
+<table>
+    <thead>
+        <tr>
+            {% for column in columns %}
+                <th>{{ column }}</th>
+            {% endfor %}
+            <th style="display:none;">user_name</th>
+            <th>양식 생성</th> <!-- 양식 생성 열 추가 -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in data %}
+        <tr>
+            {% for column in columns %}
+            <td class="{% if column == 'expenditure' %}number{% endif %}">{{ row[column] }}</td>
+            {% endfor %}
+            <td style="display:none;">{{ row['user_name'] }}</td>
+            <td>
+                <form action="/ra/create_xlsx" method="post" style="display:inline;">
+                    {% for column in columns %}
+                    <input type="hidden" name="{{ column }}" value="{{ row[column] }}">
+                    {% endfor %}
+                    <button type="submit">다운</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+    <p>No data available for the selected user.</p>
+{% endif %}
+{% endblock %}

@@ -15,31 +15,6 @@ import tempfile
 import unicodedata
 load_dotenv()
 
-def template(title, contents):
-    return f'''<!doctype html>
-            <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <title>{title}</title>
-                    <link rel="stylesheet" href=" { url_for('static', filename='css/table.css') }">
-                    <script>
-                        window.onload = function() '''+'''{
-                            {% with messages = get_flashed_messages() %}
-                            {% if messages %}
-                                {% for message in messages %}
-                                alert("{{ message }}");
-                                {% endfor %}
-                            {% endif %}
-                            {% endwith %}
-                        }
-                    </script>
-                </head>
-                <body>'''+f'''
-                    {contents}
-                </body>
-            </html>
-            '''
-
 def load_dict_code():
     try:
         with open(os.getenv("DATA_PATH")+'dict_code.json', 'r', encoding='utf-8') as file:
@@ -504,7 +479,7 @@ def form_post_receipt(year_semester_house, user_id):
         form('text', '업체 선정 사유', 'reason_store', 'placeholder', 'ex) 최저가 업체'),
         form('checkbox', 'isp 사용여부', 'isp_check', 'placeholder', '', required=False)
     ]
-    contents = '''<main>영수증 입력 양식</main>
+    contents = '''
                             <form action="/ra/post_receipt_data" method="POST">
                                 <table>
                                     <thead>
@@ -534,7 +509,7 @@ def form_post_receipt(year_semester_house, user_id):
                                             <th scope="row" colspan="2"><input type="submit" value="제출"><input type="button" value="돌아가기" onclick="location.href='/ra'"></th>
                                         </tr>
                                     </tfoot></table></form>'''
-    return template('영수증 입력', contents)
+    return '영수증 입력', contents
 
 def post_receipt_data(request_data):
     url = os.getenv('URL_API')+'receipts'

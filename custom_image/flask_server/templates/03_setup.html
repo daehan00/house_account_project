@@ -1,0 +1,15 @@
+{% extends "02_manager.html" %}
+{% block contents %}
+<ol>
+    <li>RA명단 등록<input type="button" value="등록" onclick="showForm('RA List Registration');"></li>
+    <li>프로그램 명단 등록<input type="button" value="등록" onclick="showForm('Program Registration');"></li>
+</ol>
+<p>
+    <form action="/upload/manager" method="post" enctype="multipart/form-data">
+        <label for="file">Upload File:</label>
+        <input type="file" id="file" name="file" required>
+        <br><br>
+        <input type="submit" value="Upload">
+    </form>
+</p>
+{% endblock %}

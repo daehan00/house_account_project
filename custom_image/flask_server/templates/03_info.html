@@ -1,24 +1,15 @@
-{% extends "layout.html" %}
-{% block title %}Home{% endblock %}
-{% block body %}
-<h1>User Pages</h1>
+{% extends "02_ra.html" %}
+{% block contents %}
 <p>
-    <input type="button" value="선임/회계 RA" onclick="location.href='/manager'">
-    <input type="button" value="일반 RA" onclick="location.href='/ra'">
-</p>
-<p>
-    <h2>설명</h2>
+    <h1>설명</h1>
     RA업무 중 회계 관련 업무의 편의성과 정확성을 높이기 위한 시스템입니다. 현재 개발중이며, 비밀번호는 학번입니다.
 </p>
 <p>
-    <h2>링크</h2>
+    <h1>링크</h1>
     <ul>
         <li><a href="https://yicra.yonsei.ac.kr/" target="_blank" title="활동일지 및 보고서 작성">RA관리시스템</a></li>
         <li><a href="https://career.yonsei.ac.kr/" target="_blank" title="프로그램 및 학생 관리">커리어연세</a></li>
         <li><a href="https://drive.google.com/drive/folders/1FLXZKumeBVGqi2ncXsagz1GBaoW5Xykr?usp=drive_link" title="AVISON 공유 드라이브">AVISON 공유 드라이브</a></li>
     </ul>
 </p>
-<footer>
-    <input type="button" style="position: fixed; bottom: 20px; right: 20px; padding: 10px 15px;" value="admin" onclick="promptForPassword();">
-</footer>
 {% endblock %}

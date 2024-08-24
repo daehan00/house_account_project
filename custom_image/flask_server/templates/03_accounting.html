@@ -1,0 +1,23 @@
+{% extends "02_manager.html" %}
+{% block contents %}
+<ol>
+    <li>
+        <form method="POST" action="/manager/process_accounting" style="display:inline;">
+            <label for="process_month">월:</label>
+            <select id="process_month" name="month">
+                {% for m in range(1, 13) %}
+                <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+            </select>
+            <label for="process_period">기간:</label>
+            <select id="process_period" name="period">
+                <option value="1">1</option>
+                <option value="2">2</option>
+            </select>
+            <input type="submit" value="자료 제작">
+        </form>
+    </li>
+    <li><input type="button" value="기간별 회계자료 정산" onclick="showAccountingPopup();"></li>
+    <li><input type="button" value="학기말 회계자료 정산" onclick=""></li>
+</ol>
+{% endblock %}

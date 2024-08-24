@@ -65,7 +65,7 @@
 	width:100%;
 	margin:0;
 	padding:0;
-	background-image:url('/images/rcs_topbg.jpg');
+	background-image:url('/static/images/rcs_topbg.jpg');
 	background-position:top center;
 }
 
@@ -88,7 +88,7 @@
 	display:block;
 	width:100%;
 	height:100%;
-	background-image:url('/images/rcs_toplogo.png');
+	background-image:url('/static/images/rcs_toplogo.png');
 	text-indent:-9999px;
 }
 
@@ -256,7 +256,7 @@
 	width:721px;
 	height:420px;
 	margin:0 auto;
-	background-image:url('/images/rcs_loginbox.png');
+	background-image:url('/static/images/rcs_loginbox.png');
 }
 
 /* í‘¸í„° */

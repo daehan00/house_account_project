@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block title %}선임/회계RA{% endblock %}
+{% block body %}
+<div id="rcs_mid_tab">
+    <ul class="itemlist">
+        <li><a href="/manager/setup" data-id="setup" title="초기 설정">초기 설정</a></li>
+        <li><a href="/manager/check_list" data-id="check_list" title="제출내역 확인">제출내역 확인</a></li>
+        <li><a href="/manager/accounting" data-id="accounting" title="회계자료 제작">회계자료 제작</a></li>
+    </ul>
+</div>
+<div id="rcs_contentsbox">
+{% block contents %}{% endblock %}
+</div>
+{% endblock %}

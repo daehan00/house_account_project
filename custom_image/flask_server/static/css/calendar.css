@@ -1,0 +1,22 @@
+#calendar, #event-details { max-width: 900px; margin: 0 auto; }
+#event-details { margin-top: 20px; padding: 10px; background: #f9f9f9; border: 1px solid #ccc; display: flex; flex-direction: column; }
+.event-section-container { display: flex; width: 100%; }
+.event-section { flex: 1; padding: 5px; }
+h2 { width: 100%; text-align: center; margin-top: 0; }
+.event-item, .add-event-button {
+    padding: 10px;
+    margin-top: 5px;
+    background: #fff;
+    border: 1px solid #ddd;
+    text-align: center;
+    cursor: pointer;
+}
+.add-event-button:hover { background-color: #e2e2e2; }
+.modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+.modal-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; }
+.close { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+.close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
+.fc-day:hover {
+background-color: #f0f0f0; /* 호버 시 배경색 변경 */
+cursor: pointer; /* 커서 모양을 포인터로 변경 */
+}

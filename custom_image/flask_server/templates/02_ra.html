@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block title %}RA USER{% endblock %}
+{% block body %}
+<div id="rcs_mid_tab">
+    <ul class="itemlist">
+        <li><a href="/" data-id="main" title="안내">안내</a></li>
+        <li><a href="/ra/post_receipt" data-id="post_receipt" title="영수증 제출">영수증 제출</a></li>
+        <li><a href="/ra/upload_ra" data-id="upload_ra" title="영수증/회의록 제출">영수증/회의록 제출</a></li>
+        <li><a href="/ra/check_ra_list" data-id="check_ra_list" title="제출내역 확인">제출내역 확인</a></li>
+    </ul>
+</div>
+<div id="rcs_contentsbox">
+{% block contents %}{% endblock %}
+</div>
+{% endblock %}

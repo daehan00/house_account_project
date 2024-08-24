@@ -1,0 +1,10 @@
+{% extends "02_ra.html" %}
+{% block contents %}
+<p>영수증 파일, 회의록 한글파일, 회의록 pdf파일을 업로드하세요.</p>
+<form action="/upload/ra" method="post" enctype="multipart/form-data">
+    <label for="file">Upload File:</label>
+    <input type="file" id="file" name="file" required>
+    <br><br>
+    <input type="submit" value="Upload">
+</form>
+{% endblock %}
