@@ -1,4 +1,4 @@
-version: '3.8'
+version: '1.0'
 
 services:
   postgres_custom:
@@ -11,12 +11,12 @@ services:
     volumes:
       - postgres-custom-db-volume:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "5432:5432"
     networks:
       network_custom:
         ipv4_address: 172.28.0.2
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "dhkim" ]
+      test: ["CMD", "pg_isready", "-U", "dhkim"]
       interval: 10s
       retries: 5
       start_period: 5s
@@ -37,15 +37,15 @@ services:
     depends_on:
       - postgres_custom
     networks:
-      - network_custom
+      network_custom:
 
   flask-app:
     image: flask-server
     ports:
       - "3000:8088"
     environment:
-      - FLASK_APP=app.py
-      - FLASK_ENV=development
+      FLASK_APP: app.py
+      FLASK_ENV: development
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
       - ${AIRFLOW_PROJ_DIR:-.}/storage:/opt/airflow/storage
@@ -61,8 +61,8 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - FLASK_APP=api.py
-      - FLASK_ENV=development
+      FLASK_APP: api.py
+      FLASK_ENV: development
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
       - ${AIRFLOW_PROJ_DIR:-.}/storage:/opt/airflow/storage
@@ -74,7 +74,6 @@ services:
         ipv4_address: 172.28.0.4
 
 volumes:
-  postgres-db-volume:
   postgres-custom-db-volume:
   pgadmin-data:
 
@@ -82,7 +81,6 @@ networks:
   network_custom:
     driver: bridge
     ipam:
-      driver: default
       config:
-        - subnet: 172.28.0.0/6
+        - subnet: 172.28.0.0/16
           gateway: 172.28.0.1
