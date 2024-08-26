@@ -395,8 +395,8 @@ def register_program_list(set_data, data_dir, redirect_url):
         file_path = os.path.join(data_dir, file_name)
         try:
             data = pd.read_excel(file_path, sheet_name='프로그램 개요표', header=1, dtype=object)
-            data = data.dropna(subset=['분류'])
-            selected_col = ['분류', '프로그램명', '담당RA']
+            data = data.dropna(subset=['하우스'])
+            selected_col = ['하우스', '프로그램명', '카테고리']
             data = data[selected_col]
         except:
             continue
@@ -404,7 +404,7 @@ def register_program_list(set_data, data_dir, redirect_url):
         data_dict = data.to_dict(orient='records')
         i = 1
         for program in data_dict:
-            if program['분류'] == get_house_name(house_code):
+            if program['하우스'] == get_house_name(house_code):
                 year_semester_house = str(year) + '-' + str(semester) + '-' + house_code
                 program_id = year_semester_house + '-' + str(i).zfill(2)
                 program_name = re.sub(r'\s+', ' ', program['프로그램명']).strip()

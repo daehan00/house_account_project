@@ -149,7 +149,7 @@
                             const eventEl = document.createElement('div');
                             eventEl.className = 'event-item';
                             eventEl.setAttribute('data-id', event.id); // 이벤트 ID를 저장
-                            eventEl.innerHTML = `<strong>${event.extendedProps.user} ${event.title}</strong><br> (${start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
+                            eventEl.innerHTML = `<strong>${event.extendedProps.user} - ${event.title}</strong><br> (${start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
                             eventEl.onclick = () => openEventDetails(event.id); // 클릭 시 상세보기 함수 호출
                             if (event.type === 'isp' || event.extendedProps && event.extendedProps.type === 'isp') {
                                 ispEventsEl.appendChild(eventEl);

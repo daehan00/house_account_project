@@ -143,8 +143,9 @@ def update_event():
 @app.route("/calendar/submit/delete", methods=["POST"])
 def delete_event():
     if session.get('manager') or session.get('admin') or session.get('ra'):
-        if not session.get('userName') == request.json.get('username'):
-            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        if session.get('ra'):
+            if not session.get('userName') == request.json.get('username'):
+                return jsonify({'success': False, 'message': 'Unauthorized'}), 403
 
         data = request.get_json()
         del_id = data['id']
@@ -296,7 +297,9 @@ def manager_setup():
 @app.route("/manager/accounting")
 def manager_accounting():
     if session.get('manager') or session.get('admin'):
-        return render_template("03_accounting.html", tab_id="accounting")
+        now = datetime.now()
+        current_month = now.month
+        return render_template("03_accounting.html", tab_id="accounting", current_month=current_month)
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
@@ -310,7 +313,7 @@ def delete_receipt():
             flash("Receipt deleted", "success")
         else:
             flash(f"Receipt with id {id} not deleted", "error")
-        return redirect("/manager")
+        return redirect("/manager/check_list")
     else:
         flash("You do not have permission to access this button.", "error")
         return redirect("/")
@@ -339,7 +342,7 @@ def download_file():
             filename = filename + '.hwp'
     else:
         flash("Invalid file type.", "error")
-        return redirect("/manager")
+        return redirect("/manager/check_list")
     file_path = os.path.join(directory, filename)
     return send_file(file_path, as_attachment=True)
 
@@ -359,7 +362,7 @@ def delete_file():
             filename = filename + '.hwp'
     else:
         flash("Invalid file type.", "error")
-        return redirect("/manager")
+        return redirect("/manager/check_list")
 
     try:
         if type(filename) == list:
@@ -371,7 +374,7 @@ def delete_file():
     except FileNotFoundError:
         flash(f"{filename} not found.", "error")
 
-    return redirect("/manager")
+    return redirect("/manager/check_list")
 
 @app.route('/register_ra_list', methods=['GET', 'POST'])
 def handle_register_ra_list():
@@ -409,7 +412,7 @@ def process_accounting():
             flash(f"{month}월_{period}차 파일이 존재하지 않습니다. 기간 선택을 확인하세요.", "info")
         else:
             flash(f"Processing failed, error: {message}", "error")
-        return redirect("/manager")
+        return redirect("/manager/accounting")
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
@@ -467,7 +470,7 @@ def create_xlsx():
 def handle_upload_ra():
     if session.get('ra') or session.get('manager') or session.get('admin'):
         house_name = session['userData'].split('-')[-1]
-        return upload_file(app.config["UPLOAD_FOLDER_RA"]+'/'+house_name, url_for("ra"), "ra")
+        return upload_file(app.config["UPLOAD_FOLDER_RA"]+'/'+house_name, "/ra/upload_ra", "ra")
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
