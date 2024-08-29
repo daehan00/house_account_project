@@ -96,21 +96,21 @@ def init(postgres_conn_id, **kwargs):
         );"""
 
     # trigger 생성
-    # create_trigger_function = """
-    #         CREATE OR REPLACE FUNCTION update_modified_column()
-    #         RETURNS TRIGGER AS $$
-    #         BEGIN
-    #             NEW.updated_at = NOW();  -- 현재 시간을 updated_at 필드에 설정
-    #             RETURN NEW;              -- 수정된 레코드 반환
-    #         END;
-    #         $$ LANGUAGE plpgsql;
-    #         """
-    # create_trigger = """
-    #         CREATE TRIGGER update_updated_at_before_update
-    #         BEFORE UPDATE ON order_test_table
-    #         FOR EACH ROW
-    #         EXECUTE FUNCTION update_modified_column();
-    #         """
+    create_trigger_function = """
+            CREATE OR REPLACE FUNCTION update_modified_column()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = NOW();  -- 현재 시간을 updated_at 필드에 설정
+                RETURN NEW;              -- 수정된 레코드 반환
+            END;
+            $$ LANGUAGE plpgsql;
+            """
+    create_trigger = """
+            CREATE TRIGGER update_updated_at_before_update
+            BEFORE UPDATE ON order_test_table
+            FOR EACH ROW
+            EXECUTE FUNCTION update_modified_column();
+            """
 
     # 데이터 삽입
     try:

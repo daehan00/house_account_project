@@ -212,7 +212,7 @@ def handle_upload_admin():
 
 @app.route("/manager/check_list")
 def manager():
-    if session.get('manager') or session.get('admin'):
+    if session.get('manager'):
         house_name = session['userData'].split('-')[-1]
         columns = ['date', 'user_name', 'time', 'expenditure', 'store_name', 'category_id', 'program_name',
                    'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
@@ -288,7 +288,7 @@ def manager():
 
 @app.route("/manager/setup")
 def manager_setup():
-    if session.get('manager') or session.get('admin'):
+    if session.get('manager'):
         return render_template("03_setup.html", tab_id="setup")
     else:
         flash("You do not have permission to access this page.", "warning")
@@ -296,7 +296,7 @@ def manager_setup():
 
 @app.route("/manager/accounting")
 def manager_accounting():
-    if session.get('manager') or session.get('admin'):
+    if session.get('manager'):
         now = datetime.now()
         current_month = now.month
         return render_template("03_accounting.html", tab_id="accounting", current_month=current_month)
@@ -306,7 +306,7 @@ def manager_accounting():
 
 @app.route("/manager/delete_receipt", methods=["POST"])
 def delete_receipt():
-    if session.get('manager') or session.get('admin'):
+    if session.get('manager'):
         receipt_id = request.form.get('id')
         delete = delete_receipt_data(os.getenv("URL_API")+"receipts/", receipt_id)
         if delete:
@@ -320,8 +320,8 @@ def delete_receipt():
 
 @app.route('/upload/manager', methods=['POST'])
 def handle_upload_manager():
-    if session.get('manager') or session.get('admin'):
-        return upload_file(app.config["UPLOAD_FOLDER_TMP"], url_for("manager"), "manager")
+    if session.get('manager'):
+        return upload_file(app.config["UPLOAD_FOLDER_TMP"], '/manager/setup', "manager")
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
@@ -378,26 +378,26 @@ def delete_file():
 
 @app.route('/register_ra_list', methods=['GET', 'POST'])
 def handle_register_ra_list():
-    if session.get('manager') or session.get('admin'):
+    if session.get('manager'):
         set_data = request.form.to_dict()
         set_data['authority'] = False
-        return register_ra_list(set_data, app.config["UPLOAD_FOLDER_TMP"], url_for("manager"))
+        return register_ra_list(set_data, app.config["UPLOAD_FOLDER_TMP"], '/manager/setup')
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
 @app.route('/register_program', methods=['GET', 'POST'])
 def handle_register_program():
-    if session.get('manager') or session.get('admin'):
+    if session.get('manager'):
         set_data = request.form.to_dict()
-        return register_program_list(set_data, app.config["UPLOAD_FOLDER_TMP"], url_for("manager"))
+        return register_program_list(set_data, app.config["UPLOAD_FOLDER_TMP"], "/manager/setup")
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
 @app.route('/manager/process_accounting', methods=['POST'])
 def process_accounting():
-    if session.get('manager') or session.get('admin'):
+    if session.get('manager'):
         data = request.form.to_dict()
         month = data['month']
         period = data['period']

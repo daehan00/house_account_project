@@ -10,6 +10,14 @@
         body { margin: 40px 10px; padding: 0; font-family: Arial, sans-serif; }
         #calendar, #event-details { max-width: 900px; margin: 0 auto; }
         #event-details { margin-top: 20px; padding: 10px; background: #f9f9f9; border: 1px solid #ccc; display: flex; flex-direction: column; }
+        .saturday {
+            background-color: #add8e6; /* Light blue for Saturday */
+            color: darkblue; /* Darker text color */
+        }
+        .sunday {
+            background-color: #ffcccb; /* Light red for Sunday */
+            color: darkred; /* Darker text color */
+        }
         .event-section-container { display: flex; width: 100%; }
         .event-section { flex: 1; padding: 5px; }
         h2 { width: 100%; text-align: center; margin-top: 0; }
@@ -138,6 +146,10 @@
                 },
                 initialDate: new Date(),
                 events: '/calendar/get/events',
+                dayCellClassNames: function(date) {
+                    var day = date.date.getDay();
+                    return (day === 6) ? 'saturday' : (day === 0) ? 'sunday' : '';
+                },
                 dateClick: function(info) {
                     const events = calendar.getEvents().filter(event => event.startStr.slice(0,10) === info.dateStr);
                     ispEventsEl.innerHTML = '<h2>ISP 예약</h2>';
