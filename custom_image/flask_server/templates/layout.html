@@ -21,8 +21,11 @@
 			<div id="rcs_top_area">
 				<div id="rcs_top_logo"><a href="/" title="연세대학교 RC교육원 RA운영관리시스템">연세대학교 RC교육원 RA운영관리시스템</a></div>
                 <div id="rcs_logout">
+					{% if login == 'login' %}
                     <a href="/login" style="text-decoration:none;" title="로그인 버튼">로그인</a>
+					{% else %}
                     <a href="/logout" style="text-decoration:none;" title="로그아웃 버튼">로그아웃</a>
+					{% endif %}
                 </div>
             </div>
         </div>

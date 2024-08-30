@@ -17,7 +17,10 @@ app.config['UPLOAD_FOLDER_MANAGER'] = os.getenv('UPLOAD_FOLDER_MANAGER')
 
 @app.route("/", methods=["GET"])
 def home():
-    return render_template("03_info.html", tab_id="main")
+    if session.get('manager') or session.get('admin') or session.get('ra'):
+        return render_template("03_info.html", tab_id="main")
+    else:
+        return render_template("03_info.html", tab_id="main", login='login')
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
