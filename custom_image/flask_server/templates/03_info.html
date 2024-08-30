@@ -1,15 +1,35 @@
 {% extends "02_ra.html" %}
 {% block contents %}
 <p>
-    <h1>설명</h1>
-    RA업무 중 회계 관련 업무의 편의성과 정확성을 높이기 위한 시스템입니다. 현재 개발중이며, 비밀번호는 학번입니다.
-</p>
-<p>
     <h1>링크</h1>
     <ul>
         <li><a href="https://yicra.yonsei.ac.kr/" target="_blank" title="활동일지 및 보고서 작성">RA관리시스템</a></li>
         <li><a href="https://career.yonsei.ac.kr/" target="_blank" title="프로그램 및 학생 관리">커리어연세</a></li>
         <li><a href="https://drive.google.com/drive/folders/1FLXZKumeBVGqi2ncXsagz1GBaoW5Xykr?usp=drive_link" title="AVISON 공유 드라이브">AVISON 공유 드라이브</a></li>
     </ul>
+</p>
+<p>
+    <div class="switch-container">
+        <label class="switch">
+            <input type="checkbox" class="toggleSwitch">
+            <span class="slider round"></span>
+            <span class="switch-label">법인카드 사용 시 주의사항</span>
+        </label>
+    </div>
+    <div class="info-container">
+        <h1>사용시간</h1>
+        <p></p>
+    </div>
+
+    <div class="switch-container">
+        <label class="switch">
+            <input type="checkbox" class="toggleSwitch">
+            <span class="slider round"></span>
+            <span class="switch-label">결제 불가 품목</span>
+        </label>
+    </div>
+    <div class="info-container">
+        <p>결제 불가 품목입니다.</p>
+    </div>
 </p>
 {% endblock %}

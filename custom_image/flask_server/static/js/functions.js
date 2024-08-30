@@ -214,3 +214,18 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    var switches = document.querySelectorAll('.toggleSwitch'); // 모든 토글 스위치 선택
+
+    switches.forEach(function(toggleSwitch, index) {
+        toggleSwitch.addEventListener('change', function() {
+            var infoContainer = document.querySelectorAll('.info-container')[index]; // 해당 인덱스의 정보 영역 선택
+            if (this.checked) {
+                infoContainer.classList.add('show');
+            } else {
+                infoContainer.classList.remove('show');
+            }
+        });
+    });
+});
+

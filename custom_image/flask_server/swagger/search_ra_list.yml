@@ -1,0 +1,31 @@
+get:
+tags:
+  - RA List
+summary: Search RA list
+description: Returns a list of RAs based on house name, year, and semester.
+parameters:
+  - in: query
+    name: house_name
+    required: true
+    type: string
+  - in: query
+    name: year
+    required: true
+    type: integer
+  - in: query
+    name: semester
+    required: true
+    type: integer
+responses:
+  200:
+    description: A list of RAs
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/RAData'
+  400:
+    description: Missing required parameters
+  404:
+    description: No RA found
+  500:
+    description: Internal server error

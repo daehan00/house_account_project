@@ -1,6 +1,16 @@
 {% extends "02_ra.html" %}
 {% block contents %}
-{% if data %}
+<p>
+    <h1>안내사항</h1>
+    <ol>
+        <li>제출한 내용이 맞는지 확인하세요.</li>
+        <li>일시, 금액, 가맹점명, 인원수를 제대로 입력했는지 반드시 확인하세요.</li>
+        <li>문제가 있을 경우, 회계 담당 RA에게 연락 후 재입력하세요.</li>
+        <li>문제가 없다면 맨 우측 다운로드 버튼을 클릭하여 영수증 파일을 수령하세요.</li>
+        <li>실물영수증 스캔본을 해당 파일에 삽입 후, 제출하세요.</li>
+    </ol>
+</p>
+<p>
 <table>
     <thead>
         <tr>
@@ -11,6 +21,7 @@
             <th>양식 생성</th> <!-- 양식 생성 열 추가 -->
         </tr>
     </thead>
+    {% if data %}
     <tbody>
         {% for row in data %}
         <tr>
@@ -29,8 +40,8 @@
         </tr>
         {% endfor %}
     </tbody>
+    {% else %}
+    {% endif %}
 </table>
-{% else %}
-    <p>No data available for the selected user.</p>
-{% endif %}
+</p>
 {% endblock %}

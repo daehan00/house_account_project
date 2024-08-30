@@ -1,15 +1,75 @@
 {% extends "02_manager.html" %}
 {% block contents %}
 <ol>
-    <li>RA명단 등록<input type="button" value="등록" onclick="showForm('RA List Registration');"></li>
-    <li>프로그램 명단 등록<input type="button" value="등록" onclick="showForm('Program Registration');"></li>
+    <li>
+        <form action="/upload/manager" method="post" enctype="multipart/form-data">
+            <label for="file">Upload File:</label>
+            <input type="file" id="file" name="file" required>
+            <br><br>
+            <input type="submit" value="Upload">
+        </form>
+    </li>
+    <li>
+        <h3>제출한 파일 확인</h3>
+        {% if data %}
+        <table>
+            <thead>
+            <tr>
+                <th>파일명</th>
+                <th>다운로드</th>
+                <th>삭제</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for file in data %}
+            <tr>
+                <!-- 영수증 파일 열 -->
+                <td>{{ file }}</td>
+                <td>
+                    {% if file %}
+                    <form action="/manager/download_file" method="post" style="display:inline;">
+                        <input type="hidden" name="filename" value="{{ file }}">
+                        <input type="hidden" name="type" value="setup">
+                        <input type="hidden" name="pdf" value="">
+                        <button type="submit">다운</button>
+                    </form>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if file %}
+                    <form action="/manager/delete_file" method="post" style="display:inline;">
+                        <input type="hidden" name="filename" value="{{ file }}">
+                        <input type="hidden" name="type" value="setup">
+                        <input type="hidden" name="pdf" value="">
+                        <button type="submit">삭제</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No files found.</p>
+        {% endif %}
+    </li>
+    <li><h3>RA명단 등록<input type="button" value="등록" onclick="showForm('RA List Registration');"></h3></li>
+    <li><h3>프로그램 명단 등록<input type="button" value="등록" onclick="showForm('Program Registration');"></h3></li>
+    <li>
+        <h3>RA 명단 확인</h3>
+        <ul>
+            {% for item in ras %}
+                <li>{{ item}}</li>
+            {% endfor %}
+        </ul>
+    </li>
+    <li>
+        <h3>프로그램 명단 확인</h3>
+        <ul>
+            {% for program in programs %}
+            <li>{{ program.program_name }}</li>
+            {% endfor %}
+        </ul>
+    </li>
 </ol>
-<p>
-    <form action="/upload/manager" method="post" enctype="multipart/form-data">
-        <label for="file">Upload File:</label>
-        <input type="file" id="file" name="file" required>
-        <br><br>
-        <input type="submit" value="Upload">
-    </form>
-</p>
 {% endblock %}

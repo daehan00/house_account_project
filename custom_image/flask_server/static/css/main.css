@@ -1,0 +1,86 @@
+.switch-container {
+  display: flex;
+  align-items: center; /* 세로 중앙 정렬을 유지 */
+  justify-content: flex-start; /* 좌측 정렬을 유지 */
+  margin-bottom: 10px;
+  width: 100%; /* 컨테이너 너비를 명확히 지정 */
+}
+
+.switch {
+  display: flex;
+  align-items: center; /* 세로 중앙 정렬 */
+  position: relative;
+  width: 60px; /* 스위치 너비 */
+  height: 34px; /* 스위치 높이 */
+}
+
+.switch-label {
+  font-size: 20px; /* 라벨의 폰트 크기 조정 */
+  font-weight: bold;
+  margin-left: 75px; /* 스위치와 라벨 사이 간격 추가 */
+  max-width: 150px; /* 라벨의 최대 너비 설정, 필요에 따라 조정 */
+  white-space: nowrap; /* 라벨을 한 줄로 유지 */
+}
+
+.switch input {
+  opacity: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+.info-container {
+  display: none;
+  margin-top: 20px;
+}
+
+/* 스크립트에 의해 조정될 스타일 */
+.show {
+  display: block;
+}
+
+.container {
+  display: flex;
+}
+
+.half {
+  flex: 1;
+  padding: 20px;  /* Padding for some spacing */
+}

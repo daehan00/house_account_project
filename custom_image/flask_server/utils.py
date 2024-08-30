@@ -135,6 +135,29 @@ def get_ra_list_sorted():
         print(f"Error: {response.status_code}, {response.text}")
         return None, None
 
+def fetch_ra_list(year_semester_house):
+    url = os.getenv("URL_API")+'ra_list/search'
+
+    params = {
+        'house_name': year_semester_house.split('-')[-1],
+        'year': int(year_semester_house.split('-')[0]),
+        'semester': int(year_semester_house.split('-')[1])
+    }
+
+    # 요청을 보내고 응답을 받음
+    response = requests.get(url, params=params)
+
+    # 응답 코드가 200 OK인 경우
+    if response.status_code == 200:
+        ra_list = response.json()  # JSON 응답을 파싱
+        return ra_list
+    elif response.status_code == 404:
+        return []
+    else:
+        # 서버 에러 또는 데이터 없음 등의 문제 처리
+        error_message = response.json().get('message', 'An error occurred')
+        return {'error': error_message, 'status_code': response.status_code}
+
 def update_ra_authority(user_id, authority):
     url = os.getenv("URL_API") + 'ra_list/update/' + str(user_id)
 
@@ -296,6 +319,7 @@ def upload_file(upload_folder, redirect_url, div):
 def get_files_from_directory(directory_path):
     try:
         files = os.listdir(directory_path)
+        files = [file for file in files if not file.startswith('.')]
         return sorted(files)
     except FileNotFoundError:
         return []
@@ -471,7 +495,7 @@ def form_post_receipt(year_semester_house, user_id):
         form('select', '프로그램명','program_id', '', '', options=program_list),
         form('text', '구매 핵심 사유', 'purchase_reason', 'placeholder', '운영물품 구매'),
         form('text', '핵심 품목 및 수량', 'key_items_quantity', 'placeholder', '콜라 등 5종'),
-        form('text', '구매 내역(종류와 단가)', 'purchase_details', 'placeholder', ''),
+        form('textarea', '구매 내역(종류와 단가)', 'purchase_details', 'placeholder', ''),
         form('number', '인원', 'head_count', 'min', '1'),
         form('datetime-local', '결제일시', 'datetime', 'value', today),
         form('number', '초', 'sec', 'max', '60'),
@@ -501,6 +525,11 @@ def form_post_receipt(year_semester_house, user_id):
                                                 <th scope="row">{data['항목명']}</th>
                                                 <td><select name="{data['name']}" {data['attributes']}>{option_html}</select></td>
                                             </tr>'''
+        elif data['입력창'] == 'textarea':
+            contents += f'''<tr>
+                                            <th scope="row">{data['항목명']}</th>
+                                            <td><textarea id = "{data['name']}" name = "{data['name']}" rows="10" cols="50"></textarea></td>
+                                        </tr>'''
         else:
             contents = contents + f'''<tr>
                                             <th scope="row">{data['항목명']}</th>
@@ -510,7 +539,7 @@ def form_post_receipt(year_semester_house, user_id):
     contents = contents + '''</tbody>
                                     <tfoot>
                                         <tr>
-                                            <th scope="row" colspan="2"><input type="submit" value="제출"><input type="button" value="돌아가기" onclick="location.href='/ra'"></th>
+                                            <th scope="row" colspan="2"><input type="submit" value="제출"><input type="button" value="취소" onclick="location.href='/'"></th>
                                         </tr>
                                     </tfoot></table></form>'''
     return '영수증 입력', contents

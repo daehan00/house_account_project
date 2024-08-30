@@ -1,6 +1,23 @@
 {% extends "02_ra.html" %}
 {% block contents %}
-<p>영수증 파일, 회의록 한글파일, 회의록 pdf파일을 업로드하세요.</p>
+<p>
+    <h1>제출 방법</h1>
+    <ol>
+        <li>영수증 파일(엑셀)을 제출한다.</li>
+        <li>회의록 파일(한글)을 제출한다.</li>
+        <li>회의록 파일(pdf)을 제출한다.</li>
+    </ol>
+</p>
+<p>
+    <h1>주의사항</h1>
+    <ol>
+        <li>다운받은 영수증 파일의 이름을 수정하지 않는다.</li>
+        <li>영수증 파일의 형식을 변경하지 않는다.</li>
+        <li>영수증이 너무 많은 경우, 페이지 레이아웃을 확인하고 2페이지에 추가한다.</li>
+        <li>회의록 파일의 제목은 영수증 파일의 제목을 복사 붙여넣기 후, (영)을 (회)로 변경한다.</li>
+        <li>회의록 파일 pdf는 한글 파일명과 동일하게 설정한다.</li>
+    </ol>
+</p>
 <form action="/upload/ra" method="post" enctype="multipart/form-data">
     <label for="file">Upload File:</label>
     <input type="file" id="file" name="file" required>

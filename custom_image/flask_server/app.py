@@ -1,7 +1,7 @@
 import os
 import unicodedata
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
-from utils import delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -218,13 +218,14 @@ def manager():
                    'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
         raw_data = get_receipt_list(os.getenv("URL_API") + 'receipts/house', house_name)
 
-        if not raw_data:
-            return render_template("02_manager.html", data=None, columns=columns)
-
         # Get current year and month
         now = datetime.now()
         year = now.year
         current_month = now.month
+
+        if not raw_data:
+            return render_template("03_check_list.html", tab_id="check_list", columns=columns, current_period=1,
+                                   current_month=current_month)
 
         # Get year and month from query parameters
         month = request.args.get('month', type=int)
@@ -289,7 +290,15 @@ def manager():
 @app.route("/manager/setup")
 def manager_setup():
     if session.get('manager'):
-        return render_template("03_setup.html", tab_id="setup")
+        files = get_files_from_directory(os.getenv("UPLOAD_FOLDER_TMP"))
+        year_semester_house = session['userData']
+        ra_list = []
+        ra_list_raw = fetch_ra_list(year_semester_house)
+        for item in ra_list_raw:
+            ra_data = '학번: '+str(item['user_id'])+' / 이름: '+item['user_name']+' / 관리자 권한: '+str(item['authority'])
+            ra_list.append(ra_data)
+        programs = get_program_list(os.getenv('URL_API') + 'program', year_semester_house)
+        return render_template("03_setup.html", tab_id="setup", data=files, ras=ra_list, programs=programs)
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
@@ -340,6 +349,8 @@ def download_file():
             filename = filename + '.pdf'
         else:
             filename = filename + '.hwp'
+    elif file_type == 'setup':
+        directory = os.getenv("UPLOAD_FOLDER_TMP")
     else:
         flash("Invalid file type.", "error")
         return redirect("/manager/check_list")
@@ -360,6 +371,8 @@ def delete_file():
             filename = [filename + '.pdf', filename + '.hwp']
         else:
             filename = filename + '.hwp'
+    elif file_type == 'setup':
+        directory = os.getenv("UPLOAD_FOLDER_TMP")
     else:
         flash("Invalid file type.", "error")
         return redirect("/manager/check_list")
@@ -374,7 +387,10 @@ def delete_file():
     except FileNotFoundError:
         flash(f"{filename} not found.", "error")
 
-    return redirect("/manager/check_list")
+    if file_type == 'setup':
+        return redirect("/manager/setup")
+    else:
+        return redirect("/manager/check_list")
 
 @app.route('/register_ra_list', methods=['GET', 'POST'])
 def handle_register_ra_list():

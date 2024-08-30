@@ -2,7 +2,7 @@
 {% block contents %}
 <ol>
   <li>기간 선택<br>
-      <form method="GET" action="/manager" style="display:inline;">
+      <form method="GET" action="/manager/check_list" style="display:inline;">
           <label for="month">월:</label>
           <select id="month" name="month">
               <option value="" {% if not current_month %}selected{% endif %}>All</option>
@@ -18,11 +18,10 @@
               {% endfor %}
           </select>
           <input type="submit" value="필터 적용">
-          <input type="button" value="필터 해제" onclick="window.location.href='/manager';">
+          <input type="button" value="필터 해제" onclick="window.location.href='/manager/check_list';">
       </form>
   </li>
   <li>제출내역 확인<br>
-      {% if data %}
       <table>
           <thead>
               <tr>
@@ -34,6 +33,7 @@
                   <th>삭제</th>
               </tr>
           </thead>
+          {% if data %}
           <tbody>
               {% for row in data %}
               <tr>
@@ -58,13 +58,11 @@
               </tr>
               {% endfor %}
           </tbody>
+          {% else %}
+          {% endif %}
       </table>
-      {% else %}
-          No data available for the selected house.
-      {% endif %}
   </li><br>
   <li>파일 제출내역 확인<br>
-      {% if file_pairs %}
       <table>
           <thead>
               <tr>
@@ -77,6 +75,7 @@
                   <th>삭제</th>
               </tr>
           </thead>
+          {% if file_pairs %}
           <tbody>
               {% for receipt, minute in file_pairs %}
               <tr>
@@ -129,10 +128,9 @@
               </tr>
               {% endfor %}
           </tbody>
+          {% else %}
+          {% endif %}
       </table>
-      {% else %}
-          <p>No files found.</p>
-      {% endif %}
   </li>
 </ol>
 {% endblock %}

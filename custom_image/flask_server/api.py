@@ -93,6 +93,33 @@ def get_all_ra():
     except SQLAlchemyError as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/ra_list/search', methods=['GET'])
+@swag_from('swagger/search_ra_list.yml', methods=['GET'])
+def search_ra():
+    try:
+        # 쿼리 파라미터에서 house_name, year, semester 값을 추출
+        house_name = request.args.get('house_name')
+        year = request.args.get('year', type=int)
+        semester = request.args.get('semester', type=int)
+
+        # 입력값 검증
+        if not (house_name and year and semester):
+            return jsonify({'message': 'Missing required parameters'}), 400
+
+        # 쿼리 조건에 따라 데이터 검색
+        query = RAList.query.filter_by(house_name=house_name, year=year, semester=semester)
+        ra_list = query.all()
+
+        # 결과가 없는 경우
+        if not ra_list:
+            return jsonify({'message': 'No RA matches the provided criteria'}), 404
+
+        # 결과가 있는 경우, 리스트로 반환
+        return jsonify([ra.to_dict() for ra in ra_list]), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/check_user/<int:user_id>', methods=['GET'])
 @swag_from('swagger/check_user.yml')
 def check_user(user_id):

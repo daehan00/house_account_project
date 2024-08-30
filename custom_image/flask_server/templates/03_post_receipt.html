@@ -1,5 +1,14 @@
 {% extends "02_ra.html" %}
 
 {% block contents %}
-{{ contents|safe }}
+<div class="container">
+    <div class="half">
+        <!-- 첫 번째 섹션의 내용 -->
+        {{ contents|safe }}
+    </div>
+    <div class="half">
+        <!-- 두 번째 섹션의 내용 -->
+        <h1>작성요령</h1>
+    </div>
+</div>
 {% endblock %}
