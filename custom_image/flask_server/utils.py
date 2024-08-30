@@ -328,7 +328,11 @@ def register_ra_list(set_data, data_dir, redirect_url):
     file_list = os.listdir(data_dir)
     for file_name in file_list:
         file_path = os.path.join(data_dir, file_name)
-        data = pd.read_excel(file_path, header=1, dtype=object, engine='openpyxl')
+        try:
+            data = pd.read_excel(file_path, header=1, dtype=object)
+        except ValueError as e:
+            print(f"Error processing file {file_path}: {e}")
+            continue  # 다음 파일로 넘어갑니다.
 
         col_list = ['번호', '면접결과', '하우스', '학번', '이름', '이메일', '연락처', '성별', '학년', '전공']
         if all(col in data.columns for col in col_list):
