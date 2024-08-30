@@ -2,5 +2,11 @@
 .idea/
 logs/
 test.ipynb
+**/.DS_Store
 **/__pycache__/
 **/__pycache__/*
+path/to/storage/*
+!path/to/storage/admin/.gitkeep
+!path/to/storage/manager/AVISON/.gitkeep
+!path/to/storage/RA/AVISON/minutes/.gitkeep
+!path/to/storage/RA/AVISON/receipts/.gitkeep
