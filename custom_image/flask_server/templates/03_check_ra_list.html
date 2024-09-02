@@ -11,6 +11,7 @@
     </ol>
 </p>
 <p>
+<h1>영수증 제출 내역</h1>
 <table>
     <thead>
         <tr>
@@ -42,6 +43,54 @@
     </tbody>
     {% else %}
     {% endif %}
+</table>
+</p>
+<p>
+<h1>제출된 파일 리스트</h1>
+<table>
+  <thead>
+      <tr>
+          <th>영수증 파일</th>
+          <th>다운로드</th>
+          <th>회의록 hwp</th>
+          <th>회의록 pdf</th>
+          <th>다운로드</th>
+      </tr>
+  </thead>
+  {% if file_pairs %}
+  <tbody>
+      {% for receipt, minute in file_pairs %}
+      <tr>
+          <!-- 영수증 파일 열 -->
+          <td>{{ receipt }}</td>
+          <td>
+              {% if receipt %}
+              <form action="/manager/download_file" method="post" style="display:inline;">
+                  <input type="hidden" name="filename" value="{{ receipt }}">
+                  <input type="hidden" name="type" value="receipt">
+                  <input type="hidden" name="pdf" value="">
+                  <button type="submit">다운</button>
+              </form>
+              {% endif %}
+          </td>
+          <!-- 회의록 파일 열 -->
+          <td>{{ minute['filename'] }}</td>
+          <td>{{ minute['pdf'] }}</td>
+          <td>
+              {% if minute %}
+              <form action="/manager/download_file" method="post" style="display:inline;">
+                  <input type="hidden" name="filename" value="{{ minute['filename'] }}">
+                  <input type="hidden" name="type" value="minute">
+                  <input type="hidden" name="pdf" value="{{ minute['pdf'] }}">
+                  <button type="submit">다운</button>
+              </form>
+              {% endif %}
+          </td>
+      </tr>
+      {% endfor %}
+  </tbody>
+  {% else %}
+  {% endif %}
 </table>
 </p>
 {% endblock %}

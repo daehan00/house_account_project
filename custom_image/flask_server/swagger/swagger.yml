@@ -2,7 +2,7 @@ swagger: '2.0'
 info:
   title: Accounting System API
   description: API for Accounting System
-  version: "1.0.0"
+  version: "2.0.0"
 schemes:
   - http
 basePath: /api
@@ -207,3 +207,25 @@ definitions:
         type: string
       purpose:
         type: string
+  ReportDetail:
+    type: object
+    properties:
+      id:
+        type: integer
+      year_semester_house:
+        type: string
+      week:
+        type: string
+      user_id:
+        type: integer
+      category_contents:
+        type: object
+        additionalProperties: true
+      common:
+        type: boolean
+    required:
+      - year_semester_house
+      - week
+      - user_id
+      - category_contents
+      - common

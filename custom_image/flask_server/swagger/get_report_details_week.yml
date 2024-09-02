@@ -1,0 +1,23 @@
+get:
+summary: Retrieve report details by week
+description: Retrieves report details based on the given week and year_semester_house.
+parameters:
+  - name: year_semester_house
+    in: query
+    required: true
+    type: string
+  - name: week
+    in: query
+    required: true
+    type: string
+responses:
+  200:
+    description: An array of report details
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/ReportDetail'
+  404:
+    description: No reports found
+  400:
+    description: Missing parameters

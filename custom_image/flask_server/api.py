@@ -489,5 +489,81 @@ def delete_reservation(id):
         return jsonify({"error": str(e)}), 500
 
 
+class ReportDetail(db.Model):
+    __tablename__ = 'report_details'
+    id = db.Column(db.Integer, primary_key=True)
+    year_semester_house = db.Column(db.Text, nullable=False)
+    week = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.BigInteger, nullable=False)
+    category_contents = db.Column(db.JSONB, nullable=False)
+    common = db.Column(db.Boolean, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'year_semester_house': self.year_semester_house,
+            'week': self.week,
+            'user_id': self.user_id,
+            'category_contents': self.category_contents,
+            'common': self.common
+        }
+
+
+@app.route('/api/report_details', methods=['POST'])
+@swag_from('swagger/post_report_details.yml')
+def create_report_detail():
+    data = request.get_json()
+    if not data:
+        abort(400, description="No data provided.")
+
+    try:
+        new_report_detail = ReportDetail(
+            year_semester_house=data['year_semester_house'],
+            week=data['week'],
+            user_id=data['user_id'],
+            category_contents=data['category_contents'],
+            common=data['common']
+        )
+        db.session.add(new_report_detail)
+        db.session.commit()
+        return jsonify(new_report_detail.to_dict()), 201
+    except KeyError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Missing data: {str(e)}"}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/report_details/week', methods=['GET'])
+@swag_from('swagger/get_report_details_week.yml')
+def get_reports_by_week():
+    year_semester_house = request.args.get('year_semester_house')
+    week = request.args.get('week')
+    if not year_semester_house or not week:
+        abort(400, description="Missing required parameters: year_semester_house and week.")
+
+    reports = ReportDetail.query.filter_by(year_semester_house=year_semester_house, week=week).all()
+    if reports:
+        return jsonify([report.to_dict() for report in reports]), 200
+    else:
+        return jsonify({'message': 'No reports found'}), 404
+
+@app.route('/api/report_details/user', methods=['GET'])
+@swag_from('swagger/get_report_details_user.yml')
+def get_reports_by_user():
+    year_semester_house = request.args.get('year_semester_house')
+    user_id = request.args.get('user_id', type=int)
+    if not year_semester_house or not user_id:
+        abort(400, description="Missing required parameters: year_semester_house and user_id.")
+
+    reports = ReportDetail.query.filter_by(year_semester_house=year_semester_house, user_id=user_id).all()
+    if reports:
+        return jsonify([report.to_dict() for report in reports]), 200
+    else:
+        return jsonify({'message': 'No reports found'}), 404
+
+
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

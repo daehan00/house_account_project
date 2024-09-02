@@ -1,0 +1,42 @@
+post:
+summary: Create a new report detail entry
+description: Adds a new report detail record to the database.
+parameters:
+  - in: body
+    name: report_detail
+    description: The report detail to create.
+    required: true
+    schema:
+      type: object
+      required:
+        - year_semester_house
+        - week
+        - user_id
+        - category_contents
+        - common
+      properties:
+        year_semester_house:
+          type: string
+          example: '2024-2-AVISON'
+        week:
+          type: string
+          example: '8-4'
+        user_id:
+          type: integer
+          example: 2024123456
+        category_contents:
+          type: object
+          additionalProperties: true
+          example: {"report_datas":[{"category":1,"content":"First Category Data"},{"category":2,"content":"Second Category Data"}]}
+        common:
+          type: boolean
+          example: false
+responses:
+  201:
+    description: Successfully created the report detail.
+    schema:
+      $ref: '#/definitions/ReportDetail'
+  400:
+    description: Invalid input provided or missing required fields.
+  500:
+    description: Internal server error.

@@ -38,6 +38,7 @@ def login():
         elif auth == 'ra':
             session['ra'] = True
             session['userId'] = user_id
+            session['userName'] = data['user_name']
             session['userData'] = data['user_data']
             flash('Logged in as RA', 'success')
         elif auth == 'worngid':
@@ -445,12 +446,37 @@ def ra():
         columns = ['date', 'user_name', 'time', 'expenditure', 'store_name', 'category_id', 'program_name',
                    'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
         raw_data = get_receipt_list(os.getenv("URL_API")+'receipts/user', user_id)
+
+        house_name = session['userData'].split('-')[-1]
+        receipt_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/receipts"
+        minutes_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/minutes"
+
+        receipt_files = get_files_from_directory(receipt_dir)
+        minutes_files = get_files_from_directory(minutes_dir)
+
+        hwp_files = [f.split(".")[0] for f in minutes_files if f.endswith('.hwp')]
+        pdf_files = [unicodedata.normalize('NFC', f.split(".")[0]) for f in minutes_files if f.endswith('.pdf')]
+        minutes_data = []
+        for i in hwp_files:
+            if unicodedata.normalize('NFC', i) in pdf_files:
+                i = {'filename': i, 'pdf': '제출'}
+            else:
+                i = {'filename': i, 'pdf': '미제출'}
+            minutes_data.append(i)
+
+        # 두 리스트를 zip하고, 만약 길이가 다르면 None으로 채우기
+        max_len = max(len(receipt_files), len(minutes_data))
+        receipt_files.extend([{'filename': None, 'pdf': None}] * (max_len - len(receipt_files)))
+        minutes_data.extend([{'filename': None, 'pdf': None}] * (max_len - len(minutes_data)))
+
+        file_pairs = zip(receipt_files, minutes_data)
+
         if not raw_data:
-            return render_template("03_check_ra_list.html", data=None, columns=columns)
+            return render_template("03_check_ra_list.html", data=None, columns=columns, file_pairs=file_pairs)
         data = raw_data
         for i in data:
             i['date'] = i['date'].split('T')[0]
-        return render_template("03_check_ra_list.html", data=data, columns=columns, tab_id='check_ra_list')
+        return render_template("03_check_ra_list.html", data=data, columns=columns, tab_id='check_ra_list', file_pairs=file_pairs)
     else:
         flash("Please login first.", "warning")
         return redirect("/")
@@ -513,6 +539,14 @@ def post_receipt():
         for data in request.form:
             datas[data] = request.form[data]
         return post_receipt_data(datas)
+    else:
+        flash("You do not have permission to access this page.", "warning")
+        return redirect("/")
+
+@app.route("/ra/minutes")
+def minutes_form():
+    if session.get('ra') or session.get('manager'):
+        return render_template("03_minute.html")
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")

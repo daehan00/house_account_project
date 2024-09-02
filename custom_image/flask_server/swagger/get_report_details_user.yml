@@ -1,0 +1,23 @@
+get:
+summary: Retrieve report details by user
+description: Retrieves report details based on the given user_id and year_semester_house.
+parameters:
+  - name: year_semester_house
+    in: query
+    required: true
+    type: string
+  - name: user_id
+    in: query
+    required: true
+    type: integer
+responses:
+  200:
+    description: An array of report details
+    schema:
+      type: array
+      items:
+        $ref: '#/definitions/ReportDetail'
+  404:
+    description: No reports found
+  400:
+    description: Missing parameters

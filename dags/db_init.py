@@ -95,6 +95,16 @@ def init(postgres_conn_id, **kwargs):
             updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );"""
 
+    """
+    CREATE TABLE report_details (
+        id SERIAL PRIMARY KEY,
+        year_semester_house TEXT NOT NULL,
+        week TEXT NOT NULL,
+        user_id BIGINT NOT NULL,
+        category_contents JSONB NOT NULL,  -- 카테고리와 내용을 JSONB 형식으로 저장
+        common BOOLEAN NOT NULL
+    );"""
+
     # trigger 생성
     create_trigger_function = """
             CREATE OR REPLACE FUNCTION update_modified_column()
