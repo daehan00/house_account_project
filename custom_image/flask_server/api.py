@@ -495,7 +495,7 @@ class ReportDetail(db.Model):
     year_semester_house = db.Column(db.Text, nullable=False)
     week = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.BigInteger, nullable=False)
-    category_contents = db.Column(db.JSONB, nullable=False)
+    category_contents = db.Column(db.JSON, nullable=False)
     common = db.Column(db.Boolean, nullable=False)
 
     def to_dict(self):
