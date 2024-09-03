@@ -556,4 +556,4 @@ def yicrc():
     return render_template('yicrc.html')
 
 if __name__ == "__main__":
-    app.run('0.0.0.0',port=8088, debug=True)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x
+    app.run('0.0.0.0',port=8088)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x
