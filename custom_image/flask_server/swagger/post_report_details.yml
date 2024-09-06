@@ -1,4 +1,6 @@
 post:
+tags:
+  - Minutes Submissions
 summary: Create a new report detail entry
 description: Adds a new report detail record to the database.
 parameters:
@@ -27,7 +29,7 @@ parameters:
         category_contents:
           type: object
           additionalProperties: true
-          example: {"report_datas":[{"category":1,"content":"First Category Data"},{"category":2,"content":"Second Category Data"}]}
+          example: [{"category":1,"content":"완료사항"},{"category":2,"content":"예정사항"},{"category":3,"content":"건의사항"},{"category":4,"content":"기타"}]
         common:
           type: boolean
           example: false

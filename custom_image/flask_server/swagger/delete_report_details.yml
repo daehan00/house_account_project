@@ -1,0 +1,15 @@
+delete:
+tags:
+  - Minutes Submissions
+summary: Deletes a report detail
+parameters:
+  - in: path
+    name: id
+    required: true
+    type: integer
+    description: The id of the report detail to delete.
+responses:
+  204:
+    description: Report detail deleted successfully
+  404:
+    description: Report detail not found

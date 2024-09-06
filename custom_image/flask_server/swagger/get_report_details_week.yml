@@ -1,4 +1,6 @@
 get:
+tags:
+  - Minutes Submissions
 summary: Retrieve report details by week
 description: Retrieves report details based on the given week and year_semester_house.
 parameters:

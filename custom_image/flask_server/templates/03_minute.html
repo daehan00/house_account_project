@@ -1,6 +1,95 @@
 {% extends "02_ra.html" %}
 {% block contents %}
 
-
+<ol>
+    <li>
+        기간 선택<br>
+        <form method="GET" action="/ra/minutes" style="display:inline;">
+          <label for="month">월:</label>
+          <select id="month" name="month">
+              {% for m in [3, 4, 5, 6, 9, 10, 11, 12] %}
+              <option value="{{ m }}" {% if m == current_month %}selected{% endif %}>{{ m }}</option>
+              {% endfor %}
+          </select>
+          <label for="week">회차:</label>
+          <select id="week" name="week">
+              {% for p in range(1, 6) %}
+              <option value="{{ p }}" {% if p == current_period %}selected{% endif %}>{{ p }}</option>
+              {% endfor %}
+          </select>
+          <input type="submit" value="검색">
+      </form>
+    </li>
+    <li>
+        보고사항 제출<br>
+        <table>
+            <thead>
+            <tr>
+                <th style="display:none;">id</th>
+                <th>이름</th>
+                <th style="display:none;">year_semester_house</th>
+                <th style="display:none;">week</th>
+                <th style="display:none;">common</th>
+                <th>완료사항</th>
+                <th>예정사항</th>
+                <th>건의사항</th>
+                <th>기타</th>
+                <th>제출</th>
+                <th>삭제</th>
+            </tr>
+            </thead>
+            {% if data %}
+            <tbody>
+                {% if user %}
+                <tr>
+                    <td style="display:none;">{{ user['id'] }}</td>
+                    <form action="/ra/minutes/post" method="post" style="display:inline;">
+                        <th>본인</th>
+                        <input type="hidden" name="user_id" value="{{ user['user_id'] }}">
+                        <input type="hidden" name="year_semester_house" value="{{ user['year_semester_house'] }}">
+                        <input type="hidden" name="week" value="{{ user['week'] }}">
+                        <input type="hidden" name="common" value="{{ user['common'] }}">
+                        {% if user['submit'] %}
+                            {% for content in user['category_contents'] %}
+                            <td><textarea id="{{ content['category'] }}" name="{{ content['category'] }}" rows="2" cols="30" placeholder="{{ content['content'] }}"></textarea></td>
+                            {% endfor %}
+                            <td><button type="submit">제출</button></td>
+                        {% else %}
+                            {% for content in user['category_contents'] %}
+                            <td>{{ content['content'] }}</td>
+                            {% endfor %}
+                            <td>제출완료</td>
+                        {% endif %}
+                    </form>
+                    <td>
+                        {% if user['submit'] %}
+                        {% else %}
+                        <form action="/ra/minutes/delete" method="post" style="display:inline;">
+                            <input type="hidden" name="id" value="{{ user['id'] }}">
+                            <button type="submit">삭제</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                {% endif %}
+                {% for row in data %}
+                <tr>
+                    <td style="display:none;">{{ row['id'] }}</td>
+                    <th>{{ row['user_name'] }}</th>
+                    <input type="hidden" name="year_semester_house" value="{{ row['year_semester_house'] }}">
+                    <input type="hidden" name="week" value="{{ row['week'] }}">
+                    <input type="hidden" name="common" value="{{ row['common'] }}">
+                    {% for content in row['category_contents'] %}
+                    <td>{{ content['content'] }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% else %}
+            {% endif %}
+        </table>
+    </li>
+</ol>
 
 {% endblock %}

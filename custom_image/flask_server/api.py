@@ -562,7 +562,44 @@ def get_reports_by_user():
     else:
         return jsonify({'message': 'No reports found'}), 404
 
+@app.route('/api/report_details/<int:id>', methods=['PUT'])
+@swag_from('swagger/put_report_details.yml')
+def update_report_detail(id):
+    data = request.get_json()
+    report = ReportDetail.query.get(id)
+    if not report:
+        return jsonify({'message': 'Report not found'}), 404
 
+    try:
+        # category_contents 필드만 업데이트
+        if 'category_contents' in data:
+            report.category_contents = data['category_contents']
+        else:
+            return jsonify({"error": "Missing data: category_contents required"}), 400
+
+        db.session.commit()
+        return jsonify(report.to_dict()), 200
+    except KeyError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Missing data: {str(e)}"}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/report_details/<int:id>', methods=['DELETE'])
+@swag_from('swagger/delete_report_details.yml')
+def delete_report_detail(id):
+    report = ReportDetail.query.get(id)
+    if not report:
+        return jsonify({'message': 'Report not found'}), 404
+
+    try:
+        db.session.delete(report)
+        db.session.commit()
+        return '', 204  # HTTP 204 No Content: 응답에 본문 데이터가 없을 때 사용
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':

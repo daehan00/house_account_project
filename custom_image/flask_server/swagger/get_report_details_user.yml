@@ -1,4 +1,6 @@
 get:
+tags:
+  - Minutes Submissions
 summary: Retrieve report details by user
 description: Retrieves report details based on the given user_id and year_semester_house.
 parameters:

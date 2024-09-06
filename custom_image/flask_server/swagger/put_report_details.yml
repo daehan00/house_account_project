@@ -1,0 +1,29 @@
+put:
+tags:
+  - Minutes Submissions
+summary: Updates the category_contents of a report detail
+parameters:
+  - in: path
+    name: id
+    required: true
+    type: integer
+    description: The id of the report detail to update.
+  - in: body
+    name: report
+    description: Object containing the category_contents to update
+    required: true
+    schema:
+      type: object
+      properties:
+        category_contents:
+          type: object
+          description: New content for the category, must be a valid JSON object
+responses:
+  200:
+    description: Category contents updated successfully
+  400:
+    description: Missing category_contents in request body
+  404:
+    description: Report detail not found
+  500:
+    description: Internal server error

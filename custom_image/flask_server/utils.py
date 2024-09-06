@@ -492,7 +492,7 @@ def form_post_receipt(year_semester_house, user_id):
         form('select', '사용자명', 'user_id', '', '', options=user_list),
         form('checkbox', '주말, 법정 공휴일 및 심야 사용 여부', 'holiday_check', '', '', required=False),
         form('select', '계정항목', 'category_id','placeholder', '', options=category_expenses),
-        form('select', '프로그램명','program_id', '', '', options=program_list),
+        form('select', '프로그램명', 'program_id', '', '', options=program_list),
         form('text', '구매 핵심 사유', 'purchase_reason', 'placeholder', '운영물품 구매'),
         form('text', '핵심 품목 및 수량', 'key_items_quantity', 'placeholder', '콜라 등 5종'),
         form('textarea', '구매 내역(종류와 단가)', 'purchase_details', 'placeholder', ''),
@@ -703,3 +703,98 @@ def process_files(input_directory, output_directory, month, period):
         return "success", f"{month}월_{period}차.pdf"
     except Exception as e:
         return "error", e
+
+def post_minute_data(data):
+    try:
+        headers = {'Content-Type': 'application/json'}
+        url = os.getenv("URL_API") + 'report_details'
+        response = requests.post(url, json=data, headers=headers)
+
+        if response.status_code == 201:
+            return 'success', "보고사항 제출 완료"
+        else:
+            return 'warning', response.text
+    except requests.RequestException as e:
+        return 'error', f"Error: {e}"
+
+def fetch_minutes_data(year_semester_house, week):
+    headers = {"Accept": "application/json"}
+    base_url = os.getenv("URL_API") + 'report_details/week'
+
+    # 쿼리 파라미터를 URL에 추가
+    params = {
+        'year_semester_house': year_semester_house,
+        'week': week
+    }
+
+    response = requests.get(base_url, headers=headers, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        return data, 200  # 성공한 경우 데이터와 상태 코드를 반환
+    elif response.status_code == 404:
+        return [], 404  # 리포트가 없는 경우
+    else:
+        return None, response.status_code  # 에러 처리
+
+def delete_minutes_detail(minute_id):
+    try:
+        url = os.getenv("URL_API") + 'report_details/'+str(minute_id)
+        headers = {"Accept": "application/json"}
+        response = requests.delete(url, headers=headers)
+        if response.status_code == 204:
+            return 'success', "삭제 완료"
+        elif response.status_code == 404:
+            return 'warning', "Minutes Not Found"
+        else:
+            return 'error', response.text
+    except requests.RequestException as e:
+        return 'error', f"Error: {e}"
+
+def process_minutes(datas, user_id, year_semester_house, week):
+    user_data = None
+    other_datas = []
+    if datas:
+        for data in datas:
+            if data['user_id'] == user_id:
+                user_data = data
+            else:
+                other_datas.append(data)
+
+    if not user_data:
+        user_data = {
+            'submit': True,
+            'year_semester_house': year_semester_house,
+            'user_id': user_id,
+            'week': week,
+            'common': False,
+            'category_contents': [
+                {"category": 1, "content": "미제출"},
+                {"category": 2, "content": "미제출"},
+                {"category": 3, "content": "미제출"},
+                {"category": 4, "content": "미제출"}
+            ]
+        }
+
+    processed_data = []
+    ra_list = fetch_ra_list(year_semester_house)
+    for ra in ra_list:
+        if ra['user_id'] != user_id:
+            ra_found = next((item for item in other_datas if item['user_id'] == ra['user_id']), None)
+            if not ra_found:
+                ra_data = {'year_semester_house': year_semester_house,
+                           'user_id': ra['user_id'],
+                           'user_name': ra['user_name'],
+                           'week': week,
+                           'common': False,
+                           'category_contents': [
+                               {"category": 1, "content": "미제출"},
+                               {"category": 2, "content": "미제출"},
+                               {"category": 3, "content": "미제출"},
+                               {"category": 4, "content": "미제출"}
+                           ]}
+                processed_data.append(ra_data)
+            else:
+                ra_data = ra_found
+                ra_data['user_name'] = ra['user_name']
+                processed_data.append(ra_data)
+    return user_data, processed_data

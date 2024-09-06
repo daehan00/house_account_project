@@ -1,7 +1,7 @@
 import os
 import unicodedata
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
-from utils import fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -56,7 +56,7 @@ def logout():
 @app.route("/calendar")
 def calendar():
     # Check user role from session
-    if session.get('manager') or session.get('admin') or session.get('ra'):
+    if session.get('manager') or session.get('ra'):
         year_semester_house = session['userData']
         # year_semester_house = "2024-1-AVISON"
         url_program = os.getenv('URL_API') + 'program'
@@ -100,7 +100,7 @@ def get_events():
 
 @app.route("/calendar/submit/create", methods=["POST"])
 def submit_event():
-    if session.get('manager') or session.get('admin') or session.get('ra'):
+    if session.get('manager') or session.get('ra'):
         data = request.get_json()
         date_start = datetime.strptime(data['start_datetime'], "%Y-%m-%dT%H:%M")
         date_end = datetime.strptime(data['end_datetime'], "%Y-%m-%dT%H:%M")
@@ -123,7 +123,7 @@ def submit_event():
 
 @app.route("/calendar/submit/update", methods=["POST"])
 def update_event():
-    if session.get('manager') or session.get('admin') or session.get('ra'):
+    if session.get('manager') or session.get('ra'):
         if not session.get('userName') == request.json.get('username'):
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
 
@@ -146,7 +146,7 @@ def update_event():
 
 @app.route("/calendar/submit/delete", methods=["POST"])
 def delete_event():
-    if session.get('manager') or session.get('admin') or session.get('ra'):
+    if session.get('manager') or session.get('ra'):
         if session.get('ra'):
             if not session.get('userName') == request.json.get('username'):
                 return jsonify({'success': False, 'message': 'Unauthorized'}), 403
@@ -441,7 +441,7 @@ def process_accounting():
 
 @app.route("/ra/check_ra_list")
 def ra():
-    if session.get('ra') or session.get('manager') or session.get('admin'):
+    if session.get('ra') or session.get('manager'):
         user_id = session['userId']
         columns = ['date', 'user_name', 'time', 'expenditure', 'store_name', 'category_id', 'program_name',
                    'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
@@ -483,7 +483,7 @@ def ra():
 
 @app.route("/ra/upload_ra")
 def upload_ra():
-    if session.get('ra') or session.get('manager') or session.get('admin'):
+    if session.get('ra') or session.get('manager'):
         return render_template("03_upload_ra.html", tab_id='upload_ra')
     else:
         flash("Please login first.", "warning")
@@ -513,7 +513,7 @@ def create_xlsx():
 
 @app.route('/upload/ra', methods=['POST'])
 def handle_upload_ra():
-    if session.get('ra') or session.get('manager') or session.get('admin'):
+    if session.get('ra') or session.get('manager'):
         house_name = session['userData'].split('-')[-1]
         return upload_file(app.config["UPLOAD_FOLDER_RA"]+'/'+house_name, "/ra/upload_ra", "ra")
     else:
@@ -522,7 +522,7 @@ def handle_upload_ra():
 
 @app.route("/ra/post_receipt")
 def post_receipt_form():
-    if session.get('ra') or session.get('manager') or session.get('admin'):
+    if session.get('ra') or session.get('manager'):
         user_id = session['userId']
         year_semester_house = session['userData']
         # year_semester_house = '2024-1-AVISON'
@@ -534,7 +534,7 @@ def post_receipt_form():
 
 @app.route("/ra/post_receipt_data", methods=['POST'])
 def post_receipt():
-    if session.get('ra') or session.get('manager') or session.get('admin'):
+    if session.get('ra') or session.get('manager'):
         datas = {}
         for data in request.form:
             datas[data] = request.form[data]
@@ -546,14 +546,59 @@ def post_receipt():
 @app.route("/ra/minutes")
 def minutes_form():
     if session.get('ra') or session.get('manager'):
-        return render_template("03_minute.html")
+        year_semester_house = session['userData']
+        week = '9-2' # 임시부여, 수정필요
+        datas, code = fetch_minutes_data(year_semester_house, week)
+        user_id = int(session['userId'])
+
+        user_data, processed_data = process_minutes(datas, user_id, year_semester_house, week)
+        return render_template("03_minute.html", user=user_data, data=processed_data, tab_id='minutes')
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
-@app.route("/ra/yicrc")
-def yicrc():
-    return render_template('yicrc.html')
+@app.route("/ra/minutes/post", methods=['POST'])
+def post_minutes():
+    if session.get('ra') or session.get('manager'):
+        user_id = int(request.form['user_id'])
+        year_semester_house = request.form['year_semester_house']
+        week = request.form['week']
+        common = request.form['common'] == 'true'
+
+        category_contents = []
+        for i in range(1, 5):
+            content = request.form.get(str(i), '')
+            category_contents.append({
+                "category": i,
+                "content": content
+            })
+
+        data = {
+            'year_semester_house': year_semester_house,
+            'user_id': user_id,
+            'week': week,
+            'common': common,
+            'category_contents': category_contents
+        }
+
+        category, message = post_minute_data(data)
+        flash(str(message), category)
+        return redirect("/ra/minutes")
+    else:
+        flash("You do not have permission to access this page.", "warning")
+        return redirect("/")
+
+@app.route("/ra/minutes/delete", methods=['POST'])
+def delete_minutes():
+    if session.get('ra') or session.get('manager'):
+        minute_id = request.form['id']
+        category, message = delete_minutes_detail(minute_id)
+        flash(message, category)
+        return redirect("/ra/minutes")
+    else:
+        flash("You do not have permission to access this page.", "warning")
+
+
 
 if __name__ == "__main__":
-    app.run('0.0.0.0',port=8088)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x
+    app.run('0.0.0.0',port=8088, debug=True)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x
