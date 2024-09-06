@@ -700,7 +700,7 @@ def process_files(input_directory, output_directory, month, period):
             os.remove(del_pdf_file)
 
         print(f"Merged PDF saved as {merged_pdf_path}")
-        return "success", f"{month}월_{period}차.pdf"
+        return "success", f"{month}월_{period}차.pdf", merged_pdf_path
     except Exception as e:
         return "error", e
 

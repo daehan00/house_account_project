@@ -424,10 +424,10 @@ def process_accounting():
         house_name = session['userData'].split('-')[-1]
         data_dir = os.getenv('UPLOAD_FOLDER_RA')+f'/{house_name}/'
         result_path = os.getenv("UPLOAD_FOLDER_MANAGER")+f"/{house_name}"
-        trial, message = process_files(data_dir, result_path, month, period)
+        trial, message, merged_pdf_path = process_files(data_dir, result_path, month, period)
         if trial == "success":
             flash(f"{month}월_{period}차 processed successfully, file_path={message}", "success")
-            return send_file(message, as_attachment=True)
+            return send_file(merged_pdf_path, as_attachment=True)
         elif trial == "no_files":
             flash(f"{month}월_{period}차 파일이 존재하지 않습니다. 기간 선택을 확인하세요.", "info")
         else:
