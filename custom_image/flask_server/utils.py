@@ -811,21 +811,35 @@ def get_minutes_data(year_semester_house, week):
         else:
             item['user_name'] = 'Unknown'  # 혹시 user_id가 없는 경우
 
-    sorted_data = sorted(data, key=lambda k: k['user_name'], reverse=True)
+    sorted_data = sorted(data, key=lambda k: k['user_name'])
 
     return sorted_data
 
-def calculate_week_of_month():
+def calculate_week_of_month(month=None, week=None):
     import pendulum
-    seoul_time = pendulum.now('Asia/Seoul')
+    if month and week:
+        year = pendulum.now('Asia/Seoul').year
+        # 해당 연도, 월, 주차의 첫 번째 월요일을 계산하고, 수요일로 이동
+        first_day_of_month = pendulum.datetime(year, month, 1, tz='Asia/Seoul')
+        first_monday_offset = (7 - first_day_of_month.day_of_week) % 7
+        first_monday = first_day_of_month.add(days=first_monday_offset)
+        seoul_time = first_monday.add(weeks=week - 1, days=-1)  # 주의 수요일
+    else:
+        # month와 week가 없는 경우 현재 시간을 설정
+        seoul_time = pendulum.now('Asia/Seoul')
 
     # 이번 달의 첫 번째 월요일을 계산
     first_day_of_month = seoul_time.start_of('month')
     first_monday_offset = (7 - first_day_of_month.day_of_week) % 7
     first_monday = first_day_of_month.add(days=first_monday_offset)
+    korean_weekdays = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일']
+    first_formatted_date = first_monday.format('YYYY-MM-DD') + ' ' + korean_weekdays[first_monday.day_of_week]
 
     # 오늘이 첫 번째 월요일 이후 몇 주째인지 계산
     if seoul_time < first_monday:
-        return seoul_time.month, 1  # 첫 번째 월요일 이전이면 1주차
+        return seoul_time.month, 1, first_formatted_date  # 첫 번째 월요일 이전이면 1주차
     else:
-        return seoul_time.month, ((seoul_time - first_monday).days // 7) + 2
+        week_of_month = ((seoul_time - first_monday).days // 7) + 2
+        current_monday = first_monday.add(weeks=week_of_month - 1)  # 해당 주차의 월요일 계산
+        formatted_date = current_monday.format('YYYY-MM-DD') + ' ' + korean_weekdays[current_monday.day_of_week]
+        return seoul_time.month, week_of_month, formatted_date

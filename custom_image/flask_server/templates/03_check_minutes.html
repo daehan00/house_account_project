@@ -21,7 +21,10 @@
         </form>
     </li>
     <li>
-        <strong>보고서 내용 확인</strong><br><br>
+        <strong>보고서 내용 확인</strong>
+        회의일시 - {{ date }}<br>
+        회의장소 - E동 AVISON RA 오피스<br>
+        참석자 - AVISON RM 교수님 및 RA<br><br>
         <strong>보고사항:</strong><br><br>
         {% for item in data %}
         <p>({{ item['user_name'] }})<br>

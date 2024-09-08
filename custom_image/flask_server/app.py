@@ -443,14 +443,15 @@ def check_minutes():
         year_semester_house = session['userData']
 
         if request.args.get("month"):
-            month = request.args.get('month', type=int)
-            week = request.args.get('week', type=int)
+            selected_month = request.args.get('month', type=int)
+            selected_week = request.args.get('week', type=int)
+            month, week, date = calculate_week_of_month(selected_month, selected_week)
         else:
-            month, week = calculate_week_of_month()
+            month, week, date = calculate_week_of_month()
 
         content = get_minutes_data(year_semester_house, f'{str(month)}-{str(week)}')
 
-        return render_template('03_check_minutes.html', tab_id='minutes', data=content, month=month, week=week)
+        return render_template('03_check_minutes.html', tab_id='minutes', data=content, month=month, week=week, date=date)
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
