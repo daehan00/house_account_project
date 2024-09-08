@@ -785,6 +785,7 @@ def process_minutes(datas, user_id, year_semester_house, week):
                            'user_id': ra['user_id'],
                            'user_name': ra['user_name'],
                            'week': week,
+                           'division_num': ra['division_num'],
                            'common': False,
                            'category_contents': [
                                {"category": 1, "content": "미제출"},
@@ -796,24 +797,31 @@ def process_minutes(datas, user_id, year_semester_house, week):
             else:
                 ra_data = ra_found
                 ra_data['user_name'] = ra['user_name']
+                ra_data['division_num'] = ra['division_num']  # division_num 추가
                 processed_data.append(ra_data)
-    return user_data, processed_data
+    sorted_processed_data = sorted(processed_data, key=lambda k: k['division_num'])
+    return user_data, sorted_processed_data
 
 def get_minutes_data(year_semester_house, week):
     data, code = fetch_minutes_data(year_semester_house, week)
     ra_list = fetch_ra_list(year_semester_house)
 
-    ra_dict = {ra['user_id']: ra['user_name'] for ra in ra_list}
+    ra_dict = {ra['user_id']: {'user_name': ra['user_name'], 'division_num': ra['division_num']} for ra in ra_list}
     for item in data:
         user_id = item['user_id']
         if user_id in ra_dict:
             item['user_name'] = ra_dict[user_id]
+            item['division_num'] = ra_dict[user_id]['division_num']
         else:
             item['user_name'] = 'Unknown'  # 혹시 user_id가 없는 경우
+            item['division_num'] = float('inf')
+    data_user_ids = {item['user_id'] for item in data}  # data에 있는 모든 user_id 집합
+    not_yet = [ra['user_name'] for ra in ra_list if ra['user_id'] not in data_user_ids]  # data에 없는 ra_name 리스트
+    not_yet_str = ', '.join(sorted(not_yet))
 
-    sorted_data = sorted(data, key=lambda k: k['user_name'])
+    sorted_data = sorted(data, key=lambda k: k['division_num'])
 
-    return sorted_data
+    return sorted_data, not_yet_str
 
 def calculate_week_of_month(month=None, week=None):
     import pendulum
