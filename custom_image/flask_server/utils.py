@@ -798,3 +798,34 @@ def process_minutes(datas, user_id, year_semester_house, week):
                 ra_data['user_name'] = ra['user_name']
                 processed_data.append(ra_data)
     return user_data, processed_data
+
+def get_minutes_data(year_semester_house, week):
+    data, code = fetch_minutes_data(year_semester_house, week)
+    ra_list = fetch_ra_list(year_semester_house)
+
+    ra_dict = {ra['user_id']: ra['user_name'] for ra in ra_list}
+    for item in data:
+        user_id = item['user_id']
+        if user_id in ra_dict:
+            item['user_name'] = ra_dict[user_id]
+        else:
+            item['user_name'] = 'Unknown'  # 혹시 user_id가 없는 경우
+
+    sorted_data = sorted(data, key=lambda k: k['user_name'], reverse=True)
+
+    return sorted_data
+
+def calculate_week_of_month():
+    import pendulum
+    seoul_time = pendulum.now('Asia/Seoul')
+
+    # 이번 달의 첫 번째 월요일을 계산
+    first_day_of_month = seoul_time.start_of('month')
+    first_monday_offset = (7 - first_day_of_month.day_of_week) % 7
+    first_monday = first_day_of_month.add(days=first_monday_offset)
+
+    # 오늘이 첫 번째 월요일 이후 몇 주째인지 계산
+    if seoul_time < first_monday:
+        return seoul_time.month, 1  # 첫 번째 월요일 이전이면 1주차
+    else:
+        return seoul_time.month, ((seoul_time - first_monday).days // 7) + 2

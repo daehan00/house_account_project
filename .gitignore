@@ -2,6 +2,7 @@
 .idea/
 logs/
 test.ipynb
+test1.ipynb
 **/.DS_Store
 **/__pycache__/
 **/__pycache__/*

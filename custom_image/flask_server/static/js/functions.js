@@ -229,3 +229,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+function checkFormValidity() {
+    var month = document.getElementById("month").value;
+    var week = document.getElementById("week").value;
+    var searchButton = document.getElementById("searchButton");
+
+    // 두 필드가 모두 선택된 경우에만 검색 버튼을 활성화
+    if (month && week) {
+      searchButton.disabled = false;
+    } else {
+      searchButton.disabled = true;
+    }
+}
+

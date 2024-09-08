@@ -1,0 +1,47 @@
+{% extends "02_manager.html" %}
+{% block contents %}
+
+<ol>
+    <li>
+        <strong>주차 선택</strong><br>
+        <form method="GET" action="/manager/check_minutes" style="display:inline;" id="searchForm">
+          <label for="month">월:</label>
+          <select id="month" name="month" onchange="checkFormValidity()">
+              {% for m in range(1, 13) %}
+              <option value="{{ m }}" {% if m == month %}selected{% endif %}>{{ m }}</option>
+              {% endfor %}
+          </select>
+          <label for="week">주차:</label>
+          <select id="week" name="week" onchange="checkFormValidity()">
+              {% for p in range(1, 6) %}
+              <option value="{{ p }}" {% if p == week %}selected{% endif %}>{{ p }}</option>
+              {% endfor %}
+          </select>
+          <input type="submit" value="검색" id="searchButton" disabled>
+        </form>
+    </li>
+    <li>
+        <strong>보고서 내용 확인</strong><br><br>
+        <strong>보고사항:</strong><br><br>
+        {% for item in data %}
+        <p>({{ item['user_name'] }})<br>
+        &nbsp; - 완료사항:
+        &nbsp;{{ item['category_contents'][0]['content'] }}<br>
+        &nbsp; - 예정사항:
+        &nbsp;{{ item['category_contents'][1]['content'] }}<br>
+        {% if item['category_contents'][2]['content'] %}
+        &nbsp; - 건의사항:
+        &nbsp;{{ item['category_contents'][2]['content'] }}<br>
+        {% else %}
+        {% endif %}
+        {% if item['category_contents'][3]['content'] %}
+        &nbsp; - 기타:
+        &nbsp;{{ item['category_contents'][3]['content'] }}<br>
+        {% else %}
+        {% endif %}
+        </p>
+        {% endfor %}
+    </li>
+</ol>
+
+{% endblock %}
