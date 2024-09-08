@@ -10,3 +10,4 @@ pandas
 requests
 openpyxl
 PyPDF2
+pendulum
