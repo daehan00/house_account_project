@@ -31,7 +31,7 @@
         참석자 - AVISON RM 교수님 및 RA<br><br>
         <strong>보고사항:</strong><br><br>
         {% for item in data %}
-        <p>({{ item['user_name'] }})<br>
+        <p>{{ f"({item['user_name']['division_num']}분반) {item['user_name']['user_name']} }}<br>
         &nbsp; - 완료사항:
         &nbsp;{{ item['category_contents'][0]['content'] }}<br>
         &nbsp; - 예정사항:
@@ -48,6 +48,12 @@
         {% endif %}
         </p>
         {% endfor %}
+        <br><strong>논의사항</strong><br>
+        {% for item in data %}
+        {% if item['category_contents'][3]['content'] %}
+        {{ item['user_name']['user_name'] + ' - ' + item['category_contents'][3]['content'] }}<br>
+        {% else %}
+        {% endif %}
     </li>
 </ol>
 
