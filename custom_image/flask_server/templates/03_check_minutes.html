@@ -52,6 +52,7 @@
         {% for item in data %}
         {% if item['category_contents'][3]['content'] %}
         {{ item['user_name']['user_name'] + ' - ' + item['category_contents'][3]['content'] }}<br>
+        {% endfor %}
         {% else %}
         {% endif %}
     </li>
