@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
     fonts-noto-cjk \
     && echo "ko_KR.UTF-8 UTF-8" > /etc/locale.gen \
     && locale-gen ko_KR.UTF-8 \
-    && apt-get clean
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # 로케일 환경 변수 설정
 ENV LANG=ko_KR.UTF-8
