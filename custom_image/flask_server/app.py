@@ -567,12 +567,19 @@ def post_receipt():
 def minutes_form():
     if session.get('ra') or session.get('manager'):
         year_semester_house = session['userData']
-        week = '9-2' # 임시부여, 수정필요
-        datas, code = fetch_minutes_data(year_semester_house, week)
+
+        if request.args.get("month"):
+            selected_month = request.args.get("month", type=int)
+            selected_week = request.args.get("week", type=int)
+            month, week, date = calculate_week_of_month(selected_month, selected_week)
+        else:
+            month, week, date = calculate_week_of_month()
+
+        datas, code = fetch_minutes_data(year_semester_house, f'{str(month)}-{str(week)}')
         user_id = int(session['userId'])
 
         user_data, processed_data = process_minutes(datas, user_id, year_semester_house, week)
-        return render_template("03_minute.html", user=user_data, data=processed_data, tab_id='minutes')
+        return render_template("03_minute.html", user=user_data, data=processed_data, tab_id='minutes', month=month, week=week)
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
