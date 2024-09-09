@@ -3,10 +3,10 @@ FROM python:3.8-slim
 
 # 필수 패키지 설치 및 로케일 설정
 RUN apt-get update && apt-get install -y \
+    gcc \
+    libc-dev \
     libreoffice \
     libreoffice-writer \
-    libreoffice-calc \
-    libreoffice-impress \
     locales \
     fonts-noto-cjk \
     && echo "ko_KR.UTF-8 UTF-8" > /etc/locale.gen \
@@ -31,4 +31,4 @@ RUN pip install --upgrade pip \
 COPY . .
 
 EXPOSE 8088 5000
-CMD ["flask", "run", "--host=0.0.0.0", "--port=8088"]
+CMD ["python", "watcher.py"]

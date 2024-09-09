@@ -11,3 +11,4 @@ requests
 openpyxl
 PyPDF2
 pendulum
+watchdog

@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
 
+
+
 app = Flask(__name__)
 secret_key = os.getenv("SECRET_KEY")
 app.secret_key = secret_key  # Needed for session management and flash messages
@@ -619,4 +621,4 @@ def delete_minutes():
 
 
 if __name__ == "__main__":
-    app.run('0.0.0.0',port=8088, debug=True)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x
+    app.run('0.0.0.0',port=8088)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x
