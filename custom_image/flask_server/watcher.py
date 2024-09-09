@@ -1,4 +1,5 @@
 import time
+import socket
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import subprocess
@@ -26,10 +27,19 @@ class ChangeHandler(FileSystemEventHandler):
         try:
             # 현재 실행 중인 Flask 서버 프로세스 종료
             if hasattr(self, 'process') and self.process.poll() is None:
-                self.process.kill()
-                self.process.wait()
-            # 새로운 서버 프로세스 시작
-            self.process = subprocess.Popen(self.command, shell=True)
+                print("Attempting to stop the server...")
+                self.process.terminate()
+                self.process.wait(timeout=15)
+                print("Server stopped.")
+                time.sleep(2)  # 포트 해제를 기다립니다.
+            # 포트 체크 및 재시작
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                if s.connect_ex(('localhost', 8088)) != 0:
+                    print("Port 8088 is free now, restarting the server...")
+                    self.process = subprocess.Popen(self.command, shell=True)
+                    print("Server restarted.")
+                else:
+                    print("Port 8088 is still in use.")
         except Exception as e:
             print(f"Failed to restart the server: {e}")
 
@@ -47,7 +57,6 @@ def start_watcher(path, command):
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
-
 
 if __name__ == "__main__":
     # 감시할 디렉토리와 Flask 실행 명령
