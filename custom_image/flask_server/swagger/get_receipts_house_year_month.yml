@@ -1,0 +1,34 @@
+get:
+tags:
+  - Receipt Submissions
+summary: "Get receipts by house, year, and month"
+description: "Returns a list of receipts filtered by house name, year, and month."
+produces:
+  - "application/json"
+parameters:
+  - name: "house_name"
+    in: "path"
+    required: true
+    type: "string"
+    description: "The name of the house"
+  - name: "year"
+    in: "path"
+    required: true
+    type: "integer"
+    description: "Year of the receipts"
+  - name: "month"
+    in: "path"
+    required: true
+    type: "integer"
+    description: "Month of the receipts"
+responses:
+  200:
+    description: "Successful operation"
+    schema:
+      type: "array"
+      items:
+        $ref: "#/definitions/ReceiptSubmission"
+  404:
+    description: "No receipts found"
+  500:
+    description: "Internal server error"

@@ -336,6 +336,29 @@ def get_receipts_by_house(house_name):
     except Exception as e:
         abort(500, description=str(e))
 
+@app.route('/api/receipts/house/<house_name>/year/<int:year>/month/<int:month>', methods=['GET'])
+@swag_from('swagger/get_receipts_house_year_month.yml')
+def get_receipts_by_house_year_month(house_name, year, month):
+    try:
+        receipts = db.session.query(ReceiptSubmission).join(RAList).join(Program).filter(
+            ReceiptSubmission.house_name == house_name,
+            ReceiptSubmission.year == year,
+            ReceiptSubmission.month == month
+        ).all()
+        if not receipts:
+            abort(404, description=f"No receipts found for house name {house_name} in {year}-{month}")
+
+        results = []
+        for receipt in receipts:
+            receipt_dict = receipt.to_dict()
+            receipt_dict['user_name'] = receipt.ra.user_name
+            receipt_dict['program_name'] = receipt.program.program_name
+            results.append(receipt_dict)
+
+        return jsonify(results), 200
+    except Exception as e:
+        abort(500, description=str(e))
+
 
 @app.route('/api/receipts/user/<int:user_id>', methods=['GET'])
 @swag_from('swagger/get_receipts_by_user.yml')
