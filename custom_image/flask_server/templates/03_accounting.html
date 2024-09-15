@@ -2,7 +2,7 @@
 {% block contents %}
 <ol>
     <li>
-        <form method="POST" action="/manager/process_accounting" style="display:inline;">
+        <form id="accountingForm" method="POST" action="/manager/process_accounting" style="display:inline;">
             <label for="process_month">월:</label>
             <select id="process_month" name="month">
                 {% for m in range(1, 13) %}
@@ -14,10 +14,19 @@
                 <option value="1">1</option>
                 <option value="2">2</option>
             </select>
-            <input type="submit" value="자료 제작">
+            <input type="button" value="PDF 자료 제작" onclick="submitForm('/manager/process_accounting');">
+            <input type="button" value="정산 엑셀 제작" onclick="submitForm('/manager/process_xlsx');">
         </form>
     </li>
     <li><input type="button" value="기간별 회계자료 정산" onclick="showAccountingPopup();"></li>
     <li><input type="button" value="학기말 회계자료 정산" onclick=""></li>
 </ol>
+
+<script>
+function submitForm(action) {
+    var form = document.getElementById('accountingForm');
+    form.action = action;
+    form.submit();
+}
+</script>
 {% endblock %}

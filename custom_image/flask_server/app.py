@@ -1,7 +1,7 @@
 import os
 import unicodedata
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
-from utils import calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -437,6 +437,36 @@ def process_accounting():
         return redirect("/manager/accounting")
     else:
         flash("You do not have permission to access this page.", "warning")
+        return redirect("/")
+
+@app.route('/manager/process_xlsx', methods=['POST'])
+def manager_process_xlsx():
+    if session.get('manager'):
+        data = request.form.to_dict()
+        month = int(data['month'])
+        period = int(data['period'])
+        house_name = session['userData'].split('-')[-1]
+        tmp_path, file_name = manager_create_xlsx(month, period, house_name, year_semester_house=session['userData'])
+        if tmp_path and file_name:
+            try:
+                response = send_file(
+                    tmp_path,
+                    as_attachment=True,
+                    download_name=file_name,
+                    mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                )
+                os.remove(tmp_path)  # 파일 전송 후 임시 파일 삭제
+                return response
+            except Exception as e:
+                flash(f"An error occurred while downloading the file: {e}", "error")
+                return redirect("/manager/accounting")
+        elif file_name:
+            flash(file_name, "error")
+        else:
+            flash("No data to process", "info")
+        return redirect("/manager/accounting")
+    else:
+        flash("You do not have permission to access this job.", "warning")
         return redirect("/")
 
 @app.route('/manager/check_minutes')

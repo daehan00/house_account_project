@@ -197,12 +197,14 @@ def ra_login(url, user_id):
     else:
         return 'error', data
 
-def get_receipt_list(url, search_id):
+def get_receipt_list(url, search_id=None):
     headers = {
         "Accept": "application/json"
     }
-
-    response = requests.get(f"{url}/{search_id}", headers=headers)
+    if search_id:
+        response = requests.get(f"{url}/{search_id}", headers=headers)
+    else:
+        response = requests.get(url, headers=headers)
     if response.status_code == 200:
         data = response.json()
         sorted_data = sorted(data, key=lambda x: datetime.fromisoformat(x['date']))
@@ -691,7 +693,7 @@ def process_files(input_directory, output_directory, month, period):
             pdf_files.extend(minutes_pdf)
 
         if not pdf_files:
-            return "no_files", None
+            return "no_files", None, None
 
         merged_pdf_path = os.path.join(output_directory, f"{month}월_{period}차.pdf")
         merge_pdfs(pdf_files, merged_pdf_path)
@@ -702,7 +704,7 @@ def process_files(input_directory, output_directory, month, period):
         print(f"Merged PDF saved as {merged_pdf_path}")
         return "success", f"{month}월_{period}차.pdf", merged_pdf_path
     except Exception as e:
-        return "error", e
+        return "error", e, None
 
 def post_minute_data(data):
     try:
@@ -851,3 +853,75 @@ def calculate_week_of_month(month=None, week=None):
         current_monday = first_monday.add(weeks=week_of_month - 1)  # 해당 주차의 월요일 계산
         formatted_date = current_monday.format('YYYY-MM-DD') + ' ' + korean_weekdays[current_monday.day_of_week]
         return seoul_time.month, week_of_month, formatted_date
+
+
+def manager_create_xlsx(month, period, house_name, year_semester_house):
+    year = datetime.now().year
+    url = os.getenv("URL_API")
+    rec_url = url + f"receipts/house/{str(house_name)}/year/{str(year)}/month/{str(month)}"
+    receipt_list = get_receipt_list(rec_url)
+    if not receipt_list:
+        return None, None
+
+    try:
+        col_list = ["No", "결제일자", "금액", "가맹점명", "주말휴일심야사용여부", "신규프로그램여부", "계정항목", "하우스", "프로그램명", "구매핵심사유&핵심품목및수량", "사용인원",
+                    "적요통합", "비고"]
+        rows_list = []
+
+        for idx, receipt in enumerate(receipt_list, start=1):
+            new_row = {
+                'No': idx,
+                "결제일자": receipt['date'].split("T")[0],
+                "금액": receipt['expenditure'],
+                "가맹점명": receipt['store_name'],
+                "주말휴일심야사용여부": "사용" if receipt['holiday_check'] else "미사용",
+                "신규프로그램여부": "N",
+                "계정항목": receipt['category_id'],
+                "하우스": get_house_name(receipt['house_name']),
+                "프로그램명": receipt['program_name'],
+                "구매핵심사유&핵심품목및수량": receipt['purchase_reason'] + "/" + receipt['key_items_quantity'],
+                "사용인원": receipt['head_count'],
+                "적요통합": "",
+                "비고": "기념품지급대장 작성" if receipt['souvenir_record'] else receipt.get('purchase_details', "")
+            }
+            rows_list.append(new_row)
+
+        data_receipts = pd.DataFrame(rows_list, columns=col_list)
+
+        rec_data = get_receipt_list(url + f"receipts/house/", house_name)
+        selected_data = []
+        for data in rec_data:
+            if data['month'] < month:
+                selected_data.append(data)
+            elif data['month'] == month:
+                if period == 1:
+                    if int(data['day']) <= 15:
+                        selected_data.append(data)
+                if period == 2:
+                    selected_data.append(data)
+
+        df = pd.DataFrame(selected_data, columns=['program_name', 'category_id', 'expenditure'])
+        pivot_df = df.pivot_table(index='program_name', columns='category_id', values='expenditure', aggfunc='sum', fill_value=0)
+        pro_url = url + "program"
+        program_data = get_program_list(pro_url, year_semester_house)
+        program_list = []
+        for program in program_data:
+            program_list.append(program['program_name'])
+        # 열 순서 정의
+        columns_order = ['운영비', '기념품비', '상품비', '소모품비', '인건비', '식비/간식비', '인쇄비']
+
+        final_df = pivot_df.reindex(program_list, columns=columns_order, fill_value=0).reset_index()
+        file_name = f'{house_name}_{str(month)}월_{str(period)}차.xlsx'
+        file_path = os.getenv("UPLOAD_FOLDER_TMP") + file_name
+        writer = pd.ExcelWriter(file_path, engine='openpyxl')
+
+        # 데이터프레임을 각각의 시트에 저장
+        data_receipts.to_excel(writer, sheet_name='월간정산자료', index=False)
+        final_df.to_excel(writer, sheet_name='사용내역', index=False)
+
+        # 파일 저장
+        writer.close()
+
+        return file_path, file_name
+    except Exception as e:
+        return None, f"unexpected exception: {e}"
