@@ -97,7 +97,6 @@
     <tr>
         <th>기타 파일</th>
         <th>다운</th>
-        <th>삭제</th>
     </tr>
   </thead>
   {% if etc_files %}
@@ -111,14 +110,6 @@
                   <input type="hidden" name="type" value="etc">
                   <input type="hidden" name="pdf" value="">
                   <button type="submit">다운</button>
-                </form>
-            </td>
-            <td>
-                <form action="/manager/delete_file" method="post" style="display:inline;">
-                  <input type="hidden" name="filename" value="{{ file }}">
-                  <input type="hidden" name="type" value="etc">
-                  <input type="hidden" name="pdf" value="">
-                  <button type="submit">삭제</button>
                 </form>
             </td>
         </tr>
