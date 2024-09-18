@@ -239,8 +239,10 @@ def manager():
 
         receipt_files = []
         minutes_files = []
+        etc_files = []
         receipt_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/receipts"
         minutes_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/minutes"
+        etc_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/etc"
         filtered_data = [item for item in raw_data if item['year'] == year]
 
         if period and month:
@@ -252,17 +254,21 @@ def manager():
 
             receipt_files = get_files(receipt_dir, month, period)
             minutes_files = get_files(minutes_dir, month, period)
+            etc_files = get_files(etc_dir, month, period)
 
         elif month:
             filtered_data = [item for item in filtered_data if item['month'] == month]
             for i in range(1, 3):
                 receipt_files_period = get_files(receipt_dir, month, i)
                 minutes_files_period = get_files(minutes_dir, month, i)
+                etc_files_period = get_files(etc_dir, month, i)
                 receipt_files.extend(receipt_files_period)
                 minutes_files.extend(minutes_files_period)
+                etc_files.extend(etc_files_period)
         else:
             receipt_files = get_files_from_directory(receipt_dir)
             minutes_files = get_files_from_directory(minutes_dir)
+            etc_files = get_files_from_directory(etc_dir)
 
         for i in filtered_data:
             i['date'] = i['date'].split('T')[0]
@@ -285,7 +291,7 @@ def manager():
 
         file_pairs = zip(receipt_files, minutes_data)
         return render_template("03_check_list.html", data=filtered_data, tab_id="check_list", columns=columns, current_period=period,
-                               current_month=current_month, selected_month=month, file_pairs=file_pairs)
+                               current_month=current_month, selected_month=month, file_pairs=file_pairs, etc_files=etc_files)
     elif session.get('ra'):
             flash("You do not have permission to access this page.", "warning")
             return redirect("/")
@@ -346,11 +352,13 @@ def download_file():
     file_type = request.form['type']
     filename = request.form['filename']
     pdf_filename = request.form['pdf']
-
+    house_name = session['userData'].split('-')[-1]
     if file_type == 'receipt':
-        directory = os.getenv("UPLOAD_FOLDER_RA") + "/AVISON/receipts"
+        directory = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/receipts"
+    elif file_type == 'etc':
+        directory = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/etc"
     elif file_type == 'minute':
-        directory = os.getenv("UPLOAD_FOLDER_RA") + "/AVISON/minutes"
+        directory = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/minutes"
         if pdf_filename:
             filename = filename + '.pdf'
         else:
@@ -368,11 +376,14 @@ def delete_file():
     file_type = request.form['type']
     filename = request.form['filename']
     pdf_filename = request.form['pdf']
+    house_name = session['userData'].split('-')[-1]
 
     if file_type == 'receipt':
-        directory = os.getenv("UPLOAD_FOLDER_RA")+"/AVISON/receipts"
+        directory = os.getenv("UPLOAD_FOLDER_RA")+f"/{house_name}/receipts"
+    elif file_type == 'etc':
+        directory = os.getenv("UPLOAD_FOLDER_RA")+f"/{house_name}/etc"
     elif file_type == 'minute':
-        directory = os.getenv("UPLOAD_FOLDER_RA")+"/AVISON/minutes"
+        directory = os.getenv("UPLOAD_FOLDER_RA")+f"/{house_name}/minutes"
         if pdf_filename:
             filename = [filename + '.pdf', filename + '.hwp']
         else:
@@ -500,9 +511,12 @@ def ra():
         house_name = session['userData'].split('-')[-1]
         receipt_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/receipts"
         minutes_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/minutes"
+        etc_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/etc"
 
         receipt_files = get_files_from_directory(receipt_dir)
         minutes_files = get_files_from_directory(minutes_dir)
+        etc_files = []
+        etc_files = get_files_from_directory(etc_dir)
 
         hwp_files = [f.split(".")[0] for f in minutes_files if f.endswith('.hwp')]
         pdf_files = [unicodedata.normalize('NFC', f.split(".")[0]) for f in minutes_files if f.endswith('.pdf')]
@@ -522,11 +536,11 @@ def ra():
         file_pairs = zip(receipt_files, minutes_data)
 
         if not raw_data:
-            return render_template("03_check_ra_list.html", data=None, columns=columns, file_pairs=file_pairs)
+            return render_template("03_check_ra_list.html", data=None, columns=columns, file_pairs=file_pairs, etc_files=etc_files)
         data = raw_data
         for i in data:
             i['date'] = i['date'].split('T')[0]
-        return render_template("03_check_ra_list.html", data=data, columns=columns, tab_id='check_ra_list', file_pairs=file_pairs)
+        return render_template("03_check_ra_list.html", data=data, columns=columns, tab_id='check_ra_list', file_pairs=file_pairs, etc_files=etc_files)
     else:
         flash("Please login first.", "warning")
         return redirect("/")

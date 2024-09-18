@@ -13,6 +13,7 @@ import pytz
 from dotenv import load_dotenv
 import tempfile
 import unicodedata
+
 load_dotenv()
 
 def load_dict_code():
@@ -276,7 +277,11 @@ def allowed_file(upload_folder, filename, div):
                 date_str = filename[:6]
                 date = datetime.strptime(date_str, '%y%m%d')
                 if filename_lower.endswith('.xlsx'):
-                    return upload_folder+'/receipts', filename, 'success'
+                    normalized_filename = unicodedata.normalize('NFC', filename)
+                    if "(영)" in normalized_filename:
+                        return upload_folder+'/receipts', filename, 'success'
+                    else:
+                        return upload_folder+'/etc', filename, 'success'
                 if filename_lower.endswith('.pdf'):
                     file_list = [unicodedata.normalize('NFC', f.split('.')[0]) for f in os.listdir(upload_folder+'/minutes') if f.endswith('.hwp')]
                     file_name = unicodedata.normalize('NFC', filename.split('.')[0])
@@ -680,11 +685,18 @@ def process_files(input_directory, output_directory, month, period):
     try:
         receipt_dir = input_directory+'receipts'
         minutes_dir = input_directory+'minutes'
+        etc_dir = input_directory+'etc'
         pdf_files = []
         del_pdf_files = []
         receipt_files = get_files(receipt_dir, month, period)
+        etc_files = get_files(etc_dir, month, period)
         for file in receipt_files:
             pdf_path = convert_to_pdf(receipt_dir, file, output_directory)
+            if pdf_path:
+                pdf_files.append(pdf_path)
+                del_pdf_files.append(pdf_path)
+        for file in etc_files:
+            pdf_path = convert_to_pdf(etc_dir, file, output_directory)
             if pdf_path:
                 pdf_files.append(pdf_path)
                 del_pdf_files.append(pdf_path)
@@ -908,7 +920,7 @@ def manager_create_xlsx(month, period, house_name, year_semester_house):
         for program in program_data:
             program_list.append(program['program_name'])
         # 열 순서 정의
-        columns_order = ['운영비', '기념품비', '상품비', '소모품비', '인건비', '식비/간식비', '인쇄비']
+        columns_order = ['운영비', '기념품비', '상품비', '소모품비', '인건비', '식비/간식비', '인쇄비', 'RA회의비']
 
         final_df = pivot_df.reindex(program_list, columns=columns_order, fill_value=0).reset_index()
         file_name = f'{house_name}_{str(month)}월_{str(period)}차.xlsx'
