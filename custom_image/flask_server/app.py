@@ -439,8 +439,19 @@ def process_accounting():
         result_path = os.getenv("UPLOAD_FOLDER_MANAGER")+f"/{house_name}"
         trial, message, merged_pdf_path = process_files(data_dir, result_path, month, period)
         if trial == "success":
-            flash(f"{month}월_{period}차 processed successfully, file_path={message}", "success")
-            return send_file(merged_pdf_path, as_attachment=True)
+            try:
+                response = send_file(
+                    merged_pdf_path,
+                    as_attachment=True,
+                    download_name=merged_pdf_path.split('/')[-1],
+                    mimetype="application/pdf"
+                )
+                os.remove(merged_pdf_path)
+                flash(f"{month}월_{period}차 processed successfully, file_path={message}", "success")
+                return response
+            except Exception as e:
+                flash(f"An error occurred while downloading the file: {e}", "error")
+                return redirect("/manager/accounting")
         elif trial == "no_files":
             flash(f"{month}월_{period}차 파일이 존재하지 않습니다. 기간 선택을 확인하세요.", "info")
         else:
