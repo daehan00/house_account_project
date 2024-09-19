@@ -153,27 +153,7 @@
                     return (day === 6) ? 'saturday' : (day === 0) ? 'sunday' : '';
                 },
                 dateClick: function(info) {
-                    const events = calendar.getEvents().filter(event => event.startStr.slice(0,10) === info.dateStr);
-                    ispEventsEl.innerHTML = '<h2>ISP 예약</h2>';
-                    cardEventsEl.innerHTML = '<h2>카드 예약</h2>';
-                    events.forEach(event => {
-                        const start = new Date(event.start);
-                        const end = new Date(event.end);
-                        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-                            const eventEl = document.createElement('div');
-                            eventEl.className = 'event-item';
-                            eventEl.setAttribute('data-id', event.id); // 이벤트 ID를 저장
-                            eventEl.innerHTML = `<strong>${event.extendedProps.user} - ${event.title}</strong><br> (${start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
-                            eventEl.onclick = () => openEventDetails(event.id); // 클릭 시 상세보기 함수 호출
-                            if (event.type === 'isp' || event.extendedProps && event.extendedProps.type === 'isp') {
-                                ispEventsEl.appendChild(eventEl);
-                            } else {
-                                cardEventsEl.appendChild(eventEl);
-                            }
-                        } else {
-                            console.error('Invalid date:', event.start, event.end);
-                        }
-                    });
+                    displayEventsForDate(info.dateStr);
                 },
                 eventClick: function(info) {
                     var event = info.event;
@@ -196,6 +176,41 @@
                 }
             });
             calendar.render();
+
+            function displayEventsForDate(dateStr) {
+                const events = calendar.getEvents().filter(event => event.startStr.slice(0,10) === dateStr);
+                ispEventsEl.innerHTML = '<h2>ISP 예약</h2>';
+                cardEventsEl.innerHTML = '<h2>카드 예약</h2>';
+                events.forEach(event => {
+                    const start = new Date(event.start);
+                    const end = new Date(event.end);
+                    if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+                        const eventEl = document.createElement('div');
+                        eventEl.className = 'event-item';
+                        eventEl.setAttribute('data-id', event.id);
+                        eventEl.innerHTML = `<strong>${event.extendedProps.user} - ${event.title}</strong><br> (${start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })})`;
+                        eventEl.onclick = () => openEventDetails(event.id);
+                        if (event.type === 'isp' || event.extendedProps && event.extendedProps.type === 'isp') {
+                            ispEventsEl.appendChild(eventEl);
+                        } else {
+                            cardEventsEl.appendChild(eventEl);
+                        }
+                    } else {
+                        console.error('Invalid date:', event.start, event.end);
+                    }
+                });
+            }
+
+            // Automatically display events for the current date on page load
+            function loadTodayEvents() {
+                const todayStr = new Date().toISOString().slice(0, 10);  // 'YYYY-MM-DD' 형식
+                displayEventsForDate(todayStr);
+            }
+
+            // Load today's events after the calendar is fully rendered
+            calendar.on('eventsSet', function() {
+                loadTodayEvents(); // 캘린더가 렌더링되고 나서 오늘 날짜 이벤트 로드
+            });
 
             function openEventDetails(eventId) {
                 const event = calendar.getEventById(eventId);

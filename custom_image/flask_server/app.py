@@ -519,6 +519,19 @@ def ra():
                    'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
         raw_data = get_receipt_list(os.getenv("URL_API")+'receipts/user', user_id)
 
+        if not raw_data:
+            return render_template("03_check_ra_list.html", data=None, columns=columns, tab_id="check_ra_list")
+        data = raw_data
+        for i in data:
+            i['date'] = i['date'].split('T')[0]
+        return render_template("03_check_ra_list.html", data=data, columns=columns, tab_id='check_ra_list')
+    else:
+        flash("Please login first.", "warning")
+        return redirect("/")
+
+@app.route("/ra/upload_ra")
+def upload_ra():
+    if session.get('ra') or session.get('manager'):
         house_name = session['userData'].split('-')[-1]
         receipt_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/receipts"
         minutes_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/minutes"
@@ -526,7 +539,6 @@ def ra():
 
         receipt_files = get_files_from_directory(receipt_dir)
         minutes_files = get_files_from_directory(minutes_dir)
-        etc_files = []
         etc_files = get_files_from_directory(etc_dir)
 
         hwp_files = [f.split(".")[0] for f in minutes_files if f.endswith('.hwp')]
@@ -546,20 +558,7 @@ def ra():
 
         file_pairs = zip(receipt_files, minutes_data)
 
-        if not raw_data:
-            return render_template("03_check_ra_list.html", data=None, columns=columns, file_pairs=file_pairs, etc_files=etc_files)
-        data = raw_data
-        for i in data:
-            i['date'] = i['date'].split('T')[0]
-        return render_template("03_check_ra_list.html", data=data, columns=columns, tab_id='check_ra_list', file_pairs=file_pairs, etc_files=etc_files)
-    else:
-        flash("Please login first.", "warning")
-        return redirect("/")
-
-@app.route("/ra/upload_ra")
-def upload_ra():
-    if session.get('ra') or session.get('manager'):
-        return render_template("03_upload_ra.html", tab_id='upload_ra')
+        return render_template("03_upload_ra.html", tab_id='upload_ra', file_pairs=file_pairs, etc_files=etc_files)
     else:
         flash("Please login first.", "warning")
         return redirect("/")
