@@ -632,7 +632,7 @@ def minutes_form():
         datas, code = fetch_minutes_data(year_semester_house, f'{str(month)}-{str(week)}')
         user_id = int(session['userId'])
 
-        user_data, processed_data = process_minutes(datas, user_id, year_semester_house, week)
+        user_data, processed_data = process_minutes(datas, user_id, year_semester_house, str(month)+"-"+str(week))
         return render_template("03_minute.html", user=user_data, data=processed_data, tab_id='minutes', month=month, week=week)
     else:
         flash("You do not have permission to access this page.", "warning")
