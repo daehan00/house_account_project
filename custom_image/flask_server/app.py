@@ -126,8 +126,10 @@ def submit_event():
 @app.route("/calendar/submit/update", methods=["POST"])
 def update_event():
     if session.get('manager') or session.get('ra'):
-        if not session.get('userName') == request.json.get('username'):
-            return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+        username = session.get('userName')
+        req_name = request.json.get('username')
+        if not unicodedata.normalize('NFC', username) == unicodedata.normalize('NFC', req_name):
+            return jsonify({'success': False, 'message': '권한이 없습니다.'}), 403
 
         data = request.get_json()  # Get data from the client
         date_start = datetime.strptime(data['start_datetime'], "%Y-%m-%dT%H:%M")
@@ -150,8 +152,10 @@ def update_event():
 def delete_event():
     if session.get('manager') or session.get('ra'):
         if session.get('ra'):
-            if not session.get('userName') == request.json.get('username'):
-                return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+            username = session.get('userName')
+            req_name = request.json.get('username')
+            if not unicodedata.normalize('NFC', username) == unicodedata.normalize('NFC', req_name):
+                return jsonify({'success': False, 'message': '권한이 없습니다.'}), 403
 
         data = request.get_json()
         del_id = data['id']
