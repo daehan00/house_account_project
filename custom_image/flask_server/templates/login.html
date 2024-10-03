@@ -1,5 +1,11 @@
-{% extends "02_ra.html" %}
-{% block contents %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+    <link rel="stylesheet" href=" {{ url_for('static', filename='css/login.css') }}">
+</head>
+<body>
     <div class="login-wrapper">
         <h2>Login</h2>
         <form method="post" action="" id="login-form">
@@ -8,4 +14,5 @@
             <input type="button" value="취소" onclick="location.href='/'">
         </form>
     </div>
-{% endblock %}
+</body>
+</html>
