@@ -600,7 +600,7 @@ def post_receipt_data(request_data):
         return redirect(url_for("ra"))
     else:
         flash(f"에러 발생 : {response_text}", 'error')
-        return redirect(url_for("ra/post_receipt"))
+        return redirect(url_for("/ra/post_receipt"))
 
 
 def modify_and_save_excel(data):
