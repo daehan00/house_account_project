@@ -441,7 +441,7 @@ def process_accounting():
         house_name = session['userData'].split('-')[-1]
         data_dir = os.getenv('UPLOAD_FOLDER_RA')+f'/{house_name}/'
         result_path = os.getenv("UPLOAD_FOLDER_MANAGER")+f"/{house_name}"
-        trial, message, merged_pdf_path = process_files(data_dir, result_path, month, period)
+        trial, message, merged_pdf_path = process_files(house_name, data_dir, result_path, month, period)
         if trial == "success":
             try:
                 response = send_file(
