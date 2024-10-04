@@ -401,7 +401,10 @@ def delete_file():
     try:
         if type(filename) == list:
             for i in filename:
-                os.remove(os.path.join(directory, i))
+                try:
+                    os.remove(os.path.join(directory, i))
+                except OSError:
+                    continue
         else:
             os.remove(os.path.join(directory, filename))
         flash(f"{str(filename)} has been deleted.", "success")

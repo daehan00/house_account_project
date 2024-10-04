@@ -681,7 +681,7 @@ def merge_pdfs(pdf_list, output_path):
     merger.close()
 
 
-def process_files(input_directory, output_directory, month, period):
+def process_files(house_name, input_directory, output_directory, month, period):
     try:
         receipt_dir = input_directory+'receipts'
         minutes_dir = input_directory+'minutes'
@@ -707,14 +707,14 @@ def process_files(input_directory, output_directory, month, period):
         if not pdf_files:
             return "no_files", None, None
 
-        merged_pdf_path = os.path.join(output_directory, f"{month}월_{period}차.pdf")
+        merged_pdf_path = os.path.join(output_directory, f"{house_name}_영수증 및 회의록 등_{month}월{period}차.pdf") #AVISON_영수증 및 회의록 등_9월2차
         merge_pdfs(pdf_files, merged_pdf_path)
 
         for del_pdf_file in del_pdf_files:
             os.remove(del_pdf_file)
 
         print(f"Merged PDF saved as {merged_pdf_path}")
-        return "success", f"{month}월_{period}차.pdf", merged_pdf_path
+        return "success", f"{house_name}_영수증 및 회의록 등_{month}월{period}차.pdf", merged_pdf_path
     except Exception as e:
         return "error", e, None
 
