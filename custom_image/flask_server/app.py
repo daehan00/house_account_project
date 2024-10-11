@@ -510,9 +510,9 @@ def check_minutes():
         else:
             month, week, date = calculate_week_of_month()
 
-        content, not_yet = get_minutes_data(year_semester_house, f'{str(month)}-{str(week)}')
+        content, not_yet, text1, text2 = get_minutes_data(year_semester_house, f'{str(month)}-{str(week)}')
 
-        return render_template('03_check_minutes.html', tab_id='minutes', data=content, month=month, week=week, date=date, not_yet=not_yet)
+        return render_template('03_check_minutes.html', tab_id='minutes', data=content, text1=text1, text2=text2, month=month, week=week, date=date, not_yet=not_yet)
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")

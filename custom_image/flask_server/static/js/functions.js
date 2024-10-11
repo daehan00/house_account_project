@@ -242,3 +242,16 @@ function checkFormValidity() {
     }
 }
 
+function copy(id) {
+    // 서버에서 받아온 텍스트 가져오기
+    var copyText = document.getElementById(id).innerText;
+
+    // 텍스트를 클립보드에 복사
+    navigator.clipboard.writeText(copyText).then(function() {
+        // 성공적으로 복사된 경우
+        alert("복사되었습니다.");
+    }).catch(function(err) {
+        // 복사 실패 시
+        alert("복사에 실패했습니다.");
+    });
+}

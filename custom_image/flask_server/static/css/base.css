@@ -321,3 +321,10 @@ ul.itembulletlist li {
 .br480 {
 	display:none;
 }
+
+.copyText {
+	white-space: pre-wrap;
+	border: 1px solid #ccc;
+	padding: 10px;
+	margin-bottom: 10px;
+}

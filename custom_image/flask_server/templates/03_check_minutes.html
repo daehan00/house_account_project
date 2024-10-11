@@ -29,27 +29,10 @@
         회의일시 - {{ date }}<br>
         회의장소 - E동 AVISON RA 오피스<br>
         참석자 - AVISON RM 교수님 및 RA<br><br>
-        <strong>보고사항:</strong><br><br>
-        {% for item in data %}
-        <p>({{ item['user_name']['division_num'] }}분반)  {{ " " + item['user_name']['user_name'] }}<br>
-        &nbsp; - 완료사항:
-        &nbsp;{{ item['category_contents'][0]['content'] }}<br>
-        &nbsp; - 예정사항:
-        &nbsp;{{ item['category_contents'][1]['content'] }}<br>
-        {% if item['category_contents'][2]['content'] %}
-        &nbsp; - 건의사항:
-        &nbsp;{{ item['category_contents'][2]['content'] }}<br>
-        {% else %}
-        {% endif %}
-        </p>
-        {% endfor %}
-        <br><strong>논의사항</strong><br>
-        {% for item in data %}
-        {% if item['category_contents'][3]['content'] %}
-        {{ item['user_name']['user_name'] + ' - ' + item['category_contents'][3]['content'] }}<br>
-        {% else %}
-        {% endif %}
-        {% endfor %}
+        <strong>보고사항:</strong><button onclick="copy('copyTxt1')">복사하기</button><br><br>
+        <div id="copyTxt1" class="copyText">{{ text1 }}</div>
+        <br><strong>논의사항</strong><button onclick="copy('copyTxt2')">복사하기</button><br>
+        <div id="copyTxt2" class="copyText">{{ text2 }}</div>
     </li>
 </ol>
 

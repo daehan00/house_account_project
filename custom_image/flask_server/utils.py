@@ -834,8 +834,17 @@ def get_minutes_data(year_semester_house, week):
     not_yet_str = ', '.join(sorted(not_yet))
 
     sorted_data = sorted(data, key=lambda k: k['division_num'])
+    text1 = ''
+    text2 =''
+    for item in sorted_data:
+        text1 += f"({str(item['user_name']['division_num'])} 분반) {item['user_name']['user_name']}\n" + f"""  - 완료사항: {item['category_contents'][0]['content']}\n""" + f"""  - 예정사항: {item['category_contents'][1]['content']}\n"""
+        if item['category_contents'][2].get('content'):
+            text1 += f"  - 건의사항: {item['category_contents'][2]['content']}\n"
+        text1 += "\n"
+        if item['category_contents'][3].get('content'):
+            text2 += f"{item['user_name']['user_name']} - {item['category_contents'][3]['content']}\n"
 
-    return sorted_data, not_yet_str
+    return sorted_data, not_yet_str, text1.rstrip(), text2.rstrip()
 
 def calculate_week_of_month(month=None, week=None):
     import pendulum
