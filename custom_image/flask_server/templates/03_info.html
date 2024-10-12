@@ -9,6 +9,28 @@
     </ul>
 </p>
 <p>
+    <h1>양식파일 다운로드</h1>
+    <ul>
+        <li>
+            <form action="/ra/download/template" method="POST">
+                <input type="hidden" name="category" value="receipt">
+                <input type="submit" value="심야영수증">
+            </form>
+        </li>
+        <li>
+            <form action="/ra/download/template" method="POST">
+                <input type="hidden" name="category" value="gift">
+                <input type="submit" value="기념품지급대장">
+            </form>
+        </li>
+        <li>
+            <form action="/ra/download/template" method="POST">
+                <input type="hidden" name="category" value="minutes">
+                <input type="submit" value="회의록">
+            </form>
+    </ul>
+</p>
+<p>
     <div class="switch-container">
         <label class="switch">
             <input type="checkbox" class="toggleSwitch">
@@ -29,6 +51,11 @@
                 <li><strong>한도 피하기 위해 분할결제 절대 금지!</strong></li>
                 <li>프로그램 내 집행금액 총합 50만원 넘을 시 회계 담당에게 보고</li>
             </ul>
+        </p>
+        <p>
+            <h3>제출 기한:</h3>
+            매월 1-15일 사이 결제건 => 15일까지<br>
+            15일 이후 결제건 => 말일까지
         </p>
     </div>
 

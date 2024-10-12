@@ -686,6 +686,21 @@ def delete_minutes():
     else:
         flash("You do not have permission to access this page.", "warning")
 
+@app.route("/ra/download/template", methods=['POST']) #양식파일 다운로드
+def download_template():
+    if session.get('ra') or session.get('manager'):
+        category = request.form.get('category')
+        data_dir = os.getenv("DATA_PATH")
+        if category == 'receipt':
+            file_name = "241001(영)_000RA_프로그램명_심야.xlsx"
+        elif category == 'minutes':
+            file_name = "240000(회)_OOORA_AVISON 프로그램명.hwp"
+        elif category == 'gift':
+            file_name = "240902(기)_000RA_프로그램명.xlsx"
+        else:
+            flash("잘못된 요청입니다.", 'error')
+            return redirect("/")
+        return send_file(os.path.join(data_dir, file_name), as_attachment=True)
 
 
 if __name__ == "__main__":
