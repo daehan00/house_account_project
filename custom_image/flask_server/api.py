@@ -540,6 +540,18 @@ def create_report_detail():
         abort(400, description="No data provided.")
 
     try:
+        # 중복 확인을 위한 쿼리
+        existing_report_detail = ReportDetail.query.filter_by(
+            year_semester_house=data['year_semester_house'],
+            week=data['week'],
+            user_id=data['user_id']
+        ).first()
+
+        # 중복된 데이터가 있는 경우 에러 반환
+        if existing_report_detail:
+            return jsonify({"error": "이미 제출되었습니다."}), 400
+
+        # 새로운 ReportDetail 객체 생성 및 데이터베이스에 추가
         new_report_detail = ReportDetail(
             year_semester_house=data['year_semester_house'],
             week=data['week'],
@@ -550,6 +562,7 @@ def create_report_detail():
         db.session.add(new_report_detail)
         db.session.commit()
         return jsonify(new_report_detail.to_dict()), 201
+
     except KeyError as e:
         db.session.rollback()
         return jsonify({"error": f"Missing data: {str(e)}"}), 400
