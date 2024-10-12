@@ -837,7 +837,7 @@ def get_minutes_data(year_semester_house, week):
     text1 = ''
     text2 =''
     for item in sorted_data:
-        text1 += f"({str(item['user_name']['division_num'])} 분반) {item['user_name']['user_name']}\n" + f"""  - 완료사항: {item['category_contents'][0]['content']}\n""" + f"""  - 예정사항: {item['category_contents'][1]['content']}\n"""
+        text1 += f"({str(item['user_name']['division_num'])}분반) {item['user_name']['user_name']}\n" + f"""  - 완료사항: {item['category_contents'][0]['content']}\n""" + f"""  - 예정사항: {item['category_contents'][1]['content']}\n"""
         if item['category_contents'][2].get('content'):
             text1 += f"  - 건의사항: {item['category_contents'][2]['content']}\n"
         text1 += "\n"
