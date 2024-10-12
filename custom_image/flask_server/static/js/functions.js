@@ -243,26 +243,15 @@ function checkFormValidity() {
 }
 
 function copy(id) {
-    var copyText = document.getElementById(id);
+    var copyText = document.getElementById(id).innerText; // 텍스트 추출
 
-    // 텍스트를 선택 및 복사
-    var range = document.createRange();
-    range.selectNode(copyText);
-    window.getSelection().removeAllRanges();  // 기존 선택 해제
-    window.getSelection().addRange(range);    // 새로운 텍스트 선택
-
-    try {
-        // 문서에 복사 명령 실행
-        var successful = document.execCommand('copy');
-        if (successful) {
-            alert('복사되었습니다.');
-        } else {
-            alert('복사에 실패했습니다.');
-        }
-    } catch (err) {
-        alert('복사할 수 없습니다.');
-    }
-
-    // 선택 해제
-    window.getSelection().removeAllRanges();
+    // Clipboard API 사용
+    navigator.clipboard.writeText(copyText).then(function() {
+        // 복사가 성공했을 때 실행되는 코드
+        alert('복사되었습니다.');
+    }).catch(function(err) {
+        // 복사가 실패했을 때 실행되는 코드
+        alert('복사에 실패했습니다.');
+        console.error('복사 실패:', err);
+    });
 }
