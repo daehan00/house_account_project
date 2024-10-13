@@ -13,7 +13,7 @@ import pytz
 from dotenv import load_dotenv
 import tempfile
 import unicodedata
-
+from multiprocessing import Pool
 load_dotenv()
 
 def load_dict_code():
@@ -681,25 +681,39 @@ def merge_pdfs(pdf_list, output_path):
     merger.close()
 
 
+# 병렬처리 함수
+def delete_file(file):
+    try:
+        os.remove(file)
+    except Exception as e:
+        print(f"Error deleting file {file}: {e}")
 def process_files(house_name, input_directory, output_directory, month, period):
     try:
-        receipt_dir = input_directory+'receipts'
-        minutes_dir = input_directory+'minutes'
-        etc_dir = input_directory+'etc'
+        receipt_dir = os.path.join(input_directory, 'receipts')
+        minutes_dir = os.path.join(input_directory, 'minutes')
+        etc_dir = os.path.join(input_directory, 'etc')
         pdf_files = []
         del_pdf_files = []
+
+        # 파일 리스트 가져오기
         receipt_files = get_files(receipt_dir, month, period)
         etc_files = get_files(etc_dir, month, period)
-        for file in receipt_files:
-            pdf_path = convert_to_pdf(receipt_dir, file, output_directory)
-            if pdf_path:
-                pdf_files.append(pdf_path)
-                del_pdf_files.append(pdf_path)
-        for file in etc_files:
-            pdf_path = convert_to_pdf(etc_dir, file, output_directory)
-            if pdf_path:
-                pdf_files.append(pdf_path)
-                del_pdf_files.append(pdf_path)
+
+        # 병렬 처리할 파일 리스트 생성
+        all_files = [(receipt_dir, file, output_directory) for file in receipt_files] + \
+                    [(etc_dir, file, output_directory) for file in etc_files]
+
+        # 병렬로 convert_to_pdf 실행
+        with Pool(processes=2) as pool:
+            results = pool.starmap(convert_to_pdf, all_files)
+
+        # 변환된 파일 중 유효한 파일만 pdf_files 리스트에 추가
+        for result in results:
+            if result:
+                pdf_files.append(result)
+                del_pdf_files.append(result)
+
+        # 회의록 파일 추가 (이미 PDF이므로 병렬처리 불필요)
         minutes_pdf = [os.path.join(minutes_dir, f) for f in get_files(minutes_dir, month, period) if f.endswith('.pdf')]
         if minutes_pdf:
             pdf_files.extend(minutes_pdf)
@@ -707,16 +721,59 @@ def process_files(house_name, input_directory, output_directory, month, period):
         if not pdf_files:
             return "no_files", None, None
 
-        merged_pdf_path = os.path.join(output_directory, f"{house_name}_영수증 및 회의록 등_{month}월{period}차.pdf") #AVISON_영수증 및 회의록 등_9월2차
+        # PDF 병합
+        merged_pdf_path = os.path.join(output_directory, f"{house_name}_영수증 및 회의록 등_{month}월{period}차.pdf")
         merge_pdfs(pdf_files, merged_pdf_path)
 
-        for del_pdf_file in del_pdf_files:
-            os.remove(del_pdf_file)
+        # 병렬로 파일 삭제
+        with Pool(processes=os.cpu_count()) as pool:
+            pool.map(delete_file, del_pdf_files)
 
         print(f"Merged PDF saved as {merged_pdf_path}")
         return "success", f"{house_name}_영수증 및 회의록 등_{month}월{period}차.pdf", merged_pdf_path
+
     except Exception as e:
         return "error", e, None
+
+# # 원본 함수
+# def process_files(house_name, input_directory, output_directory, month, period):
+#     try:
+#         receipt_dir = input_directory+'receipts'
+#         minutes_dir = input_directory+'minutes'
+#         etc_dir = input_directory+'etc'
+#         pdf_files = []
+#         del_pdf_files = []
+#         receipt_files = get_files(receipt_dir, month, period)
+#         etc_files = get_files(etc_dir, month, period)
+#         for file in receipt_files:
+#             pdf_path = convert_to_pdf(receipt_dir, file, output_directory)
+#             if pdf_path:
+#                 pdf_files.append(pdf_path)
+#                 del_pdf_files.append(pdf_path)
+#         for file in etc_files:
+#             pdf_path = convert_to_pdf(etc_dir, file, output_directory)
+#             if pdf_path:
+#                 pdf_files.append(pdf_path)
+#                 del_pdf_files.append(pdf_path)
+#         minutes_pdf = [os.path.join(minutes_dir, f) for f in get_files(minutes_dir, month, period) if f.endswith('.pdf')]
+#         if minutes_pdf:
+#             pdf_files.extend(minutes_pdf)
+#
+#         if not pdf_files:
+#             return "no_files", None, None
+#
+#         merged_pdf_path = os.path.join(output_directory, f"{house_name}_영수증 및 회의록 등_{month}월{period}차.pdf") #AVISON_영수증 및 회의록 등_9월2차
+#         merge_pdfs(pdf_files, merged_pdf_path)
+#
+#         for del_pdf_file in del_pdf_files:
+#             os.remove(del_pdf_file)
+#
+#         print(f"Merged PDF saved as {merged_pdf_path}")
+#         return "success", f"{house_name}_영수증 및 회의록 등_{month}월{period}차.pdf", merged_pdf_path
+#     except Exception as e:
+#         return "error", e, None
+
+
 
 def post_minute_data(data):
     try:
