@@ -310,6 +310,12 @@ def create_receipt():
         db.session.add(receipt)
         db.session.commit()
         return jsonify(receipt.to_dict()), 201
+    except IntegrityError as e:
+        db.session.rollback()
+        # Check if the error is caused by a duplicate key violation
+        if 'duplicate key value' in str(e.orig):
+            return jsonify({'error': 'ID already exists, duplicate entry'}), 400
+        return jsonify({'error': str(e)}), 500
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500

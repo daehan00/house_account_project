@@ -619,6 +619,7 @@ def post_receipt():
         datas = {}
         for data in request.form:
             datas[data] = request.form[data]
+        datas['house_name'] = session['userData'].split('-')[-1]
         return post_receipt_data(datas)
     else:
         flash("You do not have permission to access this page.", "warning")

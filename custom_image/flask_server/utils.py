@@ -555,7 +555,7 @@ def post_receipt_data(request_data):
     url = os.getenv('URL_API')+'receipts'
     int_data_list = ['user_id', 'head_count', 'expenditure', 'division_num']
     bool_data_list = ['holiday_check', 'souvenir_record', 'division_program', 'isp_check']
-    request_data['house_name'] = 'AVISON'
+    # request_data['house_name'] = 'AVISON'
     request_data['id'] = request_data['program_id'] + str(request_data['datetime'])
     for data in request_data:
         if data in int_data_list:
@@ -597,10 +597,13 @@ def post_receipt_data(request_data):
     code, response_text = api_post_data(url, api_request_data)
     if code == 201:
         flash('성공적으로 처리되었습니다.', 'success')
-        return redirect(url_for("ra"))
+        return redirect("/ra/check_ra_list")
+    elif code == 400 and 'duplicate' in response_text:
+        flash('이미 제출된 내용입니다.', 'warning')
+        return redirect("/ra/post_receipt")
     else:
         flash(f"에러 발생 : {response_text}", 'error')
-        return redirect(url_for("/ra/post_receipt"))
+        return redirect("/ra/post_receipt")
 
 
 def modify_and_save_excel(data):
