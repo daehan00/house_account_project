@@ -950,6 +950,7 @@ def manager_create_xlsx(month, period, house_name, year_semester_house):
         rows_list = []
 
         for idx, receipt in enumerate(receipt_list, start=1):
+            purchase_reason = receipt['purchase_reason'] + "/" + receipt['key_items_quantity']
             new_row = {
                 'No': idx,
                 "결제일자": receipt['date'].split("T")[0],
@@ -960,7 +961,7 @@ def manager_create_xlsx(month, period, house_name, year_semester_house):
                 "계정항목": receipt['category_id'],
                 "하우스": get_house_name(receipt['house_name']),
                 "프로그램명": receipt['program_name'],
-                "구매핵심사유&핵심품목및수량": receipt['purchase_reason'] + "/" + receipt['key_items_quantity'],
+                "구매핵심사유&핵심품목및수량": f"{str(receipt.get('division_num'))}분반 " + purchase_reason if receipt.get('division_program') else purchase_reason,
                 "사용인원": receipt['head_count'],
                 "적요통합": "",
                 "비고": "기념품지급대장 작성" if receipt['souvenir_record'] else receipt.get('purchase_details', "")
@@ -989,7 +990,10 @@ def manager_create_xlsx(month, period, house_name, year_semester_house):
         for program in program_data:
             program_list.append(program['program_name'])
         # 열 순서 정의
-        columns_order = ['운영비', '기념품비', '상품비', '소모품비', '인건비', '식비/간식비', '인쇄비', 'RA회의비']
+        data = load_dict_code()
+        category = data['category_expenses']
+        columns_order = [x['kor_name'] for x in category]
+        # columns_order = ['운영비', '기념품', '상품', '소모품', '인건비', '식비/다과비', '인쇄비']
 
         final_df = pivot_df.reindex(program_list, columns=columns_order, fill_value=0).reset_index()
         file_name = f'{house_name}_{str(month)}월_{str(period)}차.xlsx'

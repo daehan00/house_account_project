@@ -59,15 +59,7 @@
       }
     },
     {
-      "kor_name": "RA회의비",
-      "en_name": "RA Meeting Expenses",
-      "description": {
-        "en": "Budget for regular operational meetings, adjusted by the number of RC students.",
-        "kor": "RC 학생 수에 따라 조정되는 정례 운영 회의의 예산입니다."
-      }
-    },
-    {
-      "kor_name": "기념품비",
+      "kor_name": "기념품",
       "en_name": "Gifts Expense",
       "description": {
         "en": "Costs for purchasing five or more identical items, with a requirement to maintain a gift log.",
@@ -75,7 +67,7 @@
       }
     },
     {
-      "kor_name": "상품비",
+      "kor_name": "상품",
       "en_name": "Merchandise Expense",
       "description": {
         "en": "Costs for purchasing up to four items, each under a specific price limit.",
@@ -83,7 +75,7 @@
       }
     },
     {
-      "kor_name": "소모품비",
+      "kor_name": "소모품",
       "en_name": "Supplies Expense",
       "description": {
         "en": "Costs for consumable materials needed for program operations.",
@@ -99,7 +91,7 @@
       }
     },
     {
-      "kor_name": "식비/간식비",
+      "kor_name": "식비/다과비",
       "en_name": "Meals and Refreshments Expense",
       "description": {
         "en": "Costs for meals, snacks, and beverages.",
@@ -115,11 +107,11 @@
       }
     },
     {
-      "kor_name": "예비비",
-      "en_name": "Contingency Funds",
+      "kor_name": "RA회의비",
+      "en_name": "RA Meeting Expenses",
       "description": {
-        "en": "Funds used for unforeseen expenses or events, such as RC Olympic event prizes.",
-        "kor": "RC 올림픽 경기 상금 등 예상치 못한 비용이나 행사에 사용되는 기금입니다."
+        "en": "Budget for regular operational meetings, adjusted by the number of RC students.",
+        "kor": "RC 학생 수에 따라 조정되는 정례 운영 회의의 예산입니다."
       }
     }
   ]
