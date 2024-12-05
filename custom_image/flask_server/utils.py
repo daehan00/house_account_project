@@ -690,6 +690,14 @@ def delete_file(file):
         os.remove(file)
     except Exception as e:
         print(f"Error deleting file {file}: {e}")
+
+def terminate_libreoffice():
+    try:
+        subprocess.run(['pkill', '-f', 'soffice.bin'], check=True)
+        print("LibreOffice processes terminated.")
+    except subprocess.CalledProcessError as e:
+        print("Failed to terminate LibreOffice:", e)
+
 def process_files(house_name, input_directory, output_directory, month, period):
     try:
         receipt_dir = os.path.join(input_directory, 'receipts')
@@ -734,9 +742,10 @@ def process_files(house_name, input_directory, output_directory, month, period):
 
         print(f"Merged PDF saved as {merged_pdf_path}")
         return "success", f"{house_name}_영수증 및 회의록 등_{month}월{period}차.pdf", merged_pdf_path
-
     except Exception as e:
         return "error", e, None
+    finally:
+        terminate_libreoffice()
 
 # # 원본 함수
 # def process_files(house_name, input_directory, output_directory, month, period):
