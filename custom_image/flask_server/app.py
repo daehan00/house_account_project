@@ -1,6 +1,6 @@
 import os
 import unicodedata
-
+import logging
 import requests
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
 from utils import get_house_name, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
@@ -17,7 +17,14 @@ app.config['UPLOAD_FOLDER_ADMIN'] = os.getenv('UPLOAD_FOLDER_ADMIN')  # 업로�
 app.config['UPLOAD_FOLDER_RA'] = os.getenv('UPLOAD_FOLDER_RA')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_TMP'] = os.getenv('UPLOAD_FOLDER_TMP')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_MANAGER'] = os.getenv('UPLOAD_FOLDER_MANAGER')
-# app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 최대 파일 크기 제한(예: 16MB)
+
+# 커스텀 로그 필터
+class StaticFilter(logging.Filter):
+    def filter(self, record):
+        return '/static/' not in record.getMessage()
+if not app.debug:
+    werkzeug_logger = logging.getLogger('werkzeug')
+    werkzeug_logger.addFilter(StaticFilter())
 
 @app.route("/", methods=["GET"])
 def home():
