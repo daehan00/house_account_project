@@ -196,7 +196,6 @@
                             cardEventsEl.appendChild(eventEl);
                         }
                     } else {
-                        console.error('Invalid date:', event.start, event.end);
                     }
                 });
             }
@@ -285,7 +284,6 @@
                         alert(data.message); // 에러 메시지 표시
                     }
                 })
-                .catch(error => console.error('Error:', error));
             };
 
             window.updateEvent = function() {
@@ -293,13 +291,11 @@
                 const ispCard = document.getElementById('ispCard2').value === 'true';
                 const startDate = document.getElementById('editStartDate').value;
                 const endDate = document.getElementById('editEndDate').value;
-                const username = document.getElementById('editProgramName').getAttribute('data-user');  // Get user from the attribute
 
                 if (new Date(endDate) <= new Date(startDate)) {
                     alert("종료 시간은 시작 시간보다 빠를 수 없습니다.");
                     return;
                 }
-                console.log('Sending update:', eventId, ispCard, startDate, endDate, username);
 
                 fetch('/calendar/submit/update', {
                     method: 'POST',
@@ -308,8 +304,7 @@
                         event_id: eventId,
                         isp_card: ispCard,
                         start_datetime: startDate,
-                        end_datetime: endDate,
-                        username: username
+                        end_datetime: endDate
                     })
                 })
                 .then(response => response.json())
@@ -322,19 +317,16 @@
                         alert(data.message);  // 실패 메시지 표시
                     }
                 })
-                .catch(error => console.error('Error:', error));
             };
 
             window.deleteEvent = function() {
                 const eventId = document.getElementById('editProgramName').getAttribute('data-id'); // Assume event ID is stored
-                const username = document.getElementById('editProgramName').getAttribute('data-user');  // Get user from the attribute
 
                 fetch(`/calendar/submit/delete`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }, // 이 부분을 추가해야 합니다.
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        id: eventId,
-                        username: username
+                        event_id: eventId
                     })
                 })
                 .then(response => response.json())
@@ -347,7 +339,6 @@
                         alert(data.message); // 에러 메시지 표시
                     }
                 })
-                .catch(error => console.error('Error:', error));
             };
         });
     </script>

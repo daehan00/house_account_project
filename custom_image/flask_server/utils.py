@@ -56,9 +56,9 @@ def put_calendar_event(url, data):
         response = requests.put(url, json=data)
 
         if response.status_code == 200:
-            return "Event submitted", 200
+            return response.json().get('message'), 200
         else:
-            return response.text, 400
+            return response.json().get('message'), 400
     except requests.RequestException as e:
         return f"Error: {e}", 500
 
@@ -71,9 +71,9 @@ def delete_calendar_event(url):
         if response.status_code == 200:
             return "Event deleted", 200
         elif response.status_code == 404:
-            return "Reservation Not Found", 404
+            return response.json().get('message'), 404
         else:
-            return response.text, 400
+            return response.json().get('message'), 400
     except requests.RequestException as e:
         return f"Error: {e}", 500
 
@@ -555,7 +555,6 @@ def post_receipt_data(request_data):
     url = os.getenv('URL_API')+'receipts'
     int_data_list = ['user_id', 'head_count', 'expenditure', 'division_num']
     bool_data_list = ['holiday_check', 'souvenir_record', 'division_program', 'isp_check']
-    # request_data['house_name'] = 'AVISON'
     request_data['id'] = request_data['program_id'] + str(request_data['datetime'])
     for data in request_data:
         if data in int_data_list:

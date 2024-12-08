@@ -1,0 +1,52 @@
+get:
+tags:
+  - "Calendar"
+summary: "Verify Reservation Submitter"
+description: "Verifies whether the specified user_id (integer) is the submitter of the reservation identified by event_id."
+operationId: "verifyReservationSubmitter"
+produces:
+  - "application/json"
+parameters:
+  - name: "event_id"
+    in: "path"
+    required: true
+    type: "integer"
+    description: "The ID of the reservation to verify"
+  - name: "user_id"
+    in: "query"
+    required: true
+    type: "string"
+    description: "User ID (name) to verify against the reservation's submitter"
+responses:
+  200:
+    description: "Valid submitter"
+    schema:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+          example: "Valid submitter"
+  403:
+    description: "Unauthorized"
+    schema:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+          example: "Unauthorized"
+  404:
+    description: "Reservation not found"
+    schema:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+          example: "Reservation not found"
+  400:
+    description: "Bad request due to invalid or missing user_id"
+    schema:
+      type: "object"
+      properties:
+        error:
+          type: "string"
+          example: "Invalid user_id"

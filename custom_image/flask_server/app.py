@@ -1,5 +1,7 @@
 import os
 import unicodedata
+
+import requests
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
 from utils import get_house_name, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
@@ -126,10 +128,14 @@ def submit_event():
 @app.route("/calendar/submit/update", methods=["POST"])
 def update_event():
     if session.get('manager') or session.get('ra'):
-        username = session.get('userName')
-        req_name = request.json.get('username')
-        if not unicodedata.normalize('NFC', username) == unicodedata.normalize('NFC', req_name):
-            return jsonify({'success': False, 'message': '권한이 없습니다.'}), 403
+
+        if session.get('ra'):
+            event_id = request.json['event_id']
+            userid = session.get('userName')
+            verify_url = os.getenv('URL_API') + f'calendar/verify/{str(event_id)}?user_id={userid}'
+            response = requests.get(verify_url)
+            if response.status_code != 200:
+                return jsonify({'success': False, 'message': response.json().get('message')}), 403
 
         data = request.get_json()  # Get data from the client
         date_start = datetime.strptime(data['start_datetime'], "%Y-%m-%dT%H:%M")
@@ -139,7 +145,7 @@ def update_event():
 
         # Build the URL and make the request
         url = os.getenv("URL_API") + "calendar/update/" + str(data['event_id'])
-        body = {key: data[key] for key in data if key != 'event_id'}  # Exclude the event_id from the data sent
+        body = {key: data[key] for key in data.keys() if key != 'event_id'}  # Exclude the event_id from the data sent
         message, code = put_calendar_event(url, body)
         if code == 200:
             return jsonify({'success': True, 'message': message}), code
@@ -151,20 +157,20 @@ def update_event():
 @app.route("/calendar/submit/delete", methods=["POST"])
 def delete_event():
     if session.get('manager') or session.get('ra'):
+        del_id = request.json['event_id']
         if session.get('ra'):
-            username = session.get('userName')
-            req_name = request.json.get('username')
-            if not unicodedata.normalize('NFC', username) == unicodedata.normalize('NFC', req_name):
-                return jsonify({'success': False, 'message': '권한이 없습니다.'}), 403
+            userid = session.get('userName')
+            verify_url = os.getenv('URL_API') + f'calendar/verify/{str(del_id)}?user_id={userid}'
+            response = requests.get(verify_url)
+            if response.status_code != 200:
+                return jsonify({'success': False, 'message': response.json().get('message')}), 403
 
-        data = request.get_json()
-        del_id = data['id']
         url = os.getenv("URL_API") + "calendar/delete/" + str(del_id)
         message, code = delete_calendar_event(url)
         if code == 200:
             return jsonify({'success': True, 'message': message}), 200
         else:
-            return jsonify({'success': False, 'message': message+str(data)}), code
+            return jsonify({'success': False, 'message': message}), code
     else:
         return jsonify({'success': False, 'message': 'Not authorized'}), 403
 
@@ -607,7 +613,6 @@ def post_receipt_form():
     if session.get('ra') or session.get('manager'):
         user_id = session['userId']
         year_semester_house = session['userData']
-        # year_semester_house = '2024-1-AVISON'
         title, contents = form_post_receipt(year_semester_house, user_id)
         return render_template('03_post_receipt.html', contents=contents, tab_id='post_receipt')
     else:

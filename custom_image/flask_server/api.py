@@ -517,6 +517,23 @@ def delete_reservation(id):
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/calendar/verify/<int:event_id>', methods=['GET'])
+@swag_from('swagger/calendar_verify.yml')
+def verify_reservation_submitter(event_id):
+    user_id = request.args.get('user_id')
+
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+
+    reservation = CardReservation.query.get(event_id)
+    if not reservation:
+        return jsonify({"message": "Reservation not found"}), 404
+
+    if reservation.user_id == user_id:
+        return jsonify({"message": "Valid submitter"}), 200
+    else:
+        return jsonify({"message": "Unauthorized"}), 403
+
 
 class ReportDetail(db.Model):
     __tablename__ = 'report_details'
