@@ -277,8 +277,8 @@ def manager():
         for i in filtered_data:
             i['date'] = i['date'].split('T')[0]
 
-        hwp_files = [f.split(".")[0] for f in minutes_files if f.endswith('.hwp')]
-        pdf_files = [unicodedata.normalize('NFC', f.split(".")[0]) for f in minutes_files if f.endswith('.pdf')]
+        hwp_files = [f.replace('.hwp', '') for f in minutes_files if f.endswith('.hwp')]
+        pdf_files = [unicodedata.normalize('NFC', f.replace('.pdf', '')) for f in minutes_files if f.endswith('.pdf')]
         minutes_data = []
         for i in hwp_files:
             if unicodedata.normalize('NFC', i) in pdf_files:
@@ -549,8 +549,8 @@ def upload_ra():
         minutes_files = get_files_from_directory(minutes_dir)
         etc_files = get_files_from_directory(etc_dir)
 
-        hwp_files = [f.split(".")[0] for f in minutes_files if f.endswith('.hwp')]
-        pdf_files = [unicodedata.normalize('NFC', f.split(".")[0]) for f in minutes_files if f.endswith('.pdf')]
+        hwp_files = [f.replace('.hwp', '') for f in minutes_files if f.endswith('.hwp')]
+        pdf_files = [unicodedata.normalize('NFC', f.replace('.pdf', '')) for f in minutes_files if f.endswith('.pdf')]
         minutes_data = []
         for i in hwp_files:
             if unicodedata.normalize('NFC', i) in pdf_files:
