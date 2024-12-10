@@ -130,7 +130,6 @@ def submit_event():
         flash('You are not authorized to access this page', 'warning')
         return redirect("/")
 
-
 @app.route("/calendar/submit/update", methods=["POST"])
 def update_event():
     if session.get('manager') or session.get('ra'):
