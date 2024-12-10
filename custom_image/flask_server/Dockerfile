@@ -31,4 +31,4 @@ RUN pip install --upgrade pip \
 COPY . .
 
 EXPOSE 8088 5000
-CMD ["python", "app.py"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=8088"]
