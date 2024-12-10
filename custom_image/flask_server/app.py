@@ -9,8 +9,6 @@ from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
 
-
-
 app = Flask(__name__)
 secret_key = os.getenv("SECRET_KEY")
 app.secret_key = secret_key  # Needed for session management and flash messages
