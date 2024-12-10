@@ -31,4 +31,4 @@ RUN pip install --upgrade pip \
 COPY . .
 
 EXPOSE 8088 5000
-CMD ["python", "watcher.py"]
+CMD ["python", "app.py"]

@@ -2,7 +2,8 @@ import os
 import unicodedata
 import logging
 import requests
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
+import subprocess
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
 from utils import get_house_name, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
@@ -716,6 +717,15 @@ def download_template():
             return redirect("/")
         return send_file(os.path.join(data_dir, file_name), as_attachment=True)
 
-
-if __name__ == "__main__":
-    app.run('0.0.0.0',port=8088)# 로컬에서 개발할 때 사용하는 디버거 모드. 운영 환경에서는 x
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    if request.method == 'POST':
+        payload = request.json
+        if payload['ref'] == 'refs/heads/main':
+            subprocess.run(["docker-compose", "pull", "flask-app"])
+            subprocess.run(["docker-compose", "up", "-d", "flask-app"])
+            return 'Webhook received and Docker updated', 200
+        else:
+            return 'Not the main branch', 200
+    else:
+        abort(400)
