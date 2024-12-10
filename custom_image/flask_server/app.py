@@ -719,8 +719,9 @@ def webhook():
     if request.method == 'POST':
         payload = request.json
         if payload['ref'] == 'refs/heads/main':
-            subprocess.run(["docker-compose", "pull", "flask-app"])
-            subprocess.run(["docker-compose", "up", "-d", "flask-app"])
+            subprocess.run(["sudo", "git", "pull", "origin", "main"])
+            subprocess.run(["sudo", "docker-compose", "pull", "flask-app"])
+            subprocess.run(["sudo", "docker-compose", "up", "-d", "flask-app"])
             return 'Webhook received and Docker updated', 200
         else:
             return 'Not the main branch', 200
