@@ -25,6 +25,22 @@ if not app.debug:
     werkzeug_logger = logging.getLogger('werkzeug')
     werkzeug_logger.addFilter(StaticFilter())
 
+#보안 조치(에러 핸들러, 캐싱 정책, 프레임 보호, XSS 보호)
+@app.errorhandler(404)
+def page_not_found(e):
+    return "이 페이지는 존재하지 않습니다.", 404
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return "이 메소드는 허용되지 않습니다.", 405
+
+@app.after_request
+def apply_caching(response):
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    return response
+
 @app.route("/", methods=["GET"])
 def home():
     if session.get('manager') or session.get('admin') or session.get('ra'):
