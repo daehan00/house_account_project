@@ -52,25 +52,27 @@ function goToAdmin(password) {
 
 function promptForPassword() {
     var password = prompt("Please enter the admin password:");
-    if (password != null && password !== "") {
-        var form = document.createElement("form");
-        form.setAttribute("method", "post");
-        form.setAttribute("action", "/admin");
+    if (password !== null && password !== "") {
+        fetch('/get_csrf_token').then(response => response.json()).then(data => {
+            var form = document.createElement('form');
+            form.setAttribute('method', 'post');
+            form.setAttribute('action', '/admin');
 
-        var hiddenField = document.createElement("input");
-        hiddenField.setAttribute("type", "hidden");
-        hiddenField.setAttribute("name", "password");
-        hiddenField.setAttribute("value", password);
+            var hiddenField = document.createElement('input');
+            hiddenField.setAttribute('type', 'hidden');
+            hiddenField.setAttribute('name', 'password');
+            hiddenField.setAttribute('value', password);
 
-        var csrfField = document.createElement("input");
-        csrfField.setAttribute("type", "hidden");
-        csrfField.setAttribute("name", "csrf_token");
-        csrfField.setAttribute("value", csrfToken);
+            var csrfField = document.createElement('input');
+            csrfField.setAttribute('type', 'hidden');
+            csrfField.setAttribute('name', 'csrf_token');
+            csrfField.setAttribute('value', data.csrf_token);
 
-        form.appendChild(hiddenField);
-        form.appendChild(csrfField);
-        document.body.appendChild(form);
-        form.submit();
+            form.appendChild(hiddenField);
+            form.appendChild(csrfField);
+            document.body.appendChild(form);
+            form.submit();
+        }).catch(error => console.error('Error fetching CSRF token:', error));
     }
 }
 

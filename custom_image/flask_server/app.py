@@ -4,7 +4,7 @@ import logging
 import requests
 import subprocess
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from utils import get_house_name, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, generate_form_data, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -734,6 +734,13 @@ def download_template():
             flash("잘못된 요청입니다.", 'error')
             return redirect("/")
         return send_file(os.path.join(data_dir, file_name), as_attachment=True)
+
+
+# CSRF 보안 필터링
+@app.route('/get_csrf_token', methods=['GET'])
+def get_csrf_token():
+    token = generate_csrf()
+    return jsonify({'csrf_token': token})
 
 # 웹훅
 @app.route('/webhook', methods=['POST'])
