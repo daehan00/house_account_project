@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_wtf.csrf import CSRFProtect
 from utils import get_house_name, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, generate_form_data, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 load_dotenv()
 
 app = Flask(__name__)
@@ -17,6 +17,7 @@ app.config['UPLOAD_FOLDER_ADMIN'] = os.getenv('UPLOAD_FOLDER_ADMIN')  # 업로�
 app.config['UPLOAD_FOLDER_RA'] = os.getenv('UPLOAD_FOLDER_RA')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_TMP'] = os.getenv('UPLOAD_FOLDER_TMP')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_MANAGER'] = os.getenv('UPLOAD_FOLDER_MANAGER')
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
 
 csrf = CSRFProtect(app)
 # 커스텀 로그 필터
@@ -62,12 +63,14 @@ def login():
             session['userId'] = user_id
             session['userName'] = data['user_name']
             session['userData'] = data['user_data']
+            session.permanent = True
             flash('Logged in as manager!', 'success')
         elif auth == 'ra':
             session['ra'] = True
             session['userId'] = user_id
             session['userName'] = data['user_name']
             session['userData'] = data['user_data']
+            session.permanent = True
             flash('Logged in as RA', 'success')
         elif auth == 'worngid':
             flash("Invalid id", 'error')
