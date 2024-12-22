@@ -32,6 +32,7 @@
                         <td>
                             <form action="/admin/authority/delete" method="post" style="display:inline;">
                                 {% for column in columns %}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="userId" value="{{ row['user_id'] }}">
                                 {% endfor %}
                                 <button type="submit">권한삭제</button>
@@ -66,6 +67,7 @@
                         <td>
                             <form action="/admin/authority/create" method="post" style="display:inline;">
                                 {% for column in columns %}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="userId" value="{{ row['user_id'] }}">
                                 {% endfor %}
                                 <button type="submit">권한부여</button>

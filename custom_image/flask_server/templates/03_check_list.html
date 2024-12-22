@@ -43,6 +43,7 @@
                   <td style="display:none;">{{ row['id'] }}</td> <!-- Hidden cell for ID -->
                   <td>
                       <form action="/ra/create_xlsx" method="post" style="display:inline;">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                           {% for column in columns %}
                           <input type="hidden" name="{{ column }}" value="{{ row[column] }}">
                           {% endfor %}
@@ -51,6 +52,7 @@
                   </td>
                   <td>
                       <form action="/manager/delete_receipt" method="post" style="display:inline;">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                           <input type="hidden" name="id" value="{{ row['id'] }}">
                           <button type="submit">삭제</button>
                       </form>
@@ -84,6 +86,7 @@
                   <td>
                       {% if receipt %}
                       <form action="/manager/download_file" method="post" style="display:inline;">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                           <input type="hidden" name="filename" value="{{ receipt }}">
                           <input type="hidden" name="type" value="receipt">
                           <input type="hidden" name="pdf" value="">
@@ -94,6 +97,7 @@
                   <td>
                       {% if receipt %}
                       <form action="/manager/delete_file" method="post" style="display:inline;">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                           <input type="hidden" name="filename" value="{{ receipt }}">
                           <input type="hidden" name="type" value="receipt">
                           <input type="hidden" name="pdf" value="">
@@ -108,6 +112,7 @@
                   <td>
                       {% if minute %}
                       <form action="/manager/download_file" method="post" style="display:inline;">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                           <input type="hidden" name="filename" value="{{ minute['filename'] }}">
                           <input type="hidden" name="type" value="minute">
                           <input type="hidden" name="pdf" value="{{ minute['pdf'] }}">
@@ -118,6 +123,7 @@
                   <td>
                       {% if minute %}
                       <form action="/manager/delete_file" method="post" style="display:inline;">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                           <input type="hidden" name="filename" value="{{ minute['filename'] }}">
                           <input type="hidden" name="type" value="minute">
                           <input type="hidden" name="pdf" value="{{ minute['pdf'] }}">
@@ -146,6 +152,7 @@
                     <td>{{ file }}</td>
                     <td>
                         <form action="/manager/download_file" method="post" style="display:inline;">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                           <input type="hidden" name="filename" value="{{ file }}">
                           <input type="hidden" name="type" value="etc">
                           <input type="hidden" name="pdf" value="">
@@ -154,6 +161,7 @@
                     </td>
                     <td>
                         <form action="/manager/delete_file" method="post" style="display:inline;">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                           <input type="hidden" name="filename" value="{{ file }}">
                           <input type="hidden" name="type" value="etc">
                           <input type="hidden" name="pdf" value="">

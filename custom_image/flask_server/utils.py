@@ -477,7 +477,7 @@ def register_program_list(set_data, data_dir, redirect_url):
 
 def form(input_type, name, name_id, attribute, content, options=None, required=True):
     """폼 필드 생성 함수에 required 파라미터 추가"""
-    attributes = f'{attribute}="{content}"'
+    attributes = f'{attribute}="{content}"' if content else ''
     if required:
         attributes += ' required'  # 필수 입력 필드로 설정
     if input_type == 'select':
@@ -485,9 +485,13 @@ def form(input_type, name, name_id, attribute, content, options=None, required=T
     else:
         return {'입력창': input_type, '항목명': name, 'name': name_id, 'attributes': attributes}
 
-def form_post_receipt(year_semester_house, user_id):
+def generate_form_data(year_semester_house, user_id):
     today = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%dT%H:%M')
     user_list = get_ra_list(os.getenv('URL_API')+'ra_list/get')
+    for user in user_list:
+        if int(user['program_id']) == int(user_id):
+            user.update({'selected': 'selected'})
+            break
     category_expenses = get_category_expenses()
     url_program = os.getenv('URL_API')+'program'
     try:
@@ -495,7 +499,7 @@ def form_post_receipt(year_semester_house, user_id):
     except Exception:
         return redirect("/ra")
 
-    form_list = [
+    form_data = [
         form('select', '사용자명', 'user_id', '', '', options=user_list),
         form('checkbox', '주말, 법정 공휴일 및 심야 사용 여부', 'holiday_check', '', '', required=False),
         form('select', '계정항목', 'category_id','placeholder', '', options=category_expenses),
@@ -514,42 +518,7 @@ def form_post_receipt(year_semester_house, user_id):
         form('text', '업체 선정 사유', 'reason_store', 'placeholder', 'ex) 최저가 업체'),
         form('checkbox', 'isp 사용여부', 'isp_check', 'placeholder', '', required=False)
     ]
-    contents = '''
-                            <form action="/ra/post_receipt_data" method="POST">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                          <th scope="col">항목명</th>
-                                          <th scope="col">입력</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>'''
-    for data in form_list:
-        if data['입력창'] == 'select':
-            option_html = ''.join(
-                [f'<option value="{opt["program_id"]}" {"selected" if str(opt["program_id"]) == str(user_id) else ""}>{opt["program_name"]}</option>' for opt in data['options']])
-            contents += f'''<tr>
-                                                <th scope="row">{data['항목명']}</th>
-                                                <td><select name="{data['name']}" {data['attributes']}>{option_html}</select></td>
-                                            </tr>'''
-        elif data['입력창'] == 'textarea':
-            contents += f'''<tr>
-                                            <th scope="row">{data['항목명']}</th>
-                                            <td><textarea id = "{data['name']}" name = "{data['name']}" rows="10" cols="50"></textarea></td>
-                                        </tr>'''
-        else:
-            contents = contents + f'''<tr>
-                                            <th scope="row">{data['항목명']}</th>
-                                            <td><input type="{data['입력창']}" name="{data['name']}" {data['attributes']}></td>
-                                        </tr>'''
-
-    contents = contents + '''</tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th scope="row" colspan="2"><input type="submit" value="제출"><input type="button" value="취소" onclick="location.href='/'"></th>
-                                        </tr>
-                                    </tfoot></table></form>'''
-    return '영수증 입력', contents
+    return form_data
 
 def post_receipt_data(request_data):
     url = os.getenv('URL_API')+'receipts'

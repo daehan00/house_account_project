@@ -4,7 +4,8 @@ import logging
 import requests
 import subprocess
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
-from utils import get_house_name, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, form_post_receipt, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from flask_wtf.csrf import CSRFProtect
+from utils import get_house_name, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, generate_form_data, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime
 load_dotenv()
@@ -17,6 +18,7 @@ app.config['UPLOAD_FOLDER_RA'] = os.getenv('UPLOAD_FOLDER_RA')  # 업로드 파�
 app.config['UPLOAD_FOLDER_TMP'] = os.getenv('UPLOAD_FOLDER_TMP')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_MANAGER'] = os.getenv('UPLOAD_FOLDER_MANAGER')
 
+csrf = CSRFProtect(app)
 # 커스텀 로그 필터
 class StaticFilter(logging.Filter):
     def filter(self, record):
@@ -634,8 +636,8 @@ def post_receipt_form():
     if session.get('ra') or session.get('manager'):
         user_id = session['userId']
         year_semester_house = session['userData']
-        title, contents = form_post_receipt(year_semester_house, user_id)
-        return render_template('03_post_receipt.html', contents=contents, tab_id='post_receipt')
+        form_data = generate_form_data(year_semester_house, user_id)
+        return render_template('03_post_receipt.html', form_data=form_data, tab_id='post_receipt')
     else:
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")

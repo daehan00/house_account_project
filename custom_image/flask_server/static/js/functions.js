@@ -174,6 +174,7 @@ function createFormContent(houseOptions, formType) {
         <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.5);">
             <h2>${title}</h2>
             <form action="${action}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <label for="semester">Semester:</label>
                 <select id="semester" name="semester" required>
                     <option value=1>Spring</option>

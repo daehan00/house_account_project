@@ -3,15 +3,58 @@
 {% block contents %}
 <div class="container">
     <div class="half">
-        <!-- 첫 번째 섹션의 내용 -->
-        {{ contents|safe }}
+        <form action="/ra/post_receipt_data" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">항목명</th>
+                        <th scope="col">입력</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in form_data %}
+                        {% if data['입력창'] == 'select' %}
+                            <tr>
+                                <th scope="row">{{ data['항목명'] }}</th>
+                                <td>
+                                    <select name="{{ data['name'] }}" {{ data['attributes'] }}>
+                                        {% for opt in data['options'] %}
+                                            <option value="{{ opt['program_id'] }}" {{ opt.get('selected', '') }}>{{ opt['program_name'] }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                            </tr>
+                        {% elif data['입력창'] == 'textarea' %}
+                            <tr>
+                                <th scope="row">{{ data['항목명'] }}</th>
+                                <td><textarea id="{{ data['name'] }}" name="{{ data['name'] }}" rows="10" cols="50"></textarea></td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <th scope="row">{{ data['항목명'] }}</th>
+                                <td><input type="{{ data['입력창'] }}" name="{{ data['name'] }}" {{ data['attributes']|safe }}></td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th scope="row" colspan="2">
+                            <input type="submit" value="제출">
+                            <input type="button" value="취소" onclick="location.href='/'">
+                        </th>
+                    </tr>
+                </tfoot>
+            </table>
+        </form>
     </div>
     <div class="half">
-        <!-- 두 번째 섹션의 내용 -->
         <h1>작성요령</h1>
         <strong>구매 내역(종류와 단가)는 영수증에 항목 있을 시 작성할 필요 없음</strong><br>
-        <strong>상품, 기념품 모두 기념품지급대장 작성대상</strong>
-
+        <strong>상품, 기념품 모두 기념품지급대장 작성대상</strong><br>
+        <strong>금액, 시간 정확히 확인</strong><br>
+        <strong>분반모임의 경우, 분반 필수 입력</strong><br>
     </div>
 </div>
 {% endblock %}

@@ -24,6 +24,7 @@
 <div class="form-container">
     <form action="/upload/ra" method="post" enctype="multipart/form-data">
         <input type="file" id="file" name="file" class="file-input" required>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <br>
         <input type="submit" value="Upload">
     </form>
@@ -50,6 +51,7 @@
           <td>
               {% if receipt %}
               <form action="/manager/download_file" method="post" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="filename" value="{{ receipt }}">
                   <input type="hidden" name="type" value="receipt">
                   <input type="hidden" name="pdf" value="">
@@ -63,6 +65,7 @@
           <td>
               {% if minute %}
               <form action="/manager/download_file" method="post" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="filename" value="{{ minute['filename'] }}">
                   <input type="hidden" name="type" value="minute">
                   <input type="hidden" name="pdf" value="{{ minute['pdf'] }}">
@@ -90,6 +93,7 @@
             <td>{{ file }}</td>
             <td>
                 <form action="/manager/download_file" method="post" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="filename" value="{{ file }}">
                   <input type="hidden" name="type" value="etc">
                   <input type="hidden" name="pdf" value="">

@@ -45,6 +45,7 @@
                     <td style="display:none;">{{ user['id'] }}</td>
                     <form action="/ra/minutes/post" method="post" style="display:inline;">
                         <th>본인</th>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="user_id" value="{{ user['user_id'] }}">
                         <input type="hidden" name="year_semester_house" value="{{ user['year_semester_house'] }}">
                         <input type="hidden" name="week" value="{{ user['week'] }}">
@@ -65,6 +66,7 @@
                         {% if user['submit'] %}
                         {% else %}
                         <form action="/ra/minutes/delete" method="post" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="id" value="{{ user['id'] }}">
                             <button type="submit">삭제</button>
                         </form>

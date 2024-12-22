@@ -3,6 +3,7 @@
 <ol>
     <li>
         <form action="/upload/manager" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label for="file">Upload File:</label>
             <input type="file" id="file" name="file" required>
             <br><br>
@@ -28,6 +29,7 @@
                 <td>
                     {% if file %}
                     <form action="/manager/download_file" method="post" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="filename" value="{{ file }}">
                         <input type="hidden" name="type" value="setup">
                         <input type="hidden" name="pdf" value="">
@@ -38,6 +40,7 @@
                 <td>
                     {% if file %}
                     <form action="/manager/delete_file" method="post" style="display:inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="filename" value="{{ file }}">
                         <input type="hidden" name="type" value="setup">
                         <input type="hidden" name="pdf" value="">

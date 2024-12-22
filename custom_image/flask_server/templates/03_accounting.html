@@ -3,6 +3,7 @@
 <ol>
     <li>
         <form id="accountingForm" method="POST" action="/manager/process_accounting" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label for="process_month">월:</label>
             <select id="process_month" name="month">
                 {% for m in range(1, 13) %}
