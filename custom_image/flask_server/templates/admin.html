@@ -3,10 +3,11 @@
 {% block body %}
 <p>
     <form action="/upload/admin" method="post" enctype="multipart/form-data">
-    <label for="file">Upload File:</label>
-    <input type="file" id="file" name="file" required>
-    <br><br>
-    <input type="submit" value="Upload">
+        <label for="file">Upload File:</label>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="file" id="file" name="file" required>
+        <br><br>
+        <input type="submit" value="Upload">
     </form>
 </p>
 <h2>RA 관리</h2>

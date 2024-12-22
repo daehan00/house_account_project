@@ -62,7 +62,13 @@ function promptForPassword() {
         hiddenField.setAttribute("name", "password");
         hiddenField.setAttribute("value", password);
 
+        var csrfField = document.createElement("input");
+        csrfField.setAttribute("type", "hidden");
+        csrfField.setAttribute("name", "csrf_token");
+        csrfField.setAttribute("value", csrfToken);
+
         form.appendChild(hiddenField);
+        form.appendChild(csrfField);
         document.body.appendChild(form);
         form.submit();
     }
