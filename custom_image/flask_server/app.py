@@ -703,7 +703,15 @@ def handle_upload_ra():
         flash("You do not have permission to access this page.", "warning")
         return redirect("/")
 
-@app.route("/ra/post_receipt")
+@app.route("/ra/post_receipt_info")
+def post_receipt_info():
+    if session.get('ra') or session.get('manager'):
+        return render_template('03_post_receipt_info.html', tab_id='post_receipt')
+    else:
+        flash("You do not have permission to access this page.", "warning")
+        return redirect("/")
+
+@app.route("/ra/post_receipt_form")
 def post_receipt_form():
     if session.get('ra') or session.get('manager'):
         user_id = session['userId']

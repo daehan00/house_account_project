@@ -524,7 +524,7 @@ def generate_form_data(year_semester_house, user_id):
         form('number', '인원', 'head_count', 'min', '1'),
         form('datetime-local', '결제일시', 'datetime', 'value', today),
         form('number', '초', 'sec', 'max', '60'),
-        form('number', '금액', 'expenditure', 'placeholder', '숫자만'),
+        form('number', '금액', 'expenditure', 'step', '10'),
         form('text', '가맹점명', 'store_name', 'placeholder', '영수증에 나온 그대로'),
         form('checkbox', '기념품지급대장 작성여부', 'souvenir_record', 'placeholder', '', required=False),
         form('checkbox', '분반 프로그램 여부', 'division_program', 'placeholder', '', required=False),
