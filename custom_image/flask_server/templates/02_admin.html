@@ -16,7 +16,15 @@
         <h3>학기 초기화</h3>
         <form action="/admin/reset/ra" method="post" style="display: inline;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit">초기화</button>
+            <button type="submit">RA명단 초기화</button>
+        </form>
+        <form action="/admin/reset/receipt" method="post" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit">영수증 초기화</button>
+        </form>
+        <form action="/admin/reset/files" method="post" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit">파일 초기화</button>
         </form>
     </li>
     <li>

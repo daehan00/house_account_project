@@ -480,6 +480,15 @@ def delete_receipt(receipt_id):
         db.session.rollback()
         abort(500, description=str(e))
 
+@app.route('/api/receipts/delete_all', methods=['DELETE'])
+def delete_all_receipt():
+    try:
+        db.session.query(ReceiptSubmission).delete()
+        db.session.commit()
+        return jsonify({'message': 'All data deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 
 class CardReservation(db.Model):

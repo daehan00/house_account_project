@@ -240,9 +240,51 @@ def reset_ra():
         headers = {"Accept": "application/json"}
         response = requests.delete(url, headers=headers)
         if response.status_code == 200:
-            flash("Reset Successfully", 'success')
+            flash("Reset Success", 'success')
         else:
             flash("Unknown Error", 'error')
+        return redirect("/admin")
+    else:
+        flash("You do not have permission to create authority", "error")
+        return redirect("/")
+    
+@app.route("/admin/reset/receipt", methods=["POST"])
+def reset_receipt():
+    if session.get('admin'):
+        url = os.getenv("URL_API") + "receipts/delete_all"
+        headers = {"Accept": "application/json"}
+        response = requests.delete(url, headers=headers)
+        if response.status_code == 200:
+            flash("Reset Success", 'success')
+        else:
+            flash("Unknown Error", 'error')
+        return redirect("/admin")
+    else:
+        flash("You do not have permission to create authority", "error")
+        return redirect("/")
+
+@app.route("/admin/reset/files", methods=["POST"])
+def reset_files():
+    if session.get('admin'):
+        target_files = []
+        successnumber = 0
+        failnumber = 0
+        for root, _, files in os.walk(os.getenv("STORAGE_FOLDER_ROOT")):
+            for file in files:
+                # 파일 확장자 추출
+                ext = os.path.splitext(file)[1]
+                if ext in {".xlsx", ".xls", ".pdf", ".hwp", ".hwpx"}:
+                    file_path = os.path.join(root, file)
+                    target_files.append(file_path)
+                    try:
+                        os.remove(file_path)
+                        successnumber += 1
+                    except OSError:
+                        failnumber += 1
+        if failnumber == 0:
+            flash(f"Reset Success: {successnumber} files deleted.", 'success')
+        else:
+            flash(f"Error: {failnumber} files not deleted", 'error')
         return redirect("/admin")
     else:
         flash("You do not have permission to create authority", "error")
