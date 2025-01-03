@@ -13,6 +13,13 @@
 <h2>RA 관리</h2>
 <ol>
     <li>
+        <h3>학기 초기화</h3>
+        <form action="/admin/reset/ra" method="post" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit">초기화</button>
+        </form>
+    </li>
+    <li>
         <h3>선임/회계 담당 RA</h3>
         {% if auth_true %}
             <table>

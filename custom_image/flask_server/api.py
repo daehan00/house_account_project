@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from werkzeug.security import generate_password_hash, check_password_hash
 from flasgger import Swagger, swag_from
 from dotenv import load_dotenv
 import os
@@ -15,6 +16,9 @@ username = os.getenv("DATABASE_USERNAME")
 password = os.getenv("DATABASE_PASSWORD")
 host = os.getenv("DATABASE_HOST")
 database = os.getenv("DATABASE_NAME")
+
+SUPERUSER_IDS = set(int(id.strip()) for id in os.getenv('SUPERUSER_IDS').split(','))
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{username}:{password}@{host}/{database}'
@@ -48,17 +52,75 @@ class RAList(db.Model):
             'house_name': self.house_name,  # 새로운 필드 포함
             'authority': self.authority
         }
+    
+class UserPassword(db.Model):
+    __tablename__ = 'ra_user_password'
+    user_id = db.Column(db.BigInteger, db.ForeignKey('ra_list_table.user_id'), primary_key=True)
+    hashed_password = db.Column(db.Text, nullable=True)  # Initially null, set later
+
+    def set_password(self, password):
+        self.hashed_password = generate_password_hash(password)
+    def check_password(self, password):
+        return check_password_hash(self.hashed_password, password)
+
+@app.route('/api/login', methods=['POST'])
+@swag_from('swagger/login.yml')
+def login():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        password = data.get('password')
+        if not user_id or not password:
+            return jsonify({'message': 'Username and password are required'}), 400
+        
+        login = UserPassword.query.filter_by(user_id=user_id).first()
+        if not login:
+            return jsonify({'message': 'User does not exist'}), 404
+        
+        if not login.check_password(password):
+            return jsonify({'message': 'Invalid Login', 'exists': False}), 401
+        
+        user = RAList.query.filter_by(user_id=user_id).first()
+        return jsonify({'message': 'User exists', 'exists': True, 'authority': user.authority, 'user_id':user_id, 'user_name':user.user_name, 'user_data': str(user.year)+'-'+str(user.semester)+'-'+user.house_name}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/password/set', methods=['POST'])
+@swag_from('swagger/password_set.yml')
+def set_password():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        user_name = data.get('user_name')
+        password = data.get('password')
+        if not (user_id and user_name and password) :
+            return jsonify({'message': 'Missing required user information'}), 400
+
+        user = RAList.query.filter_by(user_id=user_id).first()
+        if not user:
+            return jsonify({'message': 'User not found'}), 404
+
+        if user.user_name != user_name:
+            return jsonify({'message': 'User information does not match'}), 400
+        
+        user_password = UserPassword.query.filter_by(user_id=user_id).first()
+
+        user_password.set_password(password)
+        db.session.add(user_password)
+        db.session.commit()
+        return jsonify({'message': 'Password set successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
 
 @app.route('/api/ra_list', methods=['POST'])
 @swag_from('swagger/post_ra_list.yml', methods=['POST'])
 def create_ra():
+    data = request.get_json()
+    if not data:
+        abort(400, description="No data provided.")
     try:
-        data = request.get_json()
-        if not data:
-            abort(400, description="No data provided.")
-
-        existing_ra = RAList.query.filter_by(user_id=data.get('user_id')).first()
-        if existing_ra:
+        if RAList.query.filter_by(user_id=data.get('user_id')).first():
             return jsonify({"error": "RA with the provided user ID already exists"}), 409
 
         new_ra = RAList(
@@ -72,7 +134,13 @@ def create_ra():
             house_name=data['house_name'],
             authority=data.get('authority', False)
         )
+
+        new_user_password = UserPassword(
+            user_id=data['user_id'],
+            hashed_password=None
+        )
         db.session.add(new_ra)
+        db.session.add(new_user_password)
         db.session.commit()
         return jsonify(new_ra.to_dict()), 201
     except KeyError as e:
@@ -97,39 +165,30 @@ def get_all_ra():
 @swag_from('swagger/search_ra_list.yml', methods=['GET'])
 def search_ra():
     try:
-        # 쿼리 파라미터에서 house_name, year, semester 값을 추출
         house_name = request.args.get('house_name')
         year = request.args.get('year', type=int)
         semester = request.args.get('semester', type=int)
 
-        # 입력값 검증
         if not (house_name and year and semester):
             return jsonify({'message': 'Missing required parameters'}), 400
 
-        # 쿼리 조건에 따라 데이터 검색
-        query = RAList.query.filter_by(house_name=house_name, year=year, semester=semester)
+        query = RAList.query.filter(
+            RAList.house_name == house_name,
+            RAList.year == year,
+            RAList.semester == semester,
+            RAList.user_id.notin_(SUPERUSER_IDS)  # 슈퍼유저 ID 제외
+        ).order_by(
+            RAList.division_num.asc().nullslast(),
+            RAList.user_name.asc().nullslast()
+        )
         ra_list = query.all()
 
-        # 결과가 없는 경우
         if not ra_list:
             return jsonify({'message': 'No RA matches the provided criteria'}), 404
 
-        # 결과가 있는 경우, 리스트로 반환
         return jsonify([ra.to_dict() for ra in ra_list]), 200
 
     except SQLAlchemyError as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/api/check_user/<int:user_id>', methods=['GET'])
-@swag_from('swagger/check_user.yml')
-def check_user(user_id):
-    try:
-        user = RAList.query.get(user_id)
-        if user:
-            return jsonify({'message': 'User exists', 'exists': True, 'authority': user.authority, 'user_id':user_id, 'user_name':user.user_name, 'user_data': str(user.year)+'-'+str(user.semester)+'-'+user.house_name}), 200
-        else:
-            return jsonify({'message': 'User does not exist', 'exists': False}), 404
-    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/ra_list/update/<int:user_id>', methods=['PUT'])
@@ -158,10 +217,30 @@ def update_ra(user_id):
 @app.route('/api/ra_list/delete/<int:user_id>', methods=['DELETE'])
 @swag_from('swagger/delete_ra_list.yml', methods=['DELETE'])
 def delete_ra(user_id):
-    ra = RAList.query.get_or_404(user_id)
-    db.session.delete(ra)
-    db.session.commit()
-    return '', 204
+    if user_id in SUPERUSER_IDS:
+        return jsonify({'message': 'Cannot delete this account'}), 403
+    try:
+        ra = RAList.query.get_or_404(user_id)
+        user_password = UserPassword.query.get_or_404(user_id)
+
+        db.session.delete(ra)
+        db.session.delete(user_password)
+        db.session.commit()
+        return '', 204
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/ra_list/delete_all', methods=['DELETE'])
+def delete_all_ra():
+    try:
+        db.session.query(UserPassword).filter(UserPassword.user_id.notin_(SUPERUSER_IDS)).delete(synchronize_session=False)
+        db.session.query(RAList).filter(RAList.user_id.notin_(SUPERUSER_IDS)).delete(synchronize_session=False)
+        db.session.commit()
+        return jsonify({'message': 'All data deleted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/ra_list/get/<int:user_id>', methods=['GET'])
 @swag_from('swagger/get_ra.yml', methods=['GET'])

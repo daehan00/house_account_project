@@ -5,7 +5,7 @@ import requests
 import subprocess
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
 from flask_wtf.csrf import CSRFProtect, generate_csrf
-from utils import get_house_name, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, generate_form_data, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import get_house_name, set_password, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, generate_form_data, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 load_dotenv()
@@ -54,35 +54,47 @@ def home():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        return render_template("login.html")
+        return render_template("02_login.html")
     elif request.method == "POST":
-        user_id = request.form["userId"]
-        auth, data = ra_login(os.getenv("URL_API")+"check_user/", user_id)
-        if auth == 'manager':
-            session['manager'] = True
+        user_id = request.form["user_id"]
+        password = request.form["password"]
+        if not (user_id, password):
+            flash('Please submit Id and password', 'warning')
+            return redirect(url_for('login'))
+        auth, data = ra_login(os.getenv("URL_API")+"login", user_id, password)
+        if auth in ['manager', 'ra']:
+            session[auth] = True
             session['userId'] = user_id
             session['userName'] = data['user_name']
             session['userData'] = data['user_data']
             session.permanent = True
-            flash('Logged in as manager!', 'success')
-        elif auth == 'ra':
-            session['ra'] = True
-            session['userId'] = user_id
-            session['userName'] = data['user_name']
-            session['userData'] = data['user_data']
-            session.permanent = True
-            flash('Logged in as RA', 'success')
-        elif auth == 'worngid':
-            flash("Invalid id", 'error')
+            flash(f'Logged in as {auth}!', 'success')
+            return redirect("/")
         else:
-            flash('Invalid login', 'warning')
-        return redirect("/")
+            flash(auth, 'warning')
+            return redirect(url_for('login'))
 
 @app.route('/logout')
 def logout():
     session.clear()  # 세션 데이터 모두 제거
     flash('You have been successfully logged out.', 'info')
     return redirect("/")  # 홈 페이지로 리디렉션
+
+@app.route('/password/page')
+def password_page():
+    return render_template("02_password_register.html")
+
+@app.route('/password/register', methods=["POST"])
+def password_register():
+    user_id = request.form["user_id"]
+    user_name = request.form["user_name"]
+    password = request.form["password"]
+    if not (user_id, user_name, password):
+        return redirect(url_for("password/page"))
+    result, message = set_password(os.getenv('URL_API') + "password/set", user_id, user_name, password)
+    flash(message, 'success' if result else 'warning')
+    return redirect("/") if result else redirect("/password/page")
+
 
 @app.route("/calendar")
 def calendar():
@@ -216,10 +228,25 @@ def admin():
         if 'admin' in session and session['admin']:
             auth_true, auth_false = get_ra_list_sorted()
             columns = ['year', 'semester', 'house_name', 'user_name', 'user_id', 'email_address']
-            return render_template("admin.html", auth_true=auth_true, auth_false=auth_false, columns=columns)
+            return render_template("02_admin.html", auth_true=auth_true, auth_false=auth_false, columns=columns)
         else:
             flash("You are not logged in", "error")
             return redirect("/")  # 홈 페이지로 리디렉션
+
+@app.route("/admin/reset/ra", methods=["POST"])
+def reset_ra():
+    if session.get('admin'):
+        url = os.getenv("URL_API") + "ra_list/delete_all"
+        headers = {"Accept": "application/json"}
+        response = requests.delete(url, headers=headers)
+        if response.status_code == 200:
+            flash("Reset Successfully", 'success')
+        else:
+            flash("Unknown Error", 'error')
+        return redirect("/admin")
+    else:
+        flash("You do not have permission to create authority", "error")
+        return redirect("/")
 
 @app.route("/admin/authority/create", methods=["POST"])
 def create_authority():

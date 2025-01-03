@@ -99,24 +99,15 @@ def get_program_list(url, year_semester_house):
         print(f"Error: {response.status_code}, {response.text}")
         return program_list
 
-def get_ra_list(url):
-    headers = {
-        "Accept": "application/json"
-    }
-
-    response = requests.get(url, headers=headers)
+def get_ra_list(year_semester_house):
+    data = fetch_ra_list(year_semester_house)
     ra_list = []
-
-    if response.status_code == 200:
-        data = response.json()
+    if type(data) == type([]):
         for ra in data:
             options = {"program_id": ra['user_id'],
                        "program_name": ra['user_name']}
             ra_list.append(options)
-        return ra_list  # 반환 값은 JSON 데이터
-    else:
-        print(f"Error: {response.status_code}, {response.text}")
-        return ra_list
+    return ra_list  # 반환 값은 JSON 데이터
 
 def get_ra_list_sorted():
     headers = {"Accept": "application/json"}
@@ -181,22 +172,48 @@ def update_ra_authority(user_id, authority):
     else:
         return 'error', f"{user_id}, {response.text}"
 
-def ra_login(url, user_id):
+def ra_login(url, user_id, password):
     headers = {
-        "Accept": "application/json"
+        "Accept": "application/json",
+        "Content-Type": "application/json"
     }
-    response = requests.get(url+str(user_id), headers=headers)
+
+    body = {
+        "user_id" : user_id,
+        "password" : password
+    }
+    response = requests.post(url, headers=headers, json=body)
 
     data = response.json()
     if response.status_code == 200:
-        if data['authority']:
+        if data.get('authority'):
             return 'manager', data
         else :
             return 'ra', data
     elif response.status_code == 404:
-        return 'wrongid', data
+        return 'Wrong Id', None
+    elif response.status_code == 401:
+        return 'Invalid password', None
     else:
-        return 'error', data
+        return 'error', None
+    
+def set_password(url, user_id, user_name, password):
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+
+    body = {
+        "user_id" : user_id,
+        "user_name" : user_name,
+        "password" : password
+    }
+    response = requests.post(url=url, headers=headers, json=body)
+    data = response.json()
+    result = True if response.status_code == 200 else False
+    message = "Unknown error" if response.status_code == 500 else data.get('message')
+
+    return result, message
 
 def get_receipt_list(url, search_id=None):
     headers = {
@@ -350,7 +367,7 @@ def register_ra_list(set_data, data_dir, redirect_url):
     # 입력값 없는 기본설정
     semester = set_data['semester']
     year = set_data['year']
-    division_num = None
+    house_code = set_data['house']
     authority = set_data['authority']
     success_list = []
     failure_list = []
@@ -365,19 +382,16 @@ def register_ra_list(set_data, data_dir, redirect_url):
             print(f"Error processing file {file_path}: {e}")
             continue  # 다음 파일로 넘어갑니다.
 
-        col_list = ['번호', '면접결과', '하우스', '학번', '이름', '이메일', '연락처', '성별', '학년', '전공']
-        if all(col in data.columns for col in col_list):
-            print("All columns in col_list are present in DataFrame columns.")
-        else:
-            print("Some columns in col_list are missing from DataFrame columns.")
+        col_list = ['학번', '이름', '이메일', '연락처']
+        if not all(col in data.columns for col in col_list):
             continue
 
-        data = data.drop([0, 1])
         data_dict = data.to_dict(orient='records')
 
         for data in data_dict:
+            division_num = data.get('분반', None)
             email_address = data['이메일']
-            house_name = get_house_code(data['면접결과'])
+            house_name = house_code
             user_id = int(data['학번'])
             user_name = re.sub(r"\(.*?\)", "", data['이름']).strip()
             user_num = data['연락처']
@@ -487,7 +501,7 @@ def form(input_type, name, name_id, attribute, content, options=None, required=T
 
 def generate_form_data(year_semester_house, user_id):
     today = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%dT%H:%M')
-    user_list = get_ra_list(os.getenv('URL_API')+'ra_list/get')
+    user_list = get_ra_list(year_semester_house)
     for user in user_list:
         if int(user['program_id']) == int(user_id):
             user.update({'selected': 'selected'})

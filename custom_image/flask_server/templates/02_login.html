@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block title %}회계관리 시스템{% endblock %}
+{% block body %}
+<link rel="stylesheet" href=" {{ url_for('static', filename='css/login.css') }}">
+<body>
+    <div class="login-wrapper">
+        <h2>Login</h2>
+        <form method="post" action="/login" id="login-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="user_id" placeholder="학번을 입력하세요" required>
+            <input type="password" name="password" placeholder="비밀번호를 입력하세요" required>
+            <input type="submit" value="LOGIN">
+            <input type="button" value="HOME" onclick="location.href='/'">
+            <input type="button" value="REGISTER" onclick="location.href='/password/page'">
+        </form>
+    </div>
+</body>
+{% endblock %}
