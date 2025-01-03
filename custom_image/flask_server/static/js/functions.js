@@ -146,10 +146,10 @@ function createModalOverlay() {
     return formOverlay;
 }
 
-function fetchDataAndRenderForm(formType) {
+function fetchDataAndRenderForm(formType, csrfToken) {
     fetch('/static/data/dict_code.json')  // 데이터 파일 경로 확인
         .then(response => response.json())
-        .then(data => renderForm(data, formType))
+        .then(data => renderForm(data, formType, csrfToken))
         .catch(error => {
             console.error(`Error loading data for ${formType}:`, error);
             const formOverlay = document.getElementById('formOverlay');
@@ -157,15 +157,15 @@ function fetchDataAndRenderForm(formType) {
         });
 }
 
-function renderForm(data, formType) {
+function renderForm(data, formType, csrfToken) {
     var houseOptions = data.house_names.map(house => `<option value="${house.en_name}">${house.kor_name}</option>`).join('');
-    var formContent = createFormContent(houseOptions, formType);
+    var formContent = createFormContent(houseOptions, formType, csrfToken);
     var formOverlay = document.getElementById('formOverlay');
     formOverlay.innerHTML = formContent;
     document.body.appendChild(formOverlay);
 }
 
-function createFormContent(houseOptions, formType) {
+function createFormContent(houseOptions, formType, csrfToken) {
     var formDetails = {
         'RA List Registration': {
             title: 'RA List Registration',
@@ -182,7 +182,7 @@ function createFormContent(houseOptions, formType) {
         <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.5);">
             <h2>${title}</h2>
             <form action="${action}" method="post">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="csrf_token" value="${csrfToken}">
                 <label for="semester">Semester:</label>
                 <select id="semester" name="semester" required>
                     <option value=1>Spring</option>
@@ -206,10 +206,21 @@ function closeForm() {
     document.body.removeChild(formOverlay);
 }
 
-function showForm(formType) {
-    var formOverlay = createModalOverlay();
-    document.body.appendChild(formOverlay);
-    fetchDataAndRenderForm(formType);
+// function showForm(formType) {
+//     var formOverlay = createModalOverlay();
+//     document.body.appendChild(formOverlay);
+//     fetchDataAndRenderForm(formType);
+// }
+
+async function showForm(formType) {
+    const csrfToken = await fetchCSRFToken(); // CSRF 토큰을 비동기적으로 가져옵니다.
+    if (csrfToken) {
+        var formOverlay = createModalOverlay();
+        document.body.appendChild(formOverlay);
+        fetchDataAndRenderForm(formType, csrfToken); // CSRF 토큰을 추가적인 인자로 전달합니다.
+    } else {
+        console.error('Failed to fetch CSRF token');
+    }
 }
 
 function formatNumber(num) {
