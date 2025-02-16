@@ -56,7 +56,7 @@
         {% endif %}
     </li>
     <li><h3>RA명단 등록<input type="button" value="등록" onclick="showForm('RA List Registration');"></h3></li>
-    <li><h3>프로그램 명단 등록<input type="button" value="등록" onclick="showForm('Program Registration');"></h3></li>
+    <li><h3>프로그램 목록 등록<input type="button" value="등록" onclick="showForm('Program Registration');"></h3></li>
     <li>
         <h3>RA 명단 확인</h3>
         <ul>
@@ -66,7 +66,7 @@
         </ul>
     </li>
     <li>
-        <h3>프로그램 명단 확인</h3>
+        <h3>프로그램 목록 확인</h3>
         <ul>
             {% for program in programs %}
             <li>{{ program.program_name }}</li>
