@@ -59,7 +59,7 @@ def login():
         user_id = request.form["user_id"]
         password = request.form["password"]
         if not (user_id, password):
-            flash('Please submit Id and password', 'warning')
+            flash('내용을 입력해주세요.', 'warning')
             return redirect(url_for('login'))
         auth, data = ra_login(os.getenv("URL_API")+"login", user_id, password)
         if auth in ['manager', 'ra']:
@@ -68,16 +68,16 @@ def login():
             session['userName'] = data['user_name']
             session['userData'] = data['user_data']
             session.permanent = True
-            flash(f'Logged in as {auth}!', 'success')
+            # flash(f'Logged in as {auth}!', 'success')
             return redirect("/")
         else:
-            flash(auth, 'warning')
+            flash('유효하지 않은 로그인입니다.', 'warning')
             return redirect(url_for('login'))
 
 @app.route('/logout')
 def logout():
     session.clear()  # 세션 데이터 모두 제거
-    flash('You have been successfully logged out.', 'info')
+    flash('로그아웃 되었습니다.', 'info')
     return redirect("/")  # 홈 페이지로 리디렉션
 
 @app.route('/password/page')
@@ -107,10 +107,10 @@ def calendar():
             programs = get_program_list(url_program, year_semester_house)
             return render_template("calendar.html", programs=programs)
         except Exception as e:
-            flash(f"An error occurred: {str(e)}", 'error')
+            flash(f"알 수 없는 에러가 발생했습니다.", 'error')
             return redirect("/")
     else:
-        flash('You are not authorized to access this page', 'warning')
+        flash('이 페이지에 접근 권한이 없습니다.', 'warning')
         return redirect("/")
 
 @app.route("/calendar/get/events")
@@ -158,9 +158,9 @@ def submit_event():
         if code == 201:
             return jsonify({'success': True, 'message': message}), 200
         else:
-            return jsonify({'success': False, 'message': message+str(data)}), code
+            return jsonify({'success': False, 'message': message}), code
     else:
-        flash('You are not authorized to access this page', 'warning')
+        flash('접근 권한이 없습니다.', 'warning')
         return redirect("/")
 
 @app.route("/calendar/submit/update", methods=["POST"])
@@ -173,7 +173,7 @@ def update_event():
             verify_url = os.getenv('URL_API') + f'calendar/verify/{str(event_id)}?user_id={userid}'
             response = requests.get(verify_url)
             if response.status_code != 200:
-                return jsonify({'success': False, 'message': response.json().get('message')}), 403
+                return jsonify({'success': False, 'message': '접근 권한이 없습니다.'}), 403
 
         data = request.get_json()  # Get data from the client
         date_start = datetime.strptime(data['start_datetime'], "%Y-%m-%dT%H:%M")
@@ -188,9 +188,9 @@ def update_event():
         if code == 200:
             return jsonify({'success': True, 'message': message}), code
         else:
-            return jsonify({'success': False, 'message': message+str(body)}), code
+            return jsonify({'success': False, 'message': message}), code
     else:
-        return jsonify({'success': False, 'message': 'Not authorized'}), 403
+        return jsonify({'success': False, 'message': '접근 권한이 없습니다.'}), 403
 
 @app.route("/calendar/submit/delete", methods=["POST"])
 def delete_event():
@@ -201,7 +201,7 @@ def delete_event():
             verify_url = os.getenv('URL_API') + f'calendar/verify/{str(del_id)}?user_id={userid}'
             response = requests.get(verify_url)
             if response.status_code != 200:
-                return jsonify({'success': False, 'message': response.json().get('message')}), 403
+                return jsonify({'success': False, 'message': '권한이 없습니다.'}), 403
 
         url = os.getenv("URL_API") + "calendar/delete/" + str(del_id)
         message, code = delete_calendar_event(url)
@@ -210,7 +210,7 @@ def delete_event():
         else:
             return jsonify({'success': False, 'message': message}), code
     else:
-        return jsonify({'success': False, 'message': 'Not authorized'}), 403
+        return jsonify({'success': False, 'message': '접근 권한이 없습니다.'}), 403
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
@@ -219,10 +219,9 @@ def admin():
         input_password = request.form['password']
         if input_password == admin_password:
             session['admin'] = True
-            flash('Logged in successfully', 'success')
             return redirect("/admin")  # 리디렉션하여 GET 요청 처리
         else:
-            flash("Invalid password", "error")
+            flash("유효하지 않은 로그인입니다.", "error")
             return redirect("/")
     elif request.method == "GET":
         if 'admin' in session and session['admin']:
@@ -230,7 +229,7 @@ def admin():
             columns = ['year', 'semester', 'house_name', 'user_name', 'user_id', 'email_address']
             return render_template("02_admin.html", auth_true=auth_true, auth_false=auth_false, columns=columns)
         else:
-            flash("You are not logged in", "error")
+            flash("접근 권한이 없습니다.", "error")
             return redirect("/")  # 홈 페이지로 리디렉션
 
 @app.route("/admin/reset/ra", methods=["POST"])
@@ -240,12 +239,12 @@ def reset_ra():
         headers = {"Accept": "application/json"}
         response = requests.delete(url, headers=headers)
         if response.status_code == 200:
-            flash("Reset Success", 'success')
+            flash("초기화 성공!", 'success')
         else:
-            flash("Unknown Error", 'error')
+            flash("알 수 없는 에러가 발생했습니다.", 'error')
         return redirect("/admin")
     else:
-        flash("You do not have permission to create authority", "error")
+        flash("접근 권한이 없습니다.", "error")
         return redirect("/")
     
 @app.route("/admin/reset/receipt", methods=["POST"])
@@ -255,12 +254,12 @@ def reset_receipt():
         headers = {"Accept": "application/json"}
         response = requests.delete(url, headers=headers)
         if response.status_code == 200:
-            flash("Reset Success", 'success')
+            flash("초기화 성공!", 'success')
         else:
-            flash("Unknown Error", 'error')
+            flash("알 수 없는 에러가 발생했습니다.", 'error')
         return redirect("/admin")
     else:
-        flash("You do not have permission to create authority", "error")
+        flash("접근 권한이 없습니다.", "error")
         return redirect("/")
 
 @app.route("/admin/reset/files", methods=["POST"])
@@ -282,12 +281,12 @@ def reset_files():
                     except OSError:
                         failnumber += 1
         if failnumber == 0:
-            flash(f"Reset Success: {successnumber} files deleted.", 'success')
+            flash(f"초기화 성공: {successnumber}개 파일이 삭제되었습니다..", 'success')
         else:
-            flash(f"Error: {failnumber} files not deleted", 'error')
+            flash(f"에러: {failnumber}개 파일이 삭제되지 않았습니다.", 'error')
         return redirect("/admin")
     else:
-        flash("You do not have permission to create authority", "error")
+        flash("접근 권한이 없습니다.", "error")
         return redirect("/")
 
 @app.route("/admin/authority/create", methods=["POST"])
@@ -298,7 +297,7 @@ def create_authority():
         flash(message, category)
         return redirect("/admin")
     else:
-        flash("You do not have permission to create authority", "error")
+        flash("접근 권한이 없습니다.", "error")
         return redirect("/")
 
 @app.route("/admin/authority/delete", methods=["POST"])
@@ -309,13 +308,13 @@ def delete_authority():
         flash(message, category)
         return redirect("/admin")
     else:
-        flash("You do not have permission to create authority", "error")
+        flash("접근 권한이 없습니다.", "error")
         return redirect("/")
 
 @app.route('/upload/admin', methods=['POST'])
 def handle_upload_admin():
     if 'admin' not in session or not session['admin']:
-        flash('You are not logged in', "error")
+        flash('접근 권한이 없습니다.', "error")
         return redirect(url_for('/'))  # 메인 페이지로 리다이렉션
 
     return upload_file(app.config["UPLOAD_FOLDER_ADMIN"], url_for("admin"), "admin")
@@ -398,10 +397,10 @@ def manager():
         return render_template("03_check_list.html", data=filtered_data, tab_id="check_list", columns=columns, current_period=period,
                                current_month=current_month, selected_month=month, file_pairs=file_pairs, etc_files=etc_files)
     elif session.get('ra'):
-            flash("You do not have permission to access this page.", "warning")
+            flash("접근 권한이 없습니다.", "warning")
             return redirect("/")
     else:
-        flash("please login first", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route("/manager/setup")
@@ -417,7 +416,7 @@ def manager_setup():
         programs = get_program_list(os.getenv('URL_API') + 'program', year_semester_house)
         return render_template("03_setup.html", tab_id="setup", data=files, ras=ra_list, programs=programs)
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route("/manager/accounting")
@@ -427,7 +426,7 @@ def manager_accounting():
         current_month = now.month
         return render_template("03_accounting.html", tab_id="accounting", current_month=current_month)
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route("/manager/delete_receipt", methods=["POST"])
@@ -436,12 +435,12 @@ def delete_receipt():
         receipt_id = request.form.get('id')
         delete = delete_receipt_data(os.getenv("URL_API")+"receipts/", receipt_id)
         if delete:
-            flash("Receipt deleted", "success")
+            flash("삭제되었습니다.", "success")
         else:
-            flash(f"Receipt with id {id} not deleted", "error")
+            flash(f"삭제 실패했습니다.", "error")
         return redirect("/manager/check_list")
     else:
-        flash("You do not have permission to access this button.", "error")
+        flash("권한이 없습니다.", "error")
         return redirect("/")
 
 @app.route('/upload/manager', methods=['POST'])
@@ -449,7 +448,7 @@ def handle_upload_manager():
     if session.get('manager'):
         return upload_file(app.config["UPLOAD_FOLDER_TMP"], '/manager/setup', "manager")
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route("/manager/download_file", methods=["POST"])
@@ -464,15 +463,15 @@ def download_file():
         directory = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/etc"
     elif file_type == 'minute':
         directory = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/minutes"
-        # if pdf_filename:
-        #     filename = filename + '.pdf'
-        # else:
-        #     filename = filename + '.hwp'
-        filename = filename + '.hwp'
+        if pdf_filename:
+            filename = filename + '.pdf'
+        else:
+            filename = filename + '.hwp'
+        # filename = filename + '.hwp'
     elif file_type == 'setup':
         directory = os.getenv("UPLOAD_FOLDER_TMP")
     else:
-        flash("Invalid file type.", "error")
+        flash("유효하지 않은 파일 형식입니다.", "error")
         return redirect("/manager/check_list")
     file_path = os.path.join(directory, filename)
     return send_file(file_path, as_attachment=True)
@@ -497,7 +496,7 @@ def delete_file():
     elif file_type == 'setup':
         directory = os.getenv("UPLOAD_FOLDER_TMP")
     else:
-        flash("Invalid file type.", "error")
+        flash("유효하지 않은 파일 형식입니다.", "error")
         return redirect("/manager/check_list")
 
     try:
@@ -509,9 +508,9 @@ def delete_file():
                     continue
         else:
             os.remove(os.path.join(directory, filename))
-        flash(f"{str(filename)} has been deleted.", "success")
+        flash(f"파일명: {str(filename)} 삭제되었습니다.", "success")
     except FileNotFoundError:
-        flash(f"{filename} not found.", "error")
+        flash(f"파일명: {filename} 파일을 찾을 수 없습니다.", "error")
 
     if file_type == 'setup':
         return redirect("/manager/setup")
@@ -525,7 +524,7 @@ def handle_register_ra_list():
         set_data['authority'] = False
         return register_ra_list(set_data, app.config["UPLOAD_FOLDER_TMP"], '/manager/setup')
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route('/register_program', methods=['GET', 'POST'])
@@ -534,7 +533,7 @@ def handle_register_program():
         set_data = request.form.to_dict()
         return register_program_list(set_data, app.config["UPLOAD_FOLDER_TMP"], "/manager/setup")
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route('/manager/process_accounting', methods=['POST'])
@@ -556,18 +555,18 @@ def process_accounting():
                     mimetype="application/pdf"
                 )
                 os.remove(merged_pdf_path)
-                flash(f"{month}월_{period}차 processed successfully, file_path={message}", "success")
+                flash(f"{month}월_{period}차 파일 처리 성공했습니다., file_path={message}", "success")
                 return response
             except Exception as e:
-                flash(f"An error occurred while downloading the file: {e}", "error")
+                flash(f"파일 다운로드를 실패했습니다.", "error")
                 return redirect("/manager/accounting")
         elif trial == "no_files":
             flash(f"{month}월_{period}차 파일이 존재하지 않습니다. 기간 선택을 확인하세요.", "info")
         else:
-            flash(f"Processing failed, error: {message}", "error")
+            flash(f"작업 실패했습니다. 에러 메시지: {message}", "error")
         return redirect("/manager/accounting")
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route('/manager/process_xlsx', methods=['POST'])
@@ -589,15 +588,15 @@ def manager_process_xlsx():
                 os.remove(tmp_path)  # 파일 전송 후 임시 파일 삭제
                 return response
             except Exception as e:
-                flash(f"An error occurred while downloading the file: {e}", "error")
+                flash(f"파일 다운로드를 실패했습니다.", "error")
                 return redirect("/manager/accounting")
         elif file_name:
             flash(file_name, "error")
         else:
-            flash("No data to process", "info")
+            flash("처리할 데이터가 없습니다.", "info")
         return redirect("/manager/accounting")
     else:
-        flash("You do not have permission to access this job.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route('/manager/check_minutes')
@@ -616,7 +615,7 @@ def check_minutes():
 
         return render_template('03_check_minutes.html', tab_id='minutes', data=content, text1=text1, text2=text2, month=month, week=week, date=date, not_yet=not_yet)
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 
@@ -635,7 +634,7 @@ def ra():
             i['date'] = i['date'].split('T')[0]
         return render_template("03_check_ra_list.html", data=data, columns=columns, tab_id='check_ra_list')
     else:
-        flash("Please login first.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route("/ra/upload_ra")
@@ -669,7 +668,7 @@ def upload_ra():
 
         return render_template("03_upload_ra.html", tab_id='upload_ra', file_pairs=file_pairs, etc_files=etc_files)
     else:
-        flash("Please login first.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route('/ra/create_xlsx', methods=['POST'])
@@ -688,11 +687,10 @@ def create_xlsx():
             os.remove(tmp_path)  # 파일 전송 후 임시 파일 삭제
             return response
         except Exception as e:
-            flash(f"An error occurred while downloading the file: {e}", "error")
-            return redirect("/")
+            flash("파일 다운로드를 실패했습니다.", "error")
     else:
-        flash("Unexpected error", "error")
-    return redirect("/")
+        flash("알 수 없는 에러가 발생했습니다.", "error")
+    return None
 
 @app.route('/upload/ra', methods=['POST'])
 def handle_upload_ra():
@@ -700,7 +698,7 @@ def handle_upload_ra():
         house_name = session['userData'].split('-')[-1]
         return upload_file(app.config["UPLOAD_FOLDER_RA"]+'/'+house_name, "/ra/upload_ra", "ra")
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route("/ra/post_receipt_info")
@@ -708,7 +706,7 @@ def post_receipt_info():
     if session.get('ra') or session.get('manager'):
         return render_template('03_post_receipt_info.html', tab_id='post_receipt')
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route("/ra/post_receipt_form")
@@ -719,7 +717,7 @@ def post_receipt_form():
         form_data = generate_form_data(year_semester_house, user_id)
         return render_template('03_post_receipt.html', form_data=form_data, tab_id='post_receipt')
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route("/ra/post_receipt_data", methods=['POST'])
@@ -731,7 +729,7 @@ def post_receipt():
         datas['house_name'] = session['userData'].split('-')[-1]
         return post_receipt_data(datas)
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route("/ra/minutes")
@@ -752,7 +750,7 @@ def minutes_form():
         user_data, processed_data = process_minutes(datas, user_id, year_semester_house, str(month)+"-"+str(week))
         return render_template("03_minute.html", user=user_data, data=processed_data, tab_id='minutes', month=month, week=week)
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route("/ra/minutes/post", methods=['POST'])
@@ -783,7 +781,7 @@ def post_minutes():
         flash(str(message), category)
         return redirect("/ra/minutes")
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
         return redirect("/")
 
 @app.route("/ra/minutes/delete", methods=['POST'])
@@ -794,7 +792,7 @@ def delete_minutes():
         flash(message, category)
         return redirect("/ra/minutes")
     else:
-        flash("You do not have permission to access this page.", "warning")
+        flash("접근 권한이 없습니다.", "warning")
 
 @app.route("/ra/download/template", methods=['POST']) #양식파일 다운로드
 def download_template():

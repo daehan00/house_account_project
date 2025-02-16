@@ -22,10 +22,8 @@ def load_dict_code():
             data = json.load(file)
             return data
     except FileNotFoundError:
-        print("Error: The file was not found.")
         return None
     except json.JSONDecodeError:
-        print("Error: The file is not in proper JSON format.")
         return None
 
 def get_calendar_event(url):
@@ -36,7 +34,6 @@ def get_calendar_event(url):
         response.raise_for_status()  # 다른 HTTP 에러 발생 시 예외를 발생시킴
         return response.json()  # 정상적인 경우, 응답 JSON 반환
     except requests.RequestException as e:
-        print(f"Handled quietly, no events found: {e}")
         return []  # 예외 발생 시 빈 목록 반환
 
 
@@ -45,22 +42,22 @@ def post_calendar_event(url, data):
         response = requests.post(url, json=data)
 
         if response.status_code == 201:
-            return f"{data['program_id']} event submitted", 201
+            return f"{data['program_id']} 예약 제출되었습니다.", 201
         else:
             return response.text, 400
     except requests.RequestException as e:
-        return f"Error: {e}", 500
+        return f"알 수 없는 에러가 발생했습니다.", 500
 
 def put_calendar_event(url, data):
     try:
         response = requests.put(url, json=data)
 
         if response.status_code == 200:
-            return response.json().get('message'), 200
+            return '수정 성공했습니다.', 200
         else:
-            return response.json().get('message'), 400
+            return '수정 실패했습니다.', 400
     except requests.RequestException as e:
-        return f"Error: {e}", 500
+        return f"알 수 없는 에러가 발생했습니다.", 500
 
 def delete_calendar_event(url):
     try:
@@ -69,13 +66,13 @@ def delete_calendar_event(url):
         }
         response = requests.delete(url, headers=headers)
         if response.status_code == 200:
-            return "Event deleted", 200
+            return "삭제되었습니다.", 200
         elif response.status_code == 404:
-            return response.json().get('message'), 404
+            return '찾을 수 없습니다.', 404
         else:
-            return response.json().get('message'), 400
+            return '삭제 실패했습니다.', 400
     except requests.RequestException as e:
-        return f"Error: {e}", 500
+        return "알 수 없는 에러가 발생했습니다.", 500
 
 def get_program_list(url, year_semester_house):
     headers = {
@@ -96,7 +93,6 @@ def get_program_list(url, year_semester_house):
             program_list.append(options)
         return program_list  # 반환 값은 JSON 데이터
     else:
-        print(f"Error: {response.status_code}, {response.text}")
         return program_list
 
 def get_ra_list(year_semester_house):
@@ -124,7 +120,6 @@ def get_ra_list_sorted():
 
         return auth_true.to_dict(orient='records'), auth_false.to_dict(orient='records')
     else:
-        print(f"Error: {response.status_code}, {response.text}")
         return None, None
 
 def fetch_ra_list(year_semester_house):
@@ -211,7 +206,7 @@ def set_password(url, user_id, user_name, password):
     response = requests.post(url=url, headers=headers, json=body)
     data = response.json()
     result = True if response.status_code == 200 else False
-    message = "Unknown error" if response.status_code == 500 else data.get('message')
+    message = "등록 성공했습니다." if response.status_code == 200 else '등록 실패했습니다.'
 
     return result, message
 
@@ -228,7 +223,6 @@ def get_receipt_list(url, search_id=None):
         sorted_data = sorted(data, key=lambda x: datetime.fromisoformat(x['date']))
         return sorted_data  # 반환 값은 JSON 데이터
     else:
-        print(f"Error: {response.status_code}, {response.text}")
         return None
 
 def delete_receipt_data(url, id):
@@ -239,7 +233,6 @@ def delete_receipt_data(url, id):
     if response.status_code == 204:
         return True
     else:
-        print(f"Error: {response.status_code}, {response.text}")
         return False
 
 def get_house_code(house_name):
@@ -252,7 +245,6 @@ def get_house_code(house_name):
             return house['en_name']
 
     # Handle the case where the house name is not found
-    print(f"Error: '{house_name}' not found in the list.")
     return None
 
 def get_house_name(house_code):
@@ -265,7 +257,6 @@ def get_house_name(house_code):
             return house['kor_name']
 
     # Handle the case where the house name is not found
-    print(f"Error: '{house_code}' not found in the list.")
     return None
 
 def get_category_expenses():
@@ -313,12 +304,12 @@ def allowed_file(upload_folder, filename, div):
 
 def upload_file(upload_folder, redirect_url, div):
     if 'file' not in request.files:
-        flash('No file part', 'error')
+        flash('파일이 없습니다.', 'error')
         return redirect(request.url)
 
     file = request.files['file']
     if file.filename == '':
-        flash('No selected file', 'error')
+        flash('파일이 존재하지 않습니다.', 'error')
         return redirect(request.url)
 
     upload_folder_, filename, error_type = allowed_file(upload_folder, file.filename, div)
@@ -327,16 +318,16 @@ def upload_file(upload_folder, redirect_url, div):
             if not upload_folder_:
                 os.makedirs(upload_folder_)
             file.save(os.path.join(upload_folder_, filename))
-            flash('File successfully uploaded', 'success')
+            flash('파일 업로드 성공!', 'success')
         except IOError as e:
-            flash('File save error: ' + str(e), 'error')
+            flash('파일 업로드 실패했습니다.', 'error')
             return redirect(request.url)
     elif error_type == 'name_error':
         flash('파일명 설정이 잘못되었습니다. 파일명을 확인해주세요.', 'error')
     elif error_type == 'pdf_error':
         flash('한글 파일이 없습니다. 영수증 한글 파일을 먼저 업로드해주세요.', 'error')
     else:
-        flash('Invalid file type', 'error')
+        flash('유효하지 않은 파일 타입입니다.', 'error')
 
     return redirect(redirect_url)
 
@@ -379,7 +370,6 @@ def register_ra_list(set_data, data_dir, redirect_url):
         try:
             data = pd.read_excel(file_path, header=1, dtype=object)
         except ValueError as e:
-            print(f"Error processing file {file_path}: {e}")
             continue  # 다음 파일로 넘어갑니다.
 
         col_list = ['학번', '이름', '이메일', '연락처']
@@ -411,16 +401,13 @@ def register_ra_list(set_data, data_dir, redirect_url):
             # 결과 처리
 
             if code == 201:
-                print(f"{user_id}: {code}")
                 success_list.append(user_id)
             else:
-                print(f"failure: {user_id}, code: {code}")
                 failure_list.append(f"{user_id}, {code}")
                 fail_text_list.append(response_text)
 
 
         os.remove(os.path.join(data_dir, file_name))
-        print(f'삭제된 파일 : {file_name}')
 
     flash(f"작업 완료. 총 {len(success_list)}건 성공, {len(failure_list)}건 실패. 실패 목록은 다음과 같습니다. {fail_text_list}", 'info')
     return redirect(redirect_url)
@@ -472,19 +459,15 @@ def register_program_list(set_data, data_dir, redirect_url):
 
                 # 결과 처리
                 if code == 201:
-                    print(f"{program_id}: {code}")
                     success_list.append(program_id)
                 else:
-                    print(f"failure: {program_id}, code: {code}")
                     failure_list.append(f"{program_id}, {code}")
                     fail_text_list.append(response_text)
                 i += 1
                 time.sleep(0.1)
             else:
-                print(f"하우스 분류가 맞지 않습니다. 제출: {house_code}, 파일: {program['분류']}")
                 continue
         os.remove(os.path.join(data_dir, file_name))
-        print(f'삭제된 파일 : {file_name}')
 
     flash(f"작업 완료. 총 {len(success_list)}건 성공, {len(failure_list)}건 실패.", 'info')
     return redirect(redirect_url)
@@ -612,11 +595,9 @@ def modify_and_save_excel(data):
             workbook.save(tmp.name)
             tmp_path = tmp.name
 
-        print(f"Temporary file created at {tmp_path}")
         return tmp_path, file_name
 
     except Exception as e:
-        print(f"An error occurred: {e}")
         return None, None
 
 
@@ -636,7 +617,7 @@ def get_files(input_directory, month, period):
                     (int(period) == 1 and 1 <= date.day <= 15) or (int(period) == 2 and 16 <= date.day)):
                 selected_files.append(file)
         except ValueError:
-            print(f"파일명에서 날짜를 추출할 수 없습니다: {file}")
+            pass
     return sorted(selected_files)
 
 
@@ -655,7 +636,7 @@ def convert_to_pdf(input_directory, file_path, output_directory):
                         os.path.join(input_directory, file_path)], check=True, env=env)
         return output_file
     except subprocess.CalledProcessError as e:
-        print(f"Error converting {file_path} to PDF: {e}")
+        return None
 
 
 def merge_pdfs(pdf_list, output_path):
@@ -671,14 +652,13 @@ def delete_file(file):
     try:
         os.remove(file)
     except Exception as e:
-        print(f"Error deleting file {file}: {e}")
+        pass
 
 def terminate_libreoffice():
     try:
         subprocess.run(['pkill', '-f', 'soffice.bin'], check=True)
-        print("LibreOffice processes terminated.")
     except subprocess.CalledProcessError as e:
-        print("Failed to terminate LibreOffice:", e)
+        pass
 
 def process_files(house_name, input_directory, output_directory, month, period):
     try:
@@ -722,52 +702,11 @@ def process_files(house_name, input_directory, output_directory, month, period):
         with Pool(processes=os.cpu_count()) as pool:
             pool.map(delete_file, del_pdf_files)
 
-        print(f"Merged PDF saved as {merged_pdf_path}")
         return "success", f"{house_name}_영수증 및 회의록 등_{month}월{period}차.pdf", merged_pdf_path
     except Exception as e:
         return "error", e, None
     finally:
         terminate_libreoffice()
-
-# # 원본 함수
-# def process_files(house_name, input_directory, output_directory, month, period):
-#     try:
-#         receipt_dir = input_directory+'receipts'
-#         minutes_dir = input_directory+'minutes'
-#         etc_dir = input_directory+'etc'
-#         pdf_files = []
-#         del_pdf_files = []
-#         receipt_files = get_files(receipt_dir, month, period)
-#         etc_files = get_files(etc_dir, month, period)
-#         for file in receipt_files:
-#             pdf_path = convert_to_pdf(receipt_dir, file, output_directory)
-#             if pdf_path:
-#                 pdf_files.append(pdf_path)
-#                 del_pdf_files.append(pdf_path)
-#         for file in etc_files:
-#             pdf_path = convert_to_pdf(etc_dir, file, output_directory)
-#             if pdf_path:
-#                 pdf_files.append(pdf_path)
-#                 del_pdf_files.append(pdf_path)
-#         minutes_pdf = [os.path.join(minutes_dir, f) for f in get_files(minutes_dir, month, period) if f.endswith('.pdf')]
-#         if minutes_pdf:
-#             pdf_files.extend(minutes_pdf)
-#
-#         if not pdf_files:
-#             return "no_files", None, None
-#
-#         merged_pdf_path = os.path.join(output_directory, f"{house_name}_영수증 및 회의록 등_{month}월{period}차.pdf") #AVISON_영수증 및 회의록 등_9월2차
-#         merge_pdfs(pdf_files, merged_pdf_path)
-#
-#         for del_pdf_file in del_pdf_files:
-#             os.remove(del_pdf_file)
-#
-#         print(f"Merged PDF saved as {merged_pdf_path}")
-#         return "success", f"{house_name}_영수증 및 회의록 등_{month}월{period}차.pdf", merged_pdf_path
-#     except Exception as e:
-#         return "error", e, None
-
-
 
 def post_minute_data(data):
     try:
@@ -778,9 +717,9 @@ def post_minute_data(data):
         if response.status_code == 201:
             return 'success', "보고사항 제출 완료"
         else:
-            return 'warning', response.text
+            return 'warning', "보고사항 제출 실패."
     except requests.RequestException as e:
-        return 'error', f"Error: {e}"
+        return 'error', "알 수 없는 에러가 발생했습니다."
 
 def fetch_minutes_data(year_semester_house, week):
     headers = {"Accept": "application/json"}
@@ -807,13 +746,13 @@ def delete_minutes_detail(minute_id):
         headers = {"Accept": "application/json"}
         response = requests.delete(url, headers=headers)
         if response.status_code == 204:
-            return 'success', "삭제 완료"
+            return 'success', "삭제 성공했습니다."
         elif response.status_code == 404:
-            return 'warning', "Minutes Not Found"
+            return 'warning', "삭제 실패했습니다."
         else:
             return 'error', response.text
     except requests.RequestException as e:
-        return 'error', f"Error: {e}"
+        return 'error', "알 수 없는 에러가 발생했습니다."
 
 def process_minutes(datas, user_id, year_semester_house, week):
     user_data = None
