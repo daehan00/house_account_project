@@ -302,33 +302,77 @@ def allowed_file(upload_folder, filename, div):
     else:
         return None, None, 'error'
 
+EXT_PRIORITY = {
+    'xls': 1,
+    'xlsx': 1,
+    'hwp': 2,
+    'pdf': 3
+}
+
+def get_priority(filename):
+    """파일명으로부터 우선순위(정수)를 구하는 헬퍼 함수"""
+    ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+    return EXT_PRIORITY.get(ext, 999)
+
 def upload_file(upload_folder, redirect_url, div):
-    if 'file' not in request.files:
+    files = request.files.getlist('file')
+    if not files:
         flash('파일이 없습니다.', 'error')
         return redirect(request.url)
+    
+    # -----------------------------------------------------
+    # [1] "확장자 우선순위" 기준으로 정렬
+    # -----------------------------------------------------
+    sorted_files = sorted(files, key=lambda f: get_priority(f.filename))
 
-    file = request.files['file']
-    if file.filename == '':
-        flash('파일이 존재하지 않습니다.', 'error')
+    # -----------------------------------------------------
+    # [2] 정렬된 순서대로 "검증 + 저장" 시도
+    #     → 하나라도 실패 시 전체 롤백 (원자화)
+    # -----------------------------------------------------
+    saved_paths = []  # 성공적으로 저장된 파일 경로 리스트 (롤백용)
+    try:
+        for file_obj in sorted_files:
+            # 2-1) 검증 (allowed_file)
+            upload_folder_, filename, result = allowed_file(
+                upload_folder, file_obj.filename, div
+            )
+
+            # 검증 실패 → 전체 업로드 중단 & 롤백
+            if result != 'success':
+                if result == 'pdf_error':
+                    flash(f'업로드가 취소되었습니다.\n"{filename}" 회의록 한글 파일이 없습니다. 한글 파일을 업로드해주세요.', 'error')
+                elif result == 'name_error':
+                    flash(f'업로드가 취소되었습니다.\n"{filename}" 파일명 설정이 잘못되었습니다. 파일명을 확인해주세요.', 'error')
+                else:
+                    flash(f'업로드가 취소되었습니다.\n"{filename}" 유효하지 않은 파일 타입입니다.', 'error')
+                
+                # 이미 저장된 파일 삭제
+                for path in saved_paths:
+                    if os.path.exists(path):
+                        os.remove(path)
+                return redirect(redirect_url)
+            
+            # 2-2) 저장 시도
+            #      - IOError 발생 시 롤백
+            if not os.path.exists(upload_folder_):
+                os.makedirs(upload_folder_, exist_ok=True)
+            
+            save_path = os.path.join(upload_folder_, filename)
+            file_obj.save(save_path)  # 여기서 IOError 등 발생 가능
+            saved_paths.append(save_path)
+    
+    except IOError:
+        # 저장 중 문제가 생기면 롤백
+        for path in saved_paths:
+            if os.path.exists(path):
+                os.remove(path)
+        flash('파일 저장 중 오류가 발생하여 업로드를 취소했습니다.', 'error')
         return redirect(request.url)
 
-    upload_folder_, filename, error_type = allowed_file(upload_folder, file.filename, div)
-    if error_type == 'success':
-        try:
-            if not upload_folder_:
-                os.makedirs(upload_folder_)
-            file.save(os.path.join(upload_folder_, filename))
-            flash('파일 업로드 성공!', 'success')
-        except IOError as e:
-            flash('파일 업로드 실패했습니다.', 'error')
-            return redirect(request.url)
-    elif error_type == 'name_error':
-        flash('파일명 설정이 잘못되었습니다. 파일명을 확인해주세요.', 'error')
-    elif error_type == 'pdf_error':
-        flash('한글 파일이 없습니다. 영수증 한글 파일을 먼저 업로드해주세요.', 'error')
-    else:
-        flash('유효하지 않은 파일 타입입니다.', 'error')
-
+    # -----------------------------------------------------
+    # [3] 모든 파일 저장 성공 시
+    # -----------------------------------------------------
+    flash('모든 파일이 정상 업로드되었습니다.', 'success')
     return redirect(redirect_url)
 
 def get_files_from_directory(directory_path):

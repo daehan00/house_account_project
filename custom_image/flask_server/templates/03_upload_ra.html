@@ -23,7 +23,7 @@
 <h1>파일 제출</h1>
 <div class="form-container">
     <form action="/upload/ra" method="post" enctype="multipart/form-data">
-        <input type="file" id="file" name="file" class="file-input" required>
+        <input type="file" id="file" name="file" class="file-input" required multiple>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <br>
         <input type="submit" value="Upload">
