@@ -6,5 +6,6 @@ test1.ipynb
 **/.DS_Store
 **/__pycache__/
 **/__pycache__/*
-path/to/storage/
-!path/to/storage/**/.gitkeep
+storage/**
+!storage/**/
+!storage/**/*.gitkeep
