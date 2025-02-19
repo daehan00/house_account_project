@@ -1003,6 +1003,9 @@ def get_filtered_data(raw_data, period, month):
         return []
     filtered_data = [item for item in raw_data if item['year'] == datetime.now().year]
 
+    period = '' if period == 100 else period
+    month = '' if month == 100 else month
+    
     if period and month:
         filtered_data = [item for item in filtered_data if item['month'] == month]
         if period == 1:
