@@ -28,7 +28,7 @@
                         {% elif data['입력창'] == 'textarea' %}
                             <tr>
                                 <th scope="row">{{ data['항목명'] }}</th>
-                                <td><textarea id="{{ data['name'] }}" name="{{ data['name'] }}" rows="10" cols="50"></textarea></td>
+                                <td><textarea id="{{ data['name'] }}" name="{{ data['name'] }}" rows="10" cols="50" {{ data['attributes']|safe }}></textarea></td>
                             </tr>
                         {% else %}
                             <tr>

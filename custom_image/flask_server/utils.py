@@ -526,6 +526,18 @@ def form(input_type, name, name_id, attribute, content, options=None, required=T
     else:
         return {'입력창': input_type, '항목명': name, 'name': name_id, 'attributes': attributes}
 
+def form_mul(input_type, name, name_id, attribute, content, options=None, required=True):
+    """attribute와 content를 리스트로 받아 여러 속성을 가진 입력창 생성"""
+    attributes = ''
+    if content:
+        attributes = ' '.join(f'{attribute[i]}="{content[i]}"' for i in range(len(attribute)))
+    if required:
+        attributes += ' required'  # 필수 입력 필드로 설정
+    if input_type == 'select':
+        return {'입력창': input_type, '항목명': name, 'name': name_id, 'options': options, 'attributes': attributes}
+    else:
+        return {'입력창': input_type, '항목명': name, 'name': name_id, 'attributes': attributes}
+
 def generate_form_data(year_semester_house, user_id):
     today = datetime.now(pytz.timezone('Asia/Seoul')).strftime('%Y-%m-%dT%H:%M')
     user_list = get_ra_list(year_semester_house)
@@ -545,17 +557,17 @@ def generate_form_data(year_semester_house, user_id):
         form('checkbox', '주말, 법정 공휴일 및 심야 사용 여부', 'holiday_check', '', '', required=False),
         form('select', '계정항목', 'category_id','placeholder', '', options=category_expenses),
         form('select', '프로그램명', 'program_id', '', '', options=program_list),
-        form('text', '구매 핵심 사유', 'purchase_reason', 'placeholder', '운영물품 구매'),
-        form('text', '핵심 품목 및 수량', 'key_items_quantity', 'placeholder', '콜라 등 5종'),
-        form('textarea', '구매 내역(종류와 단가)', 'purchase_details', 'placeholder', ''),
+        form('text', '구매 핵심 사유', 'purchase_reason', 'placeholder', 'ex) 운영물품 구매'),
+        form('text', '핵심 품목 및 수량', 'key_items_quantity', 'placeholder', 'ex) 콜라 등 5종'),
+        form('textarea', '구매 내역(종류와 단가)', 'purchase_details', 'placeholder', '실물의 경우에는 정확하게 작성하세요.\n쿠팡의 경우에는 간단하게 요약 작성하세요.'),
         form('number', '인원', 'head_count', 'min', '1'),
         form('datetime-local', '결제일시', 'datetime', 'value', today),
-        form('number', '초', 'sec', 'max', '60'),
+        form_mul('number', '초', 'sec', ['min', 'max'], ['0', '60']),
         form('number', '금액', 'expenditure', 'step', '10'),
         form('text', '가맹점명', 'store_name', 'placeholder', '영수증에 나온 그대로'),
         form('checkbox', '기념품지급대장 작성여부', 'souvenir_record', 'placeholder', '', required=False),
         form('checkbox', '분반 프로그램 여부', 'division_program', 'placeholder', '', required=False),
-        form('number', '분반', 'division_num', 'max', '12', required=False),
+        form_mul('number', '분반', 'division_num', ['min', 'max'], ['1', '12'], required=False),
         form('text', '업체 선정 사유', 'reason_store', 'placeholder', 'ex) 최저가 업체'),
         form('checkbox', 'isp 사용여부', 'isp_check', 'placeholder', '', required=False)
     ]
