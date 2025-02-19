@@ -5,7 +5,14 @@ import requests
 import subprocess
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
 from flask_wtf.csrf import CSRFProtect, generate_csrf
-from utils import get_house_name, set_password, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, generate_form_data, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data
+from utils import (get_house_name, set_password, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, 
+                   delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, 
+                   post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, 
+                   get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, 
+                   generate_form_data, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data,
+                   get_file_pairs_and_etc, get_filtered_data
+)
+
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 load_dotenv()
@@ -328,74 +335,20 @@ def manager():
                    'head_count', 'purchase_reason', 'key_items_quantity', 'purchase_details', 'reason_store']
         raw_data = get_receipt_list(os.getenv("URL_API") + 'receipts/house', house_name)
 
-        # Get current year and month
-        now = datetime.now()
-        year = now.year
-        current_month = now.month
+        # set default value
+        current_month = datetime.now().month
+        current_period = 1 if datetime.now().day < 16 else 2
 
-        if not raw_data:
-            return render_template("03_check_list.html", tab_id="check_list", columns=columns, current_period=1,
-                                   current_month=current_month)
+        selected_month = request.args.get('month', type=int, default=current_month)
+        selected_period = request.args.get('period', type=int, default=current_period)
 
-        # Get year and month from query parameters
-        month = request.args.get('month', type=int)
-        period = request.args.get('period', type=int)
+        filtered_data = get_filtered_data(raw_data, selected_period, selected_month)
+        file_pairs, etc_files = get_file_pairs_and_etc(house_name, selected_period, selected_month)
 
-        receipt_files = []
-        minutes_files = []
-        etc_files = []
-        receipt_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/receipts"
-        minutes_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/minutes"
-        etc_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/etc"
-        filtered_data = [item for item in raw_data if item['year'] == year]
-
-        if period and month:
-            filtered_data = [item for item in filtered_data if item['month'] == month]
-            if period == 1:
-                filtered_data = [item for item in filtered_data if int(item['day']) <= 15]
-            elif period == 2:
-                filtered_data = [item for item in filtered_data if int(item['day']) > 15]
-
-            receipt_files = get_files(receipt_dir, month, period)
-            minutes_files = get_files(minutes_dir, month, period)
-            etc_files = get_files(etc_dir, month, period)
-
-        elif month:
-            filtered_data = [item for item in filtered_data if item['month'] == month]
-            for i in range(1, 3):
-                receipt_files_period = get_files(receipt_dir, month, i)
-                minutes_files_period = get_files(minutes_dir, month, i)
-                etc_files_period = get_files(etc_dir, month, i)
-                receipt_files.extend(receipt_files_period)
-                minutes_files.extend(minutes_files_period)
-                etc_files.extend(etc_files_period)
-        else:
-            receipt_files = get_files_from_directory(receipt_dir)
-            minutes_files = get_files_from_directory(minutes_dir)
-            etc_files = get_files_from_directory(etc_dir)
-
-        for i in filtered_data:
-            i['date'] = i['date'].split('T')[0]
-
-        hwp_files = [f.replace('.hwp', '') for f in minutes_files if f.endswith('.hwp')]
-        pdf_files = [unicodedata.normalize('NFC', f.replace('.pdf', '')) for f in minutes_files if f.endswith('.pdf')]
-        minutes_data = []
-        for i in hwp_files:
-            if unicodedata.normalize('NFC', i) in pdf_files:
-                i = {'filename': i, 'pdf': '제출'}
-            else:
-                i = {'filename': i, 'pdf': '미제출'}
-            minutes_data.append(i)
-
-
-        # 두 리스트를 zip하고, 만약 길이가 다르면 None으로 채우기
-        max_len = max(len(receipt_files), len(minutes_data))
-        receipt_files.extend([{'filename': None, 'pdf': None}] * (max_len - len(receipt_files)))
-        minutes_data.extend([{'filename': None, 'pdf': None}] * (max_len - len(minutes_data)))
-
-        file_pairs = zip(receipt_files, minutes_data)
-        return render_template("03_check_list.html", data=filtered_data, tab_id="check_list", columns=columns, current_period=period,
-                               current_month=current_month, selected_month=month, file_pairs=file_pairs, etc_files=etc_files)
+        return render_template(
+            "03_check_list.html", data=filtered_data, tab_id="check_list", columns=columns, selected_period=selected_period,
+                               selected_month=selected_month, file_pairs=file_pairs, etc_files=etc_files
+        )
     elif session.get('ra'):
             flash("접근 권한이 없습니다.", "warning")
             return redirect("/")

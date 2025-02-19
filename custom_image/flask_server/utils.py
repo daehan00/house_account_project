@@ -996,3 +996,71 @@ def manager_create_xlsx(month, period, house_name, year_semester_house):
         return file_path, file_name
     except Exception as e:
         return None, f"unexpected exception: {e}"
+    
+
+def get_filtered_data(raw_data, period, month):
+    if not raw_data:
+        return []
+    filtered_data = [item for item in raw_data if item['year'] == datetime.now().year]
+
+    if period and month:
+        filtered_data = [item for item in filtered_data if item['month'] == month]
+        if period == 1:
+            filtered_data = [item for item in filtered_data if int(item['day']) <= 15]
+        elif period == 2:
+            filtered_data = [item for item in filtered_data if int(item['day']) > 15]
+    elif month:
+        filtered_data = [item for item in filtered_data if item['month'] == month]
+    else:
+        pass
+    for item in filtered_data:
+        item['date'] = item['date'].split('T')[0]
+    
+    return filtered_data
+
+def get_file_pairs_and_etc(house_name, period, month):
+    receipt_files = []
+    minutes_files = []
+    etc_files = []
+    receipt_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/receipts"
+    minutes_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/minutes"
+    etc_dir = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/etc"
+    
+    period = '' if period == 100 else period
+    month = '' if month == 100 else month
+
+    if period and month:
+        receipt_files = get_files(receipt_dir, month, period)
+        minutes_files = get_files(minutes_dir, month, period)
+        etc_files = get_files(etc_dir, month, period)
+    elif month:
+        for i in range(1, 3):
+            receipt_files_period = get_files(receipt_dir, month, i)
+            minutes_files_period = get_files(minutes_dir, month, i)
+            etc_files_period = get_files(etc_dir, month, i)
+            receipt_files.extend(receipt_files_period)
+            minutes_files.extend(minutes_files_period)
+            etc_files.extend(etc_files_period)
+    else:
+        receipt_files = get_files_from_directory(receipt_dir)
+        minutes_files = get_files_from_directory(minutes_dir)
+        etc_files = get_files_from_directory(etc_dir)
+
+    hwp_files = [f.replace('.hwp', '') for f in minutes_files if f.endswith('.hwp')]
+    pdf_files = [unicodedata.normalize('NFC', f.replace('.pdf', '')) for f in minutes_files if f.endswith('.pdf')]
+    minutes_data = []
+    for i in hwp_files:
+        if unicodedata.normalize('NFC', i) in pdf_files:
+            i = {'filename': i, 'pdf': '제출'}
+        else:
+            i = {'filename': i, 'pdf': '미제출'}
+        minutes_data.append(i)
+    
+    # 두 리스트를 zip하고, 만약 길이가 다르면 None으로 채우기
+    max_len = max(len(receipt_files), len(minutes_data))
+    receipt_files.extend([{'filename': None, 'pdf': None}] * (max_len - len(receipt_files)))
+    minutes_data.extend([{'filename': None, 'pdf': None}] * (max_len - len(minutes_data)))
+
+    file_pairs = zip(receipt_files, minutes_data)
+
+    return file_pairs, etc_files
