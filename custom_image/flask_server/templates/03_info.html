@@ -13,7 +13,6 @@
     <ul>
         <li>
             <form action="/ra/download/template" method="POST">
-                <input type="hidden" name="category" value="report">
                 <input type="hidden" name="category" value="receipt">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="submit" value="심야영수증">
@@ -21,7 +20,6 @@
         </li>
         <li>
             <form action="/ra/download/template" method="POST">
-                <input type="hidden" name="category" value="report">
                 <input type="hidden" name="category" value="gift">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="submit" value="기념품지급대장">
@@ -29,7 +27,6 @@
         </li>
         <li>
             <form action="/ra/download/template" method="POST">
-                <input type="hidden" name="category" value="report">
                 <input type="hidden" name="category" value="minutes">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="submit" value="회의록">
