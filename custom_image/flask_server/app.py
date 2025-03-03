@@ -24,7 +24,7 @@ app.config['UPLOAD_FOLDER_ADMIN'] = os.getenv('UPLOAD_FOLDER_ADMIN')  # 업로�
 app.config['UPLOAD_FOLDER_RA'] = os.getenv('UPLOAD_FOLDER_RA')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_TMP'] = os.getenv('UPLOAD_FOLDER_TMP')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_MANAGER'] = os.getenv('UPLOAD_FOLDER_MANAGER')
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
 
 csrf = CSRFProtect(app)
 # 커스텀 로그 필터
@@ -83,8 +83,9 @@ def login():
 
 @app.route('/logout')
 def logout():
-    session.clear()  # 세션 데이터 모두 제거
-    flash('로그아웃 되었습니다.', 'info')
+    if session:
+        session.clear()  # 세션 데이터 모두 제거
+        flash('로그아웃 되었습니다.', 'info')
     return redirect("/")  # 홈 페이지로 리디렉션
 
 @app.route('/password/page')
