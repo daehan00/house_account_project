@@ -51,7 +51,7 @@
   ],
   "category_expenses": [
     {
-      "kor_name": "운영비",
+      "kor_name": "기타운영비",
       "en_name": "Operational Expenses",
       "description": {
         "en": "Includes costs for operational supplies, equipment rental, and venue rental. Non-consumable items only.",
@@ -107,11 +107,11 @@
       }
     },
     {
-      "kor_name": "RA회의비",
+      "kor_name": "회의비",
       "en_name": "RA Meeting Expenses",
       "description": {
-        "en": "Budget for regular operational meetings, adjusted by the number of RC students.",
-        "kor": "RC 학생 수에 따라 조정되는 정례 운영 회의의 예산입니다."
+        "en": "Budget for regular operational meetings.",
+        "kor": "정례 운영 회의의 예산입니다."
       }
     }
   ]

@@ -943,7 +943,7 @@ def manager_create_xlsx(month, period, house_name, year_semester_house):
                 "금액": receipt['expenditure'],
                 "가맹점명": receipt['store_name'],
                 "주말휴일심야사용여부": "사용" if receipt['holiday_check'] else "미사용",
-                "신규프로그램여부": "N",
+                "신규프로그램여부": "기존",
                 "계정항목": receipt['category_id'],
                 "하우스": get_house_name(receipt['house_name']),
                 "프로그램명": receipt['program_name'],
