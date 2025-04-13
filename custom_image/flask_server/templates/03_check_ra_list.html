@@ -33,7 +33,7 @@
             {% endfor %}
             <td style="display:none;">{{ row['user_name'] }}</td>
             <td>
-                <form action="/ra/create_xlsx" method="post" style="display:inline-block; margin-right: 4px;">
+                <form action="/ra/create_xlsx" method="post" style="display:inline-block;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="ftype" value="wid">
                     {% for column in columns %}
