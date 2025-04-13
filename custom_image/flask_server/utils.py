@@ -220,7 +220,8 @@ def get_receipt_list(url, search_id=None):
         response = requests.get(url, headers=headers)
     if response.status_code == 200:
         data = response.json()
-        sorted_data = sorted(data, key=lambda x: datetime.fromisoformat(x['date']))
+        sorted_data = sorted(data, key=lambda x: (datetime.fromisoformat(x['date']).date(), not (x.get('isp_check') == True), datetime.strptime(x['time'], "%H:%M:%S").time()))
+        # sorted_data = sorted(data, key=lambda x: datetime.fromisoformat(x['date']))
         return sorted_data  # 반환 값은 JSON 데이터
     else:
         return None
