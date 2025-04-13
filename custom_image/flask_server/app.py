@@ -629,7 +629,8 @@ def upload_ra():
 def create_xlsx():
     data = request.form.to_dict()
     data['house_name'] = session['userData'].split('-')[-1]
-    tmp_path, file_name = modify_and_save_excel(data)
+    ftype = data.get('ftype', 'wid')
+    tmp_path, file_name = modify_and_save_excel(data, ftype)
     if tmp_path and file_name:
         try:
             response = send_file(
@@ -643,7 +644,7 @@ def create_xlsx():
         except Exception as e:
             flash("파일 다운로드를 실패했습니다.", "error")
     else:
-        flash("알 수 없는 에러가 발생했습니다.", "error")
+        flash(f"알 수 없는 에러가 발생했습니다.{tmp_path}", "error")
     return None
 
 @app.route('/upload/ra', methods=['POST'])

@@ -628,14 +628,15 @@ def post_receipt_data(request_data):
         return redirect("/ra/post_receipt")
 
 
-def modify_and_save_excel(data):
+def modify_and_save_excel(data, ftype):
     try:
         date = datetime.strptime(data['date'], '%Y-%m-%d')
 
         file_name = date.strftime('%y%m%d')+f"(영)_{data['user_name']}RA_{data['program_name']}.xlsx"
 
         # 엑셀 파일 열기
-        workbook = openpyxl.load_workbook(os.getenv("DATA_PATH")+'영수증_양식_파일.xlsx')
+        given_file_name = "영수증_양식_파일_가로.xlsx" if ftype == "wid" else "영수증_양식_파일_세로.xlsx"
+        workbook = openpyxl.load_workbook(os.getenv("DATA_PATH")+given_file_name)
         sheet = workbook.active
 
         # 데이터 수정
@@ -644,7 +645,7 @@ def modify_and_save_excel(data):
         sheet['B4'] = data['program_name']
         sheet['B5'] = date.strftime('%Y. %m. %d')
         sheet['B6'] = int(data['expenditure'])
-        sheet['B7'] = data['reason_store']
+        sheet['B7'] = data['category_id']
         sheet['D5'] = int(data['head_count'])
 
         # 임시 파일 생성
@@ -655,7 +656,7 @@ def modify_and_save_excel(data):
         return tmp_path, file_name
 
     except Exception as e:
-        return None, None
+        return e, None
 
 
 

@@ -33,12 +33,21 @@
             {% endfor %}
             <td style="display:none;">{{ row['user_name'] }}</td>
             <td>
-                <form action="/ra/create_xlsx" method="post" style="display:inline;">
+                <form action="/ra/create_xlsx" method="post" style="display:inline-block; margin-right: 4px;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="ftype" value="wid">
                     {% for column in columns %}
                     <input type="hidden" name="{{ column }}" value="{{ row[column] }}">
                     {% endfor %}
-                    <button type="submit">다운</button>
+                    <button type="submit">가로</button>
+                </form>
+                <form action="/ra/create_xlsx" method="post" style="display:inline-block;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="ftype" value="len">
+                    {% for column in columns %}
+                    <input type="hidden" name="{{ column }}" value="{{ row[column] }}">
+                    {% endfor %}
+                    <button type="submit">세로</button>
                 </form>
             </td>
         </tr>
