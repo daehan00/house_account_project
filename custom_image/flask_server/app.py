@@ -644,7 +644,7 @@ def create_xlsx():
         except Exception as e:
             flash("파일 다운로드를 실패했습니다.", "error")
     else:
-        flash(f"알 수 없는 에러가 발생했습니다.{tmp_path}", "error")
+        flash(f"알 수 없는 에러가 발생했습니다.", "error")
     return None
 
 @app.route('/upload/ra', methods=['POST'])

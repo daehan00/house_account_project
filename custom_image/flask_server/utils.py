@@ -656,7 +656,7 @@ def modify_and_save_excel(data, ftype):
         return tmp_path, file_name
 
     except Exception as e:
-        return e, None
+        return None, None
 
 
 
