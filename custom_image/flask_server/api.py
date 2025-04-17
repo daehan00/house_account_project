@@ -1,13 +1,16 @@
-from flask import Flask, request, jsonify, abort
+import os
+
+from pytz import timezone
+from datetime import datetime
+from dotenv import load_dotenv
+from flasgger import Swagger, swag_from
 from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, request, jsonify, abort
 from sqlalchemy.orm import relationship
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-from flasgger import Swagger, swag_from
-from dotenv import load_dotenv
-import os
-from pytz import timezone
-from datetime import datetime
+
+from log import SystemLogger
 
 # Load environment variables
 load_dotenv()
@@ -27,6 +30,16 @@ app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")  # CSRF 보호를 위한 비�
 
 db = SQLAlchemy(app)
 swagger = Swagger(app, template_file='swagger/swagger.yml')
+
+logger = SystemLogger("api")
+
+@app.before_request
+def log_request():
+    logger.log(request)
+
+@app.after_request
+def log_response(response):
+    return logger.log(request, response)
 
 class RAList(db.Model):
     __tablename__ = 'ra_list_table'

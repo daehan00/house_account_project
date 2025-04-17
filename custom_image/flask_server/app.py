@@ -1,20 +1,22 @@
 import os
-import unicodedata
-import logging
 import requests
-import subprocess
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
+import unicodedata
+
+from dotenv import load_dotenv
+from datetime import datetime, timedelta
+from logging.handlers import RotatingFileHandler
 from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
+
 from utils import (get_house_name, set_password, manager_create_xlsx, calculate_week_of_month, get_minutes_data, process_minutes, 
                    delete_minutes_detail, fetch_minutes_data, post_minute_data, fetch_ra_list, delete_calendar_event, put_calendar_event, 
-                   post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, get_files, 
+                   post_calendar_event, get_calendar_event, get_program_list, update_ra_authority, get_ra_list_sorted, 
                    get_files_from_directory, process_files, ra_login, upload_file, register_ra_list, register_program_list, 
                    generate_form_data, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data,
                    get_file_pairs_and_etc, get_filtered_data
 )
+from log import SystemLogger
 
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
 load_dotenv()
 
 app = Flask(__name__)
@@ -27,13 +29,9 @@ app.config['UPLOAD_FOLDER_MANAGER'] = os.getenv('UPLOAD_FOLDER_MANAGER')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
 
 csrf = CSRFProtect(app)
-# 커스텀 로그 필터
-class StaticFilter(logging.Filter):
-    def filter(self, record):
-        return '/static/' not in record.getMessage()
-if not app.debug:
-    werkzeug_logger = logging.getLogger('werkzeug')
-    werkzeug_logger.addFilter(StaticFilter())
+
+# 로거 객체 생성
+logger = SystemLogger("app")
 
 #보안 조치(에러 핸들러, 캐싱 정책, 프레임 보호, XSS 보호)
 @app.errorhandler(404)
@@ -44,12 +42,16 @@ def page_not_found(e):
 def method_not_allowed(e):
     return "이 메소드는 허용되지 않습니다.", 405
 
+@app.before_request
+def log_before_request():
+    logger.log(request)
+
 @app.after_request
 def apply_caching(response):
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-XSS-Protection"] = "1; mode=block"
-    return response
+    return logger.log(request, response)
 
 @app.route("/", methods=["GET"])
 def home():
@@ -116,6 +118,7 @@ def calendar():
             return render_template("calendar.html", programs=programs)
         except Exception as e:
             flash(f"알 수 없는 에러가 발생했습니다.", 'error')
+            logger.error(e)
             return redirect("/")
     else:
         flash('이 페이지에 접근 권한이 없습니다.', 'warning')
@@ -250,6 +253,7 @@ def reset_ra():
             flash("초기화 성공!", 'success')
         else:
             flash("알 수 없는 에러가 발생했습니다.", 'error')
+            logger.error(response.text)
         return redirect("/admin")
     else:
         flash("접근 권한이 없습니다.", "error")
@@ -265,6 +269,7 @@ def reset_receipt():
             flash("초기화 성공!", 'success')
         else:
             flash("알 수 없는 에러가 발생했습니다.", 'error')
+            logger.error(response.text)
         return redirect("/admin")
     else:
         flash("접근 권한이 없습니다.", "error")
@@ -292,6 +297,7 @@ def reset_files():
             flash(f"초기화 성공: {successnumber}개 파일이 삭제되었습니다..", 'success')
         else:
             flash(f"에러: {failnumber}개 파일이 삭제되지 않았습니다.", 'error')
+            logger.error(f"file remove error, {failnumber} files not removed.")
         return redirect("/admin")
     else:
         flash("접근 권한이 없습니다.", "error")
@@ -392,6 +398,7 @@ def delete_receipt():
             flash("삭제되었습니다.", "success")
         else:
             flash(f"삭제 실패했습니다.", "error")
+            logger.error("receipt delete uncompleted")
         return redirect("/manager/check_list")
     else:
         flash("권한이 없습니다.", "error")
@@ -463,8 +470,9 @@ def delete_file():
         else:
             os.remove(os.path.join(directory, filename))
         flash(f"파일명: {str(filename)} 삭제되었습니다.", "success")
-    except FileNotFoundError:
+    except FileNotFoundError as e:
         flash(f"파일명: {filename} 파일을 찾을 수 없습니다.", "error")
+        logger.error(e)
 
     if file_type == 'setup':
         return redirect("/manager/setup")
@@ -517,7 +525,8 @@ def process_accounting():
         elif trial == "no_files":
             flash(f"{month}월_{period}차 파일이 존재하지 않습니다. 기간 선택을 확인하세요.", "info")
         else:
-            flash(f"작업 실패했습니다. 에러 메시지: {message}", "error")
+            flash("작업 실패했습니다.", "error")
+            logger.error(message)
         return redirect("/manager/accounting")
     else:
         flash("접근 권한이 없습니다.", "warning")
@@ -543,6 +552,7 @@ def manager_process_xlsx():
                 return response
             except Exception as e:
                 flash(f"파일 다운로드를 실패했습니다.", "error")
+                logger.error(e)
                 return redirect("/manager/accounting")
         elif file_name:
             flash(file_name, "error")
@@ -643,8 +653,10 @@ def create_xlsx():
             return response
         except Exception as e:
             flash("파일 다운로드를 실패했습니다.", "error")
+            logger.error(e)
     else:
         flash(f"알 수 없는 에러가 발생했습니다.", "error")
+        logger.error("Unknown error")
     return None
 
 @app.route('/upload/ra', methods=['POST'])
@@ -774,18 +786,3 @@ def download_template():
 def get_csrf_token():
     token = generate_csrf()
     return jsonify({'csrf_token': token})
-
-# 웹훅
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    if request.method == 'POST':
-        payload = request.json
-        if payload and payload['ref'] == 'refs/heads/main':
-            subprocess.run(["git", "pull", "origin", "main"])
-            subprocess.run(["docker-compose", "pull", "flask-app"])
-            subprocess.run(["docker-compose", "up", "-d", "flask-app"])
-            return 'Webhook received and Docker updated', 200
-        else:
-            return 'Not the main branch', 200
-    else:
-        abort(405)
