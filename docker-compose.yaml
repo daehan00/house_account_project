@@ -45,13 +45,13 @@ services:
       - "3000:8088"
     environment:
       FLASK_APP: app.py
-      FLASK_ENV: development
+      FLASK_ENV: production
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
       - ${AIRFLOW_PROJ_DIR:-.}/storage:/opt/airflow/storage
       - ${AIRFLOW_PROJ_DIR:-.}/custom_image/flask_server/:/app
     restart: always
-    command: python -m flask run --host=0.0.0.0 --port=8088
+    command: gunicorn -w 1 --threads 2 -b 0.0.0.0:8088 app:app
     networks:
       network_custom:
         ipv4_address: 172.28.0.3
@@ -62,13 +62,13 @@ services:
       - "5000:5000"
     environment:
       FLASK_APP: api.py
-      FLASK_ENV: development
+      FLASK_ENV: production
     volumes:
       - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
       - ${AIRFLOW_PROJ_DIR:-.}/storage:/opt/airflow/storage
       - ${AIRFLOW_PROJ_DIR:-.}/custom_image/flask_server/:/app
     restart: always
-    command: python -m flask run --host=0.0.0.0 --port=5000
+    command: gunicorn -w 1 --threads 1 -b 0.0.0.0:5000 api:app
     networks:
       network_custom:
         ipv4_address: 172.28.0.4
