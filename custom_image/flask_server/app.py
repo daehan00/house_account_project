@@ -12,6 +12,7 @@ from utils import (get_house_name, set_password, manager_create_xlsx, calculate_
                    generate_form_data, post_receipt_data, get_receipt_list, modify_and_save_excel, delete_receipt_data,
                    get_file_pairs_and_etc, get_filtered_data
 )
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -24,7 +25,11 @@ app.config['UPLOAD_FOLDER_ADMIN'] = os.getenv('UPLOAD_FOLDER_ADMIN')  # 업로�
 app.config['UPLOAD_FOLDER_RA'] = os.getenv('UPLOAD_FOLDER_RA')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_TMP'] = os.getenv('UPLOAD_FOLDER_TMP')  # 업로드 파일을 저장할 서버 내 경로
 app.config['UPLOAD_FOLDER_MANAGER'] = os.getenv('UPLOAD_FOLDER_MANAGER')
+app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS 환경에서만 세션 쿠키 전송
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # JS에서 쿠키 접근 못하게
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # 크로스사이트 요청 제한 (Strict도 가능)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 csrf = CSRFProtect(app)
 # 커스텀 로그 필터

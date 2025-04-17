@@ -1,4 +1,3 @@
-# Dockerfile
 FROM python:3.8-slim
 
 # 필수 패키지 설치 및 로케일 설정
@@ -19,16 +18,16 @@ ENV LANG=ko_KR.UTF-8
 ENV LANGUAGE=ko_KR:ko
 ENV LC_ALL=ko_KR.UTF-8
 
-# 작업 디렉터리 설정
 WORKDIR /app
 
-# 필요한 패키지 설치
 COPY requirements.txt .
 RUN pip install --upgrade pip \
-    && pip install -r requirements.txt
+    && pip install -r requirements.txt \
+    && pip install gunicorn
 
-# 애플리케이션 코드 복사
 COPY . .
 
 EXPOSE 8088 5000
-CMD ["flask", "run", "--host=0.0.0.0", "--port=8088"]
+
+# gunicorn은 app.py 파일의 app 객체를 실행
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8088", "app:app"]
