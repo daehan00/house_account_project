@@ -4,7 +4,6 @@ import unicodedata
 
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-from logging.handlers import RotatingFileHandler
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
 
