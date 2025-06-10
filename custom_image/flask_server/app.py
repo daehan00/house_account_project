@@ -432,7 +432,7 @@ def download_file():
             filename = filename + '.pdf'
         else:
             filename = filename + '.hwp'
-        # filename = filename + '.hwp'
+        filename = filename + '.hwp' # 한글 살리는 코드
     elif file_type == 'setup':
         directory = os.getenv("UPLOAD_FOLDER_TMP")
     else:
