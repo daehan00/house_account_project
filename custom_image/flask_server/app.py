@@ -428,10 +428,10 @@ def download_file():
         directory = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/etc"
     elif file_type == 'minute':
         directory = os.getenv("UPLOAD_FOLDER_RA") + f"/{house_name}/minutes"
-        if pdf_filename:
-            filename = filename + '.pdf'
-        else:
-            filename = filename + '.hwp'
+        # if pdf_filename:
+        #     filename = filename + '.pdf'
+        # else:
+        #     filename = filename + '.hwp'
         filename = filename + '.hwp' # 한글 살리는 코드
     elif file_type == 'setup':
         directory = os.getenv("UPLOAD_FOLDER_TMP")
